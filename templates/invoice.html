@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <title>FAKTURA VAT {{number}}</title>
+    <style>
+      {{styles}}
+    </style>
+    <link rel="stylesheet" href="invoice.css" />
+  </head>
+  <body>
+    <!-- Header with title and number -->
+    <div class="header">
+      <h1 class="inv-title">FAKTURA VAT numer</h1>
+      <div class="inv-number">{{number}}</div>
+    </div>
+
+    <!-- Location and dates -->
+    <div class="section-meta">
+      <p class="inv-meta-subtitle">
+        Miejsce wystawienia: <span class="inv-meta-value">{{place}}</span>
+      </p>
+      <p class="inv-meta-subtitle">
+        Data wystawienia: <span class="inv-meta-value">{{issue_date}}</span>
+      </p>
+      <p class="inv-meta-subtitle">
+        Data sprzedaży: <span class="inv-meta-value">{{sale_date}}</span>
+      </p>
+    </div>
+
+    <!-- Seller and Buyer info -->
+
+    <div class="inv-sides-data">
+      <div class="inv-side">
+        <p class="inv-side-name">Sprzedawca:</p>
+        <div class="side-info-wrap side-info-wrap-gray">
+          <p class="inv-side-info">
+            <span class="firm-name">{{seller_name}}</span><br />
+            {{seller_address}}<br />
+            NIP: {{seller_nip}}
+          </p>
+        </div>
+      </div>
+      <div class="inv-side">
+        <p class="inv-side-name">Nabywca:</p>
+        <div class="side-info-wrap">
+          <p class="inv-side-info">
+            <span class="firm-name">{{buyer_name}}</span><br />
+            {{buyer_address}}<br />
+            {{buyer_identifier}}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Invoice items table -->
+    <table class="inv-items-tab">
+      <thead>
+        <tr>
+          <th class="tab-lp">LP</th>
+          <th class="tab-prod_name">Nazwa towaru / usługi</th>
+          <th class="tab-qwant">Ilość</th>
+          <th class="tab-price">Cena netto</th>
+          <th class="tab-price">Cena brutto</th>
+          <th class="tab-price">Wartość netto</th>
+          <th class="tab-vat_rate">VAT %</th>
+          <th class="tab-vat">Wartość VAT</th>
+          <th class="tab-total_price">Wartość brutto</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{rows}}
+        <tr class="summary-row">
+          <td class="no-border" colspan="4"></td>
+          <td>W tym</td>
+          <td>{{net_sum}}</td>
+          <td>23</td>
+          <td>{{vat_sum}}</td>
+          <td>{{gross_sum}}</td>
+        </tr>
+        <tr class="summary-row">
+          <td class="no-border" colspan="4"></td>
+          <td><strong>Razem:</strong></td>
+          <td><strong>{{net_sum}}</strong></td>
+          <td></td>
+          <td><strong>{{vat_sum}}</strong></td>
+          <td><strong>{{gross_sum}}</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Totals -->
+    <div class="section totals">
+      <p class="inv-total-text">
+        Wartość netto: <span class="inv-total-value">{{net_sum}} PLN </span>
+      </p>
+      <p class="inv-total-text">
+        Wartość VAT: <span class="inv-total-value">{{vat_sum}} PLN </span>
+      </p>
+      <p class="inv-total-text">
+        Wartość brutto: <span class="inv-total-value">{{gross_sum}} PLN </span>
+      </p>
+    </div>
+
+    <!-- Payment info -->
+    <div class="section-payment">
+      <p class="inv-meta-subtitle">
+        Do zapłaty:<span class="inv-meta-value">
+          <span class="big-total">{{amount_due}} PLN</span></span
+        >
+      </p>
+      <p class="inv-meta-subtitle">
+        Słownie:<span class="inv-meta-value"> {{amount_in_words}}</span>
+      </p>
+      <p class="inv-meta-subtitle">
+        Termin płatności: <span class="inv-meta-value"> {{due_date}}</span>
+      </p>
+      <p class="inv-meta-subtitle">
+        Płatność:
+        <span class="inv-meta-value"> {{payment_method}}</span>
+      </p>
+      <p class="inv-meta-subtitle">
+        Bank: <span class="inv-meta-value">{{bank}}</span>
+      </p>
+      <p class="inv-meta-subtitle">
+        Konto: <span class="inv-meta-value">{{account}}</span>
+      </p>
+    </div>
+
+    <!-- Issuer -->
+    <div class="section-issuer">
+      <p class="inv-issuer">Imię i nazwisko wystawcy</p>
+      <br />
+      <p class="inv-issuer-name">Dmytro Sirenko</p>
+    </div>
+  </body>
+</html>

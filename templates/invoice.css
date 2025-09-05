@@ -1,0 +1,160 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 20px;
+    font-size: 12px;
+    color: #333;
+  }
+  
+  .header {
+    text-align: right;
+    line-height: 1.3em;
+    font-weight: 400;
+    margin-bottom: 20px;
+  }
+  
+  .inv-title {
+    font-size: 14px;
+    font-weight: 600;
+  }
+  
+  .inv-number {
+    font-size: 24px;
+    text-transform: uppercase;
+  }
+  
+  .section-meta {
+    text-align: right;
+    font-size: 10px;
+    line-height: 0.6em;
+    margin-bottom: 0px;
+  }
+  
+  .inv-meta-subtitle {
+    font-weight: 600;
+  }
+  .inv-meta-value {
+    font-weight: 400;
+  }
+  .inv-sides-data {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    justify-content: space-between;
+    margin-bottom: 40px;
+  }
+  .inv-side {
+    width: 50%;
+  }
+  .inv-side-info {
+    margin-top: auto;
+    line-height: 1.3em;
+  }
+  .side-info-wrap {
+    min-height: 80px;
+    padding: 8px;
+    border: 1px solid rgb(224, 224, 224);
+  }
+  
+  .side-info-wrap-gray {
+    background-color: rgb(224, 224, 224);
+  }
+  .firm-name {
+    font-weight: 600;
+    padding-right: 32px;
+  }
+  .inv-side-name {
+    margin-bottom: 4px;
+    margin-left: 8px;
+    font-size: 12px;
+  }
+  .inv-items-tab {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+  .inv-items-tab th {
+    text-align: right;
+    font-size: 10px;
+    border: 1px solid rgb(224, 224, 224);
+  }
+  
+  .inv-items-tab td {
+    padding: 6px;
+    border: 1px solid rgb(224, 224, 224);
+    text-align: right;
+  }
+  .tab-lp {
+    text-align: left !important;
+  }
+  .tab-prod_name {
+    text-align: left !important;
+  }
+  .tab-qwant {
+  }
+  .tab-price {
+  }
+  .tab-vat_rate {
+  }
+  .tab-vat {
+  }
+  .tab-total_price {
+  }
+  .summary-row td.no-border {
+    border: none;
+    background: transparent;
+  }
+  .totals {
+    text-align: right;
+    line-height: 0.6em;
+    font-size: 12px;
+    margin-bottom: 40px;
+  }
+  
+  .big-total {
+    font-size: 24px;
+  }
+  .inv-total-text {
+    font-weight: 600;
+  }
+  .inv-total-value {
+    font-weight: 400;
+  }
+  
+  .section-payment {
+    font-size: 12px;
+    line-height: 0.6em;
+  }
+  .section-issuer {
+    width: 200px;
+    margin-top: 40px;
+    margin-left: 120px;
+    font-weight: 600;
+    text-align: center;
+  }
+  .inv-issuer {
+    margin: 0;
+  }
+  .inv-issuer-name {
+    font-weight: 400;
+    text-align: center;
+    margin: 0;
+  }
+  
+  .text-left {
+    text-align: left !important;
+  }
+  
+  .text-right {
+    text-align: right !important;
+  }
+  
+  .text-center {
+    text-align: center !important;
+  }
+  
+  /* --- print-friendly --- */
+@media print {
+  thead { display: table-header-group; }
+  tfoot { display: table-footer-group; }
+  tr, img { page-break-inside: avoid; }
+}

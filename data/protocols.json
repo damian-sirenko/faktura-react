@@ -1,0 +1,552 @@
+[
+  {
+    "id": "magdalena-cichosz",
+    "month": "2025-08",
+    "entries": [
+      {
+        "date": "2025-08-26",
+        "tools": [
+          {
+            "name": "Cążki",
+            "count": 10
+          },
+          {
+            "name": "kopytka",
+            "count": 10
+          },
+          {
+            "name": "frezy",
+            "count": 20
+          }
+        ],
+        "packages": 10,
+        "delivery": "odbior+dowoz",
+        "shipping": true,
+        "comment": ""
+      }
+    ]
+  },
+  {
+    "id": "K053-AL",
+    "month": "2025-08",
+    "entries": [
+      {
+        "date": "2025-08-27",
+        "tools": [
+          {
+            "name": "Cążki",
+            "count": 25
+          },
+          {
+            "name": "Frezy",
+            "count": 50
+          }
+        ],
+        "packages": 25,
+        "delivery": "odbior+dowoz",
+        "shipping": false,
+        "comment": ""
+      },
+      {
+        "date": "2025-08-27",
+        "tools": [
+          {
+            "name": "Cążki",
+            "count": 32
+          },
+          {
+            "name": "Frezy",
+            "count": 50
+          }
+        ],
+        "packages": 32,
+        "delivery": "odbior+dowoz",
+        "shipping": false,
+        "comment": ""
+      },
+      {
+        "date": "2025-08-27",
+        "tools": [
+          {
+            "name": "Cążki",
+            "count": 20
+          }
+        ],
+        "packages": 0,
+        "delivery": "odbior+dowoz",
+        "shipping": false,
+        "comment": ""
+      }
+    ]
+  },
+  {
+    "id": "K056-JM",
+    "month": "2025-08",
+    "entries": [
+      {
+        "date": "2025-08-27",
+        "tools": [
+          {
+            "name": "Cążki",
+            "count": 50
+          },
+          {
+            "name": "Frezy",
+            "count": 100
+          }
+        ],
+        "packages": 112,
+        "delivery": null,
+        "shipping": true,
+        "comment": "\rPrezes są siemniałe. Brak jednego Frezy do masy."
+      }
+    ]
+  },
+  {
+    "id": "K004-BEL",
+    "month": "2025-08",
+    "entries": [
+      {
+        "date": "2025-08-27",
+        "tools": [
+          {
+            "name": "Tarka",
+            "count": 65
+          },
+          {
+            "name": "Nożyczki",
+            "count": 4
+          }
+        ],
+        "packages": 10,
+        "delivery": null,
+        "shipping": false,
+        "comment": ""
+      },
+      {
+        "date": "2025-08-27",
+        "tools": [
+          {
+            "name": "Cążki",
+            "count": 25
+          },
+          {
+            "name": "Frezy",
+            "count": 50
+          }
+        ],
+        "packages": 52,
+        "delivery": "odbior+dowoz",
+        "shipping": false,
+        "comment": "",
+        "signatures": {
+          "transfer": {
+            "client": "/signatures/K004-BEL/2025-08/transfer_client_1756489685237_16v56w.png",
+            "staff": "/signatures/K004-BEL/2025-08/transfer_staff_1756489685238_6kcjm9.png"
+          },
+          "return": {
+            "client": "/signatures/K004-BEL/2025-08/return_client_1756489685244_fkvwbh.png"
+          }
+        }
+      },
+      {
+        "date": "2025-08-27",
+        "tools": [],
+        "packages": 0,
+        "delivery": null,
+        "shipping": false,
+        "comment": ""
+      },
+      {
+        "date": "2025-08-28",
+        "tools": [],
+        "packages": 0,
+        "delivery": null,
+        "shipping": false,
+        "comment": ""
+      },
+      {
+        "date": "2025-08-28",
+        "tools": [],
+        "packages": 0,
+        "delivery": null,
+        "shipping": false,
+        "comment": "",
+        "queue": {
+          "courierPending": false,
+          "pointPending": false
+        }
+      },
+      {
+        "date": "2025-08-28",
+        "tools": [
+          {
+            "name": "Nożyczki",
+            "count": 45
+          }
+        ],
+        "packages": 20,
+        "delivery": "odbior+dowoz",
+        "shipping": false,
+        "comment": ""
+      },
+      {
+        "date": "2025-08-28",
+        "tools": [
+          {
+            "name": "Nożyczki",
+            "count": 20
+          }
+        ],
+        "packages": 20,
+        "delivery": null,
+        "shipping": false,
+        "comment": "",
+        "signatures": {
+          "transfer": {
+            "client": "/signatures/K004-BEL/2025-08/transfer_client_1756412427731_19fet6.png",
+            "staff": "/signatures/K004-BEL/2025-08/transfer_staff_1756412427733_23jiw2.png"
+          },
+          "return": {
+            "client": "/signatures/K004-BEL/2025-08/return_client_1756412427733_gx2ild.png",
+            "staff": "/signatures/K004-BEL/2025-08/return_staff_1756412427734_9y2yuu.png"
+          }
+        }
+      },
+      {
+        "date": "2025-08-28",
+        "tools": [
+          {
+            "name": "Kopytka",
+            "count": 34
+          }
+        ],
+        "packages": 21,
+        "delivery": "odbior+dowoz",
+        "shipping": false,
+        "comment": "",
+        "signatures": {
+          "transfer": {
+            "staff": "/signatures/K004-BEL/2025-08/transfer_staff_1756422212813_c1rtkm.png",
+            "client": "/signatures/K004-BEL/2025-08/transfer_client_1756571413446_bvlkn0.png"
+          },
+          "return": {
+            "staff": "/signatures/K004-BEL/2025-08/return_staff_1756422212822_tkbh2o.png",
+            "client": "/signatures/K004-BEL/2025-08/return_client_1756541361568_9s77cq.png"
+          }
+        },
+        "queue": {
+          "courierPending": false,
+          "pointPending": false
+        }
+      },
+      {
+        "date": "2025-08-31",
+        "tools": [
+          {
+            "name": "Nożyczki",
+            "count": 78
+          }
+        ],
+        "packages": 12,
+        "delivery": null,
+        "shipping": false,
+        "comment": ""
+      }
+    ]
+  },
+  {
+    "id": "K005-KM",
+    "month": "2025-08",
+    "entries": [
+      {
+        "date": "2025-08-27",
+        "tools": [
+          {
+            "name": "100",
+            "count": 100
+          }
+        ],
+        "packages": 0,
+        "delivery": "odbior+dowoz",
+        "shipping": false,
+        "comment": ""
+      },
+      {
+        "date": "2025-08-27",
+        "tools": [
+          {
+            "name": "Cęgi",
+            "count": 100
+          }
+        ],
+        "packages": 100,
+        "delivery": "odbior+dowoz",
+        "shipping": false,
+        "comment": ""
+      },
+      {
+        "date": "2025-08-28",
+        "tools": [],
+        "packages": 0,
+        "delivery": null,
+        "shipping": false,
+        "comment": "",
+        "queue": {
+          "courierPending": false,
+          "pointPending": false
+        }
+      }
+    ]
+  },
+  {
+    "id": "K002-MC",
+    "month": "2025-08",
+    "entries": [
+      {
+        "date": "2025-08-30",
+        "tools": [
+          {
+            "name": "Cęgi",
+            "count": 10
+          },
+          {
+            "name": "Сążki",
+            "count": 2
+          },
+          {
+            "name": "Kopytka",
+            "count": 10
+          },
+          {
+            "name": "Sonda",
+            "count": 2
+          }
+        ],
+        "packages": 12,
+        "delivery": "odbior+dowoz",
+        "shipping": false,
+        "comment": "",
+        "queue": {
+          "courierPending": false,
+          "pointPending": false
+        },
+        "signatures": {
+          "return": {
+            "client": "/signatures/K002-MC/2025-08/return_client_1756567822688_dekm6x.png",
+            "staff": "/signatures/K002-MC/2025-08/return_staff_1756568947117_h0fniv.png"
+          },
+          "transfer": {
+            "staff": "/signatures/K002-MC/2025-08/transfer_staff_1756568947109_b4m2c5.png",
+            "client": "/signatures/K002-MC/2025-08/transfer_client_1756571421612_o942o2.png"
+          }
+        }
+      },
+      {
+        "date": "2025-08-31",
+        "tools": [
+          {
+            "name": "Cęgi",
+            "count": 45
+          }
+        ],
+        "packages": 12,
+        "delivery": "odbior+dowoz",
+        "shipping": false,
+        "comment": ""
+      }
+    ]
+  },
+  {
+    "id": "client",
+    "month": "2025-08",
+    "entries": [
+      {
+        "date": "2025-08-28",
+        "tools": [],
+        "packages": 0,
+        "delivery": null,
+        "shipping": false,
+        "comment": "",
+        "queue": {
+          "courierPending": false,
+          "pointPending": false
+        }
+      }
+    ]
+  },
+  {
+    "id": "K008-GG",
+    "month": "2025-08",
+    "entries": [
+      {
+        "date": "2025-08-30",
+        "tools": [
+          {
+            "name": "Mandrele",
+            "count": 21
+          },
+          {
+            "name": "Radełka",
+            "count": 74
+          }
+        ],
+        "packages": 12,
+        "delivery": null,
+        "shipping": false,
+        "comment": "",
+        "queue": {
+          "courierPending": false,
+          "pointPending": false
+        },
+        "signatures": {
+          "transfer": {
+            "staff": "/signatures/K008-GG/2025-08/transfer_staff_1756583471504_mqhu4p.png",
+            "client": "/signatures/K008-GG/2025-08/transfer_client_1756583621647_xbbkv4.png"
+          },
+          "return": {
+            "staff": "/signatures/K008-GG/2025-08/return_staff_1756583471513_n3y3qu.png",
+            "client": "/signatures/K008-GG/2025-08/return_client_1756583625771_1s4v01.png"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "K002-MC",
+    "month": "2025-09",
+    "entries": [
+      {
+        "date": "2025-09-01",
+        "tools": [
+          {
+            "name": "Cążki",
+            "count": 12
+          },
+          {
+            "name": "Kopytka",
+            "count": 7
+          }
+        ],
+        "packages": 12,
+        "delivery": null,
+        "shipping": false,
+        "comment": "",
+        "queue": {
+          "courierPending": false,
+          "pointPending": true
+        },
+        "signatures": {
+          "transfer": {
+            "staff": "/signatures/K002-MC/2025-09/transfer_staff_1756753983468_mwsm0n.png"
+          },
+          "return": {
+            "staff": "/signatures/K002-MC/2025-09/return_staff_1756753983478_z5dkko.png",
+            "client": "/signatures/K002-MC/2025-09/return_client_1756754007421_s8s5rw.png"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "K006-MK",
+    "month": "2025-09",
+    "entries": [
+      {
+        "date": "2025-09-02",
+        "tools": [
+          {
+            "name": "Nożyczki",
+            "count": 12
+          },
+          {
+            "name": "Nośnik gumowy",
+            "count": 1
+          }
+        ],
+        "packages": 13,
+        "delivery": null,
+        "shipping": false,
+        "comment": "",
+        "queue": {
+          "courierPending": true,
+          "pointPending": false
+        },
+        "signatures": {
+          "transfer": {
+            "staff": "/signatures/k006-mk/2025-09/transfer_staff_1756994031245_aplkbs.png"
+          },
+          "return": {
+            "staff": "/signatures/k006-mk/2025-09/return_staff_1756994031257_uibqvl.png"
+          }
+        },
+        "returnDate": "2025-09-26",
+        "returnTools": [
+          {
+            "name": "Nożyczki",
+            "count": 12
+          },
+          {
+            "name": "Nośnik gumowy",
+            "count": 1
+          }
+        ],
+        "returnPackages": 13
+      },
+      {
+        "date": "2025-09-02",
+        "tools": [
+          {
+            "name": "Cęgi",
+            "count": 12
+          }
+        ],
+        "packages": 12,
+        "delivery": null,
+        "shipping": false,
+        "comment": ""
+      },
+      {
+        "date": "2025-09-04",
+        "tools": [
+          {
+            "name": "imadło",
+            "count": 22
+          },
+          {
+            "name": "hak",
+            "count": 8
+          },
+          {
+            "name": "pean",
+            "count": 22
+          },
+          {
+            "name": "nożyczki",
+            "count": 20
+          },
+          {
+            "name": "pęseta",
+            "count": 20
+          }
+        ],
+        "packages": 50,
+        "delivery": "odbior+dowoz",
+        "shipping": false,
+        "comment": "",
+        "queue": {
+          "courierPending": true,
+          "pointPending": false
+        },
+        "signatures": {
+          "transfer": {
+            "staff": "/signatures/k006-mk/2025-09/transfer_staff_1756993987886_o32hbt.png"
+          },
+          "return": {
+            "staff": "/signatures/k006-mk/2025-09/return_staff_1756993987893_jctj4b.png"
+          }
+        }
+      }
+    ]
+  }
+]
