@@ -58,6 +58,7 @@ function pick(row, keys) {
   }
   const map = {};
   Object.keys(row || {}).forEach((k) => {
+    map[k].trim?.();
     map[k.trim().toLowerCase()] = row[k];
   });
   for (const k of keys) {
@@ -114,18 +115,30 @@ async function postForDownload(url, payload, fallbackName = "faktury.zip") {
   return data;
 }
 
+/* === Стабільні ID === */
+const slugify = (s) =>
+  String(s || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+
 // допоміжно: стабільне визначення ідентифікатора
-const getId = (c) =>
-  String(
+const getId = (c) => {
+  const raw =
     c?.id ??
-      c?.ID ??
-      c?.Id ??
-      c?.iD ??
-      c?.["Id"] ??
-      c?.["ID "] ??
-      c?.[" id"] ??
-      ""
-  ).trim();
+    c?.ID ??
+    c?.Id ??
+    c?.iD ??
+    c?.["Id"] ??
+    c?.["ID "] ??
+    c?.[" id"] ??
+    "";
+  const id = String(raw).trim();
+  if (id) return id;
+  const name = String(c?.name ?? c?.Klient ?? "").trim();
+  return slugify(name);
+};
 
 const sameClient = (a, b) => {
   if (a === b) return true;
@@ -152,6 +165,7 @@ export default function ClientsPage() {
   const [addedInfo, setAddedInfo] = useState({ open: false, name: "" });
 
   // ▼ мультивибір для генерації з бази
+  the: null;
   const [checkedIds, setCheckedIds] = useState([]);
 
   // ▼ налаштування (щоб підставити місяць у модалці генерації)
@@ -226,6 +240,7 @@ export default function ClientsPage() {
               r.agreementSign ??
               ""
           );
+
           const idRaw =
             r.id ??
             r.ID ??
@@ -235,15 +250,19 @@ export default function ClientsPage() {
             r["ID "] ??
             r[" id"] ??
             "";
-          const idFinal =
-            String(idRaw || "").trim() ||
-            String(r.Klient || r["Klient"] || "").trim();
+          const nameVal = String(r.name || r.Klient || "").trim();
+          const finalId = String(idRaw || "").trim() || slugify(nameVal);
 
           const hasAbon = !!String(
             r.subscription ?? r.Abonament ?? r.abonament ?? ""
           ).trim();
           const billingMode =
             r.billingMode || (hasAbon ? "abonament" : "perpiece");
+
+          // ⚠️ збережене на бекенді 'agreementEnd' — не перетираємо
+          const endISO = normalizeExcelDate(
+            r.agreementEnd ?? r["Obowiązuje do"] ?? r.end ?? ""
+          );
 
           // ⚠️ ВАЖЛИВО: не губимо індивідуальні ціни клієнта
           const courierPriceMode =
@@ -266,7 +285,7 @@ export default function ClientsPage() {
               : null;
 
           return {
-            id: idFinal,
+            id: finalId,
             name: r.name || r.Klient || "",
             address: r.address || r.Adres || "",
             type:
@@ -278,7 +297,7 @@ export default function ClientsPage() {
             email: r.email ?? r.Email ?? "",
             phone: r.phone ?? r.Telefon ?? "",
             agreementStart: startISO,
-            agreementEnd: startISO ? addMonths(startISO, 6) : "",
+            agreementEnd: endISO || (startISO ? addMonths(startISO, 6) : ""),
             subscription: r.subscription ?? r.Abonament ?? r.abonament ?? "",
             subscriptionAmount: Number(
               r.subscriptionAmount ??
@@ -321,13 +340,15 @@ export default function ClientsPage() {
           )
           .map((r) => {
             const idFromId = pick(r, ["ID", "Id", "id", "ID ", " id"]);
-            const idFromClient = pick(r, ["Klient", "client", "nazwa"]);
-            const id = String(idFromId || idFromClient || "").trim();
             const name = String(
               pick(r, ["Klient", "client", "nazwa"]) || ""
             ).trim();
+            const id = String(idFromId || name).trim() || slugify(name);
             const startISO = normalizeExcelDate(
               pick(r, ["Data podpisania umowy", "agreementStart", "start"])
+            );
+            const endISO = normalizeExcelDate(
+              pick(r, ["Obowiązuje do", "agreementEnd", "end"])
             );
             return {
               id,
@@ -344,7 +365,7 @@ export default function ClientsPage() {
               email: pick(r, ["Email", "email"]),
               phone: pick(r, ["Telefon", "phone", "telefon"]),
               agreementStart: startISO,
-              agreementEnd: startISO ? addMonths(startISO, 6) : "",
+              agreementEnd: endISO || (startISO ? addMonths(startISO, 6) : ""),
               subscription: pick(r, ["Abonament", "subscription", "abonament"]),
               subscriptionAmount: Number(
                 pick(r, ["Kwota abonamentu", "subscriptionAmount"]) || 0
@@ -404,9 +425,16 @@ export default function ClientsPage() {
     const payload = { ...formClient };
     const startISO = normalizeExcelDate(payload.agreementStart);
     payload.agreementStart = startISO;
-    payload.agreementEnd = startISO ? addMonths(startISO, 6) : "";
+    payload.agreementEnd =
+      normalizeExcelDate(payload.agreementEnd) ||
+      (startISO ? addMonths(startISO, 6) : "");
     payload.subscriptionAmount = Number(payload.subscriptionAmount || 0);
     if (!payload.billingMode) payload.billingMode = tab;
+
+    // ⚠️ гарантуємо стабільний id
+    if (!payload.id?.trim()) {
+      payload.id = slugify(payload.name);
+    }
 
     let updated = [...clients];
     if (editIndex !== null && editIndex >= 0) updated[editIndex] = payload;

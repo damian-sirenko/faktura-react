@@ -1,0 +1,1360 @@
+[
+  {
+    "number": "ST-163/08/2025",
+    "client": "Bogumiła Pałczyńska",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "130,08",
+    "gross": "160,00",
+    "filename": "Faktura_ST-163_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01",
+    "status": "paid"
+  },
+  {
+    "number": "ST-162/08/2025",
+    "client": "Ewelina Krzyżanowska",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "107,32",
+    "gross": "132,00",
+    "filename": "Faktura_ST-162_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01",
+    "status": "overdue"
+  },
+  {
+    "number": "ST-161/08/2025",
+    "client": "Jolanta Gontarczyk",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "113,82",
+    "gross": "140,00",
+    "filename": "Faktura_ST-161_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-160/08/2025",
+    "client": "Brows_by_TETIANA SHUTSKO",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-160_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-159/08/2025",
+    "client": "SALON FRYZJERSKI ELŻBIETA HOPPE",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-159_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-158/08/2025",
+    "client": "Sylwia Łukasik",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-158_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-157/08/2025",
+    "client": "Indywidualna praktyka lekarska Oleksandr Hrytsaienko",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "251,87",
+    "gross": "309,80",
+    "filename": "Faktura_ST-157_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-156/08/2025",
+    "client": "Natalia Żółtowska",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "203,25",
+    "gross": "250,00",
+    "filename": "Faktura_ST-156_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-155/08/2025",
+    "client": "\"ANNAILS\" Anna Zając",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "260,16",
+    "gross": "320,00",
+    "filename": "Faktura_ST-155_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-154/08/2025",
+    "client": "Gabinet Leczenia Ran Indywidualna Praktyka Pielęgniarska Renata Cecelon",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "260,16",
+    "gross": "320,00",
+    "filename": "Faktura_ST-154_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-153/08/2025",
+    "client": "Paulina Wiktorska",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-153_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-152/08/2025",
+    "client": "NEWMEDICAL SPÓŁKA AKCYJNA",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "263,41",
+    "gross": "324,00",
+    "filename": "Faktura_ST-152_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-151/08/2025",
+    "client": "Praktyka Lekarska Ewa Gostkowska",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-151_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-150/08/2025",
+    "client": "Patrycja Hornicka Pazurki u Patki",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-150_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-149/08/2025",
+    "client": "BE READY BEAUTY SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "146,34",
+    "gross": "180,00",
+    "filename": "Faktura_ST-149_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-148/08/2025",
+    "client": "Arkadiusz Cieślikowski",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-148_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-147/08/2025",
+    "client": "PIELĘGNACJA STÓP Małgorzata Kowalska",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "292,68",
+    "gross": "360,00",
+    "filename": "Faktura_ST-147_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-146/08/2025",
+    "client": "Wiktoria Gozdowska",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "162,60",
+    "gross": "200,00",
+    "filename": "Faktura_ST-146_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-145/08/2025",
+    "client": "Dominika Żak",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "186,99",
+    "gross": "230,00",
+    "filename": "Faktura_ST-145_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-144/08/2025",
+    "client": "ANNA SKOWIERZAK SALON KOSMETYCZNY SOLAYA",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "113,82",
+    "gross": "140,00",
+    "filename": "Faktura_ST-144_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-143/08/2025",
+    "client": "Katarzyna Ozorkiewicz",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "215,85",
+    "gross": "265,50",
+    "filename": "Faktura_ST-143_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-142/08/2025",
+    "client": "K.K. Stylizacja Paznokci Karina Król",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-142_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-141/08/2025",
+    "client": "Paulina Gil",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "128,05",
+    "gross": "157,50",
+    "filename": "Faktura_ST-141_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-140/08/2025",
+    "client": "ART IN BEAUTY CLINIC SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-140_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-139/08/2025",
+    "client": "SALONIK KOSMETYCZNY \"KASIA\" KATARZYNA HARŁOŻYŃSKA",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "156,66",
+    "gross": "192,69",
+    "filename": "Faktura_ST-139_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-138/08/2025",
+    "client": "Izabela Biernat",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "133,88",
+    "gross": "164,67",
+    "filename": "Faktura_ST-138_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-137/08/2025",
+    "client": "NEUBAUER GRUPPE SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "138,62",
+    "gross": "170,50",
+    "filename": "Faktura_ST-137_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-136/08/2025",
+    "client": "WellSupply KLAUDIA LISKOWSKA",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "178,86",
+    "gross": "220,00",
+    "filename": "Faktura_ST-136_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-135/08/2025",
+    "client": "Renata Końpa",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-135_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-134/08/2025",
+    "client": "Jest Pięknie Klaudia Zięba",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "256,26",
+    "gross": "315,20",
+    "filename": "Faktura_ST-134_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-133/08/2025",
+    "client": "Nail Studio, Aneta Kania",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-133_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-132/08/2025",
+    "client": "Shine Milena Żuk",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "113,82",
+    "gross": "140,00",
+    "filename": "Faktura_ST-132_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-131/08/2025",
+    "client": "Katarzyna Cebula ManiLa Studio Urody",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "341,46",
+    "gross": "420,00",
+    "filename": "Faktura_ST-131_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-130/08/2025",
+    "client": "Perfect Match Katarzyna Waśko",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-130_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-129/08/2025",
+    "client": "Dobrosława Wieczorek",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "170,73",
+    "gross": "210,00",
+    "filename": "Faktura_ST-129_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-128/08/2025",
+    "client": "Patrycja Kardaszewicz",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "113,82",
+    "gross": "140,00",
+    "filename": "Faktura_ST-128_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-127/08/2025",
+    "client": "Dorota Tomaśko",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "113,82",
+    "gross": "140,00",
+    "filename": "Faktura_ST-127_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-126/08/2025",
+    "client": "Dojechane Paznokcie Pamela Kałuska",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "227,14",
+    "gross": "279,39",
+    "filename": "Faktura_ST-126_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-125/08/2025",
+    "client": "Alicja Urbaniak",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-125_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-124/08/2025",
+    "client": "Katarzyna Dobrzańska",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "130,08",
+    "gross": "160,00",
+    "filename": "Faktura_ST-124_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-123/08/2025",
+    "client": "Roksana Pełech",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-123_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-122/08/2025",
+    "client": "Milena Mrowiec",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "119,10",
+    "gross": "146,50",
+    "filename": "Faktura_ST-122_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-121/08/2025",
+    "client": "Sylwia Kolec",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-121_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-120/08/2025",
+    "client": "MJ STUDIO PAZNOKCI MONIKA JEWIARZ",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "113,82",
+    "gross": "140,00",
+    "filename": "Faktura_ST-120_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-119/08/2025",
+    "client": "Robert Skibiński “DR. SKIBIŃSKI CHIRURGIA ESTETYCZNA” PRAKTYKA LEKARSKA",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-119_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-118/08/2025",
+    "client": "Izabela Turek",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-118_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-117/08/2025",
+    "client": "Paulina Rynduch",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "170,73",
+    "gross": "210,00",
+    "filename": "Faktura_ST-117_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-116/08/2025",
+    "client": "MS Vesna Studio Urody Marta Sztaba",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "220,32",
+    "gross": "271,00",
+    "filename": "Faktura_ST-116_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-115/08/2025",
+    "client": "FIRMA MEDYCZNA MARK-MED SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ ",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "299,51",
+    "gross": "368,40",
+    "filename": "Faktura_ST-115_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-114/08/2025",
+    "client": "Gabinet kosmetyczny solarium \"MAJORKA\" Agnieszka Stoińska",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "113,82",
+    "gross": "140,00",
+    "filename": "Faktura_ST-114_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-113/08/2025",
+    "client": "Diamond Nails Stylizacja Paznokci Sylwia Warwas",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "324,39",
+    "gross": "399,00",
+    "filename": "Faktura_ST-113_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-112/08/2025",
+    "client": "ManiMania Beata Chwastowska",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "113,82",
+    "gross": "140,00",
+    "filename": "Faktura_ST-112_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-111/08/2025",
+    "client": "Agata Mikołajczyk",
+    "buyer_nip": "",
+    "buyer_pesel": "",
+    "buyer_address": "ul. Opłotki 9, 98-200 Sieradz",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "status": "issued",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 100 za mies. 08/2025",
+        "quantity": 1,
+        "gross_price": "300.00",
+        "net_price": "243.90",
+        "net_total": "243.90",
+        "vat_rate": "23.00%",
+        "vat_amount": "56.10",
+        "gross_total": "300.00"
+      },
+      {
+        "name": "Sterylizacja narzędzi poza abonamentem",
+        "quantity": 27,
+        "gross_price": "3.00",
+        "net_price": "2.44",
+        "net_total": "65.85",
+        "vat_rate": "23.00%",
+        "vat_amount": "15.15",
+        "gross_total": "81.00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 2,
+        "gross_price": "20.00",
+        "net_price": "16.26",
+        "net_total": "32.52",
+        "vat_rate": "23.00%",
+        "vat_amount": "7.48",
+        "gross_total": "40.00"
+      }
+    ],
+    "net": "342,28",
+    "gross": "421,00",
+    "filename": "Faktura_ST-111_08_2025.pdf",
+    "folder": ""
+  },
+  {
+    "number": "ST-110/08/2025",
+    "client": "Monika Ostafin",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "152,86",
+    "gross": "188,02",
+    "filename": "Faktura_ST-110_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-109/08/2025",
+    "client": "Magdalena Molenda",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "170,73",
+    "gross": "210,00",
+    "filename": "Faktura_ST-109_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-108/08/2025",
+    "client": "Wszechpiękna JUSTYNA ŻAK",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "113,82",
+    "gross": "140,00",
+    "filename": "Faktura_ST-108_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-107/08/2025",
+    "client": "Roksi’s Beauty Roksana Krupa",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "170,73",
+    "gross": "210,00",
+    "filename": "Faktura_ST-107_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-106/08/2025",
+    "client": "KOSMED MAJA JANKOWSKA",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "203,25",
+    "gross": "250,00",
+    "filename": "Faktura_ST-106_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-105/08/2025",
+    "client": "ZŁOTE LUSTRO Agnieszka Jańczyk",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "186,99",
+    "gross": "230,00",
+    "filename": "Faktura_ST-105_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-104/08/2025",
+    "client": "Magdalena Gądek",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-104_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-103/08/2025",
+    "client": "Izabela Tates",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "123,58",
+    "gross": "152,00",
+    "filename": "Faktura_ST-103_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-102/08/2025",
+    "client": "Patrycja Cebula",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-102_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-101/08/2025",
+    "client": "Usługi kosmetyczne Magdalena Krupa-Spaleniak",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "130,08",
+    "gross": "160,00",
+    "filename": "Faktura_ST-101_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-100/08/2025",
+    "client": "Natalia Wojtowicz",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-100_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-099/08/2025",
+    "client": "SALON FRYZJERSKI MONA Monika Mroczka",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-099_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-098/08/2025",
+    "client": "LASERAPLUS POLAND SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "108,94",
+    "gross": "134,00",
+    "filename": "Faktura_ST-098_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-097/08/2025",
+    "client": "Studio Urody ODNOWA Joanna Jakubczak",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "186,99",
+    "gross": "230,00",
+    "filename": "Faktura_ST-097_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-096/08/2025",
+    "client": "MOBILNY GABINET PODOLOGICZNY MAGDA KROLL",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "130,08",
+    "gross": "160,00",
+    "filename": "Faktura_ST-096_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-095/08/2025",
+    "client": "KATARZYNA SANETRA GABINET KOSMETYCZNY",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "186,99",
+    "gross": "230,00",
+    "filename": "Faktura_ST-095_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-094/08/2025",
+    "client": "Izabela Bręk",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "275,43",
+    "gross": "338,78",
+    "filename": "Faktura_ST-094_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-093/08/2025",
+    "client": "Gabriela Strzępka",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "146,36",
+    "gross": "180,02",
+    "filename": "Faktura_ST-093_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-092/08/2025",
+    "client": "Lucyna Wiśniewska",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "146,34",
+    "gross": "180,00",
+    "filename": "Faktura_ST-092_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-091/08/2025",
+    "client": "NATALIIA SALTEVSKA",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "314,63",
+    "gross": "387,00",
+    "filename": "Faktura_ST-091_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-090/08/2025",
+    "client": "Anna Przybył",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-090_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-089/08/2025",
+    "client": "Malwina Dzióbek",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "210,88",
+    "gross": "259,39",
+    "filename": "Faktura_ST-089_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-088/08/2025",
+    "client": "Anna Szymborska",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "292,68",
+    "gross": "360,00",
+    "filename": "Faktura_ST-088_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-087/08/2025",
+    "client": "LK MED SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "190,24",
+    "gross": "234,00",
+    "filename": "Faktura_ST-087_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-086/08/2025",
+    "client": "Monika Matusińska",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-086_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-085/08/2025",
+    "client": "WIKS Wiktoria Dziambor Educator",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "130,08",
+    "gross": "160,00",
+    "filename": "Faktura_ST-085_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-084/08/2025",
+    "client": "Marika Tucholska",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "166,40",
+    "gross": "204,67",
+    "filename": "Faktura_ST-084_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-083/08/2025",
+    "client": "Julita Maryjko",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "260,16",
+    "gross": "320,00",
+    "filename": "Faktura_ST-083_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-082/08/2025",
+    "client": "Daria Rzeźnik",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "303,74",
+    "gross": "373,60",
+    "filename": "Faktura_ST-082_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-081/08/2025",
+    "client": "Beata Jastrzębska",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-081_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-080/08/2025",
+    "client": "ANNA LITWIN STYLIZACJA PAZNOKCI",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "209,75",
+    "gross": "258,00",
+    "filename": "Faktura_ST-080_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-079/08/2025",
+    "client": "S.O.S.pazury SYLWIA SZULC",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "113,82",
+    "gross": "140,00",
+    "filename": "Faktura_ST-079_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-078/08/2025",
+    "client": "COLONNIQUE Karolina Anna Colonna-Walewska",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-078_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-077/08/2025",
+    "client": "Katarzyna Służewska",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-077_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-076/08/2025",
+    "client": "Marta Karwot-Pięta Usługi Neurologopedyczne",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "313,01",
+    "gross": "385,00",
+    "filename": "Faktura_ST-076_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-075/08/2025",
+    "client": "FOOT CARE PIONEERS Olga Legkoszkur",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "203,25",
+    "gross": "250,00",
+    "filename": "Faktura_ST-075_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-074/08/2025",
+    "client": "Klaudia Kolo",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "186,99",
+    "gross": "230,00",
+    "filename": "Faktura_ST-074_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-073/08/2025",
+    "client": "KAROLINA HYDZIK-SOBOCIŃSKA SPECJALISTYCZNY GABINET LARYNGOLOGICZNY",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "133,33",
+    "gross": "164,00",
+    "filename": "Faktura_ST-073_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-072/08/2025",
+    "client": "La Belle Dame Aneta Jędruch",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "150,81",
+    "gross": "185,50",
+    "filename": "Faktura_ST-072_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-071/08/2025",
+    "client": "Marek Galiński",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-071_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-070/08/2025",
+    "client": "Brows&Lashes Kinga Chorostowska",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "170,73",
+    "gross": "210,00",
+    "filename": "Faktura_ST-070_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-069/08/2025",
+    "client": "MAGDALENA DUDEK MaDu SUGAR and NAILS",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "121,41",
+    "gross": "149,34",
+    "filename": "Faktura_ST-069_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-068/08/2025",
+    "client": "ZMALOVANE Małgorzata Gajda",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "170,73",
+    "gross": "210,00",
+    "filename": "Faktura_ST-068_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-067/08/2025",
+    "client": "ELSTAR Emilia Kraus",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "154,47",
+    "gross": "190,00",
+    "filename": "Faktura_ST-067_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-066/08/2025",
+    "client": "Julia Woźniak",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-066_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-065/08/2025",
+    "client": "Justyna Iwan",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "196,34",
+    "gross": "241,50",
+    "filename": "Faktura_ST-065_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-064/08/2025",
+    "client": "Kamil Staszkiewicz-Chudy",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "130,08",
+    "gross": "160,00",
+    "filename": "Faktura_ST-064_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-063/08/2025",
+    "client": "ANGEL CLINIC SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "282,92",
+    "gross": "348,00",
+    "filename": "Faktura_ST-063_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-062/08/2025",
+    "client": "CENTRUM MEDYCZNE DBAMYOMAMY.PL SPÓŁKA PARTNERSKA",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "123,58",
+    "gross": "152,00",
+    "filename": "Faktura_ST-062_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-061/08/2025",
+    "client": "KATARZYNA ŁEMPICKA STUDIO URODY ESSEREBELLA",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "276,42",
+    "gross": "340,00",
+    "filename": "Faktura_ST-061_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-060/08/2025",
+    "client": "CENTRUM MEDYCZNE FEMMEMEDICA SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "99,19",
+    "gross": "122,00",
+    "filename": "Faktura_ST-060_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-059/08/2025",
+    "client": "Inna Dorokhova",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-059_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-058/08/2025",
+    "client": "Studio Urody Glamour Krystyna Szary",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-058_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-057/08/2025",
+    "client": "PZU ZDROWIE SPÓŁKA AKCYJNA",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "263,41",
+    "gross": "324,00",
+    "filename": "Faktura_ST-057_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-056/08/2025",
+    "client": "Klaudia Marek",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-056_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-055/08/2025",
+    "client": "Dominika Fajt Unique Beauty",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "187,80",
+    "gross": "231,00",
+    "filename": "Faktura_ST-055_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-054/08/2025",
+    "client": "Pure Skin Natalia Konieczny",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-054_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-053/08/2025",
+    "client": "Alicja Zubek",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-053_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-052/08/2025",
+    "client": "RAFAŁ KUBSIK PERSOCOM.PL",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-052_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-051/08/2025",
+    "client": "Agnieszka Suszkiewicz Specjalistyczna Praktyka Otolaryngologiczna ",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "243,90",
+    "gross": "300,00",
+    "filename": "Faktura_ST-051_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-050/08/2025",
+    "client": "velleitie nails JAGNA SZALKOWSKA",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "349,59",
+    "gross": "430,00",
+    "filename": "Faktura_ST-050_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-049/08/2025",
+    "client": "Oliwia Kopaczyńska",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "187,03",
+    "gross": "230,05",
+    "filename": "Faktura_ST-049_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-048/08/2025",
+    "client": "Emilia Piłat",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "170,73",
+    "gross": "210,00",
+    "filename": "Faktura_ST-048_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-047/08/2025",
+    "client": "Studio Urody,, Carpe Diem '' Beata Kuc-Rojek",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "195,12",
+    "gross": "240,00",
+    "filename": "Faktura_ST-047_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-046/08/2025",
+    "client": "UNIESTETICA QUALITY CENTRUM CHIRURGII PLASTYCZNEJ, REKONSTRUKCYJNEJ I MEDYCYNY ESTETYCZNEJ SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "447,15",
+    "gross": "550,00",
+    "filename": "Faktura_ST-046_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-045/08/2025",
+    "client": "FRYZJERSTWO I KOSMETYKA Magdalena Grzywa",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "273,17",
+    "gross": "336,00",
+    "filename": "Faktura_ST-045_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-044/08/2025",
+    "client": "RATMEDICA SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "113,82",
+    "gross": "140,00",
+    "filename": "Faktura_ST-044_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-043/08/2025",
+    "client": "Justyna Witowska",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "133,33",
+    "gross": "164,00",
+    "filename": "Faktura_ST-043_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-042/08/2025",
+    "client": "STUDIO URODY YUMIKO KATARZYNA SNOPEK",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "193,49",
+    "gross": "238,00",
+    "filename": "Faktura_ST-042_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-041/08/2025",
+    "client": "Zakład Fryzjersko- Kosmetyczny \"Joanna\" Joanna Ignaciuk",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "213,49",
+    "gross": "262,60",
+    "filename": "Faktura_ST-041_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-040/08/2025",
+    "client": "Gabinet Kosmetyczny Agata Kaleta",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "341,46",
+    "gross": "420,00",
+    "filename": "Faktura_ST-040_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-039/08/2025",
+    "client": "MAGDALENA WACH Manufaktura Paznokcia",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "370,73",
+    "gross": "456,00",
+    "filename": "Faktura_ST-039_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-038/08/2025",
+    "client": "BEATA WIELGUS ATELIER ZDROWIA I URODY",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-038_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-037/08/2025",
+    "client": "Glam&Glow Kosmetolog/Trener Beauty Wioletta Szczepanik-Ptaszkowska",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-037_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-036/08/2025",
+    "client": "MS Beauty Code Marlena Stoińska",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "113,82",
+    "gross": "140,00",
+    "filename": "Faktura_ST-036_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-035/08/2025",
+    "client": "Małgorzata Keller-Skomska Gabinet Chirurgii Plastycznej",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "190,24",
+    "gross": "234,00",
+    "filename": "Faktura_ST-035_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-034/08/2025",
+    "client": "Katarzyna Michalska Indywidualna Specjalistyczna Praktyka Lekarska",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "190,24",
+    "gross": "234,00",
+    "filename": "Faktura_ST-034_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-033/08/2025",
+    "client": "Gabinet Kosmetyczny Bella Izabela Ryszkiel-Jureczko",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "263,42",
+    "gross": "324,00",
+    "filename": "Faktura_ST-033_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  },
+  {
+    "number": "ST-032/08/2025",
+    "client": "Magdalena Cichosz",
+    "issueDate": "2025-08-31",
+    "dueDate": "2025-09-07",
+    "net": "169,92",
+    "gross": "209,00",
+    "filename": "Faktura_ST-032_08_2025.pdf",
+    "folder": "Faktury_sierpień_2025-09-01"
+  }
+]

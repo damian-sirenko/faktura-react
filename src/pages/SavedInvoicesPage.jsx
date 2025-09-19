@@ -1,5 +1,22 @@
+// src/pages/SavedInvoicesPage.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import * as XLSX from "xlsx";
+
+/* ===== API base (prod/dev) ===== */
+const API = import.meta.env.VITE_API_URL || "";
+const api = (p) => (API ? `${API}${p}` : p);
+
+/* ===== ВСПОМОГАТЕЛЬНО: ключ кешу для інвойсу ===== */
+const cacheKeyOf = (inv) =>
+  encodeURIComponent(
+    String(
+      inv?.updatedAt ||
+        inv?._v ||
+        inv?.lastModified ||
+        inv?.lastSavedAt ||
+        inv?.issueDate ||
+        ""
+    )
+  );
 
 /* ====== Confirm modal ====== */
 function ConfirmModal({ open, title, message, onCancel, onConfirm }) {
@@ -133,7 +150,13 @@ function PreviewModal({ open, src, onClose }) {
           </button>
         </div>
         <div className="flex-1 overflow-hidden">
-          <iframe title="PDF preview" src={src} className="w-full h-full" />
+          {/* ключ гарантує повний перерендер iframe при зміні src */}
+          <iframe
+            key={src}
+            title="PDF preview"
+            src={src}
+            className="w-full h-full"
+          />
         </div>
       </div>
     </div>
@@ -199,26 +222,37 @@ function parseBuyerIdentifier(str) {
   };
 }
 
-/* ====== уніфікація шляхів до файлів ====== */
+/* ====== уніфікація шляхів до файлів (з cache-buster) ====== */
 const fileSrcFor = (inv) => {
+  const v = cacheKeyOf(inv) || Date.now();
   if (inv.folder && inv.filename) {
-    return `/generated/${encodeURIComponent(inv.folder)}/${encodeURIComponent(
-      inv.filename
-    )}`;
+    return api(
+      `/generated/${encodeURIComponent(inv.folder)}/${encodeURIComponent(
+        inv.filename
+      )}?v=${v}`
+    );
   }
-  return `/generated/${encodeURIComponent(inv.filename || "")}`;
+  return api(`/generated/${encodeURIComponent(inv.filename || "")}?v=${v}`);
 };
-const downloadHrefFor = (inv) =>
-  `/download-invoice/${encodeURIComponent(inv.filename || "")}`;
-
-/* ====== прев’ю-джерело: якщо PDF нема — використовуємо download endpoint */
+const downloadHrefFor = (inv) => {
+  const v = cacheKeyOf(inv) || Date.now();
+  return api(
+    `/download-invoice/${encodeURIComponent(inv.filename || "")}?v=${v}`
+  );
+};
+/* ====== прев’ю-джерело: якщо PDF нема — використовуємо download endpoint + cache-buster */
 const previewSrcFor = (inv) => {
+  const v = cacheKeyOf(inv) || Date.now();
   if (inv.folder && inv.filename) {
-    return `/generated/${encodeURIComponent(inv.folder)}/${encodeURIComponent(
-      inv.filename
-    )}`;
+    return api(
+      `/generated/${encodeURIComponent(inv.folder)}/${encodeURIComponent(
+        inv.filename
+      )}?v=${v}`
+    );
   }
-  return `/download-invoice/${encodeURIComponent(inv.filename || "")}`;
+  return api(
+    `/download-invoice/${encodeURIComponent(inv.filename || "")}?v=${v}`
+  );
 };
 
 const USE_BUILTIN_PREVIEW_MODAL = true;
@@ -227,7 +261,6 @@ const USE_BUILTIN_PREVIEW_MODAL = true;
 function adjustExtrasPricingBySubscription(items) {
   if (!Array.isArray(items) || !items.length) return items;
 
-  // шукаємо рядок типу "Steryl 50" / "Steryl 100" (будь-де у назві)
   const subIdx = items.findIndex((it) =>
     /steryl\s*(\d+)/i.test(String(it?.name || ""))
   );
@@ -242,18 +275,67 @@ function adjustExtrasPricingBySubscription(items) {
 
   const perPackageGross = subPrice / included;
 
-  // лінії «поза абонементом»: PL/UA варіанти
   const EXTRA_RE =
     /(poza\s*abon(am(en(t|tem)?)?|amentem|ament)|pakiet(y)?\s*poza\s*abon)|поза\s*абонемен/iu;
 
   return items.map((it) => {
     const name = String(it?.name || "");
     if (EXTRA_RE.test(name)) {
-      // підставляємо пер-пакетну ціну
       return { ...it, price_gross: perPackageGross };
     }
     return it;
   });
+}
+
+/* ========= 🧩 НОВЕ: розбір/збирання адреси (вулиця/kod/miasto) ========= */
+function splitAddress(addr) {
+  const out = { street: "", postal: "", city: "" };
+  const s = String(addr || "").trim();
+  if (!s) return out;
+
+  const parts = s
+    .split(",")
+    .map((x) => x.trim())
+    .filter(Boolean);
+  const joinTail = (arr) => arr.join(", ").trim();
+
+  if (parts.length >= 2) {
+    out.street = parts[0];
+    const tail = joinTail(parts.slice(1));
+    const m = tail.match(/(\d{2}-\d{3})\s+(.+)$/);
+    if (m) {
+      out.postal = m[1];
+      out.city = m[2].trim();
+    } else {
+      const m2 = tail.match(/^(.+)\s+(\d{2}-\d{3})$/);
+      if (m2) {
+        out.city = m2[1].trim();
+        out.postal = m2[2];
+      } else {
+        out.city = tail;
+      }
+    }
+    return out;
+  }
+
+  const m3 = s.match(/(.+?)\s*,?\s*(\d{2}-\d{3})\s+(.+)$/);
+  if (m3) {
+    out.street = m3[1].trim();
+    out.postal = m3[2];
+    out.city = m3[3].trim();
+    return out;
+  }
+
+  out.street = s;
+  return out;
+}
+function joinAddress(street, postal, city) {
+  const s = String(street || "").trim();
+  const p = String(postal || "").trim();
+  const c = String(city || "").trim();
+  if (p && c && s) return `${s}, ${p} ${c}`;
+  if (s && (p || c)) return `${s}, ${[p, c].filter(Boolean).join(" ")}`;
+  return s || [p, c].filter(Boolean).join(" ");
 }
 
 export default function SavedInvoicesPage() {
@@ -268,7 +350,7 @@ export default function SavedInvoicesPage() {
   const [dateFilter, setDateFilter] = useState("all");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all"); // ✅ НОВЕ: фільтр за статусом
+  const [statusFilter, setStatusFilter] = useState("all");
 
   // pagination
   const [perPage, setPerPage] = useState(50);
@@ -285,7 +367,10 @@ export default function SavedInvoicesPage() {
     client: "",
     buyer_nip: "",
     buyer_pesel: "",
-    buyer_address: "",
+    buyer_address: "", // зібраний рядок для сумісності/ПДФ
+    buyer_street: "", // НОВЕ
+    buyer_postal: "", // НОВЕ
+    buyer_city: "", // НОВЕ
     issueDate: todayISO(),
     dueDate: plusDaysISO(todayISO(), 7),
     status: "issued",
@@ -301,7 +386,7 @@ export default function SavedInvoicesPage() {
 
   /* Load data */
   useEffect(() => {
-    fetch("/invoices")
+    fetch(api("/invoices"))
       .then((r) => r.json())
       .then((data) => {
         const arr = Array.isArray(data) ? data : [];
@@ -316,7 +401,7 @@ export default function SavedInvoicesPage() {
         setServicesDict(Array.from(names));
       });
 
-    fetch("/clients")
+    fetch(api("/clients"))
       .then((r) => r.json())
       .then((data) => setClients(Array.isArray(data) ? data : []));
   }, []);
@@ -356,6 +441,9 @@ export default function SavedInvoicesPage() {
       ...f,
       client: val,
       buyer_address: "",
+      buyer_street: "",
+      buyer_postal: "",
+      buyer_city: "",
       buyer_nip: "",
       buyer_pesel: "",
     }));
@@ -370,9 +458,15 @@ export default function SavedInvoicesPage() {
       const nip = found.nip || found.NIP || "";
       const pesel = found.pesel || found.Pesel || "";
       const address = found.address || found.Adres || "";
+
+      const { street, postal, city } = splitAddress(address);
+
       setForm((f) => ({
         ...f,
-        buyer_address: address || "",
+        buyer_address: address || joinAddress(street, postal, city),
+        buyer_street: street,
+        buyer_postal: postal,
+        buyer_city: city,
         buyer_nip: isFirma ? nip : "",
         buyer_pesel: !isFirma ? pesel : "",
       }));
@@ -430,10 +524,10 @@ export default function SavedInvoicesPage() {
       const okStatus =
         statusFilter === "all"
           ? true
-          : (inv.status || "issued") === statusFilter; // ✅ врахування статусу
+          : (inv.status || "issued") === statusFilter;
       return okName && okNo && okStatus;
     });
-  }, [filteredByDate, searchClient, searchNumber, statusFilter]); // ✅ додано залежність
+  }, [filteredByDate, searchClient, searchNumber, statusFilter]);
 
   /* Pagination */
   const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
@@ -456,14 +550,17 @@ export default function SavedInvoicesPage() {
 
   /* Bulk actions */
   const bulkDelete = () => {
-    if (pageSlice.length === 0) return;
+    if (!selected.length) {
+      alert("Nie wybrano żadnych faktur.");
+      return;
+    }
     setToDelete({ list: "bulk", filenames: [...selected] });
     setConfirmOpen(true);
   };
 
   const bulkDownloadZip = async () => {
     if (!selected.length) return alert("Nie wybrano żadnych faktur.");
-    const r = await fetch("/download-multiple", {
+    const r = await fetch(api("/download-multiple"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ files: selected }),
@@ -479,7 +576,8 @@ export default function SavedInvoicesPage() {
   };
 
   const bulkExportEPP = async () => {
-    const r = await fetch("/export-epp", {
+    if (!selected.length) return alert("Nie wybrano żadnych faktur.");
+    const r = await fetch(api("/export-epp"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ files: selected }),
@@ -495,6 +593,47 @@ export default function SavedInvoicesPage() {
   };
 
   /* Row actions */
+
+  // ✅ відкрити прев’ю без кешу (додаємо випадковий параметр)
+  const openPreviewNoCache = (inv) => {
+    const base = previewSrcFor(inv);
+    const url = `${base}${base.includes("?") ? "&" : "?"}r=${Date.now()}`;
+    setPreview({ open: true, src: url });
+  };
+
+  // ✅ завантажити PDF, гарантовано минаючи кеш браузера/SW/CDN
+  const downloadInvoiceNoCache = async (inv) => {
+    try {
+      const base = downloadHrefFor(inv);
+      const url = `${base}${base.includes("?") ? "&" : "?"}r=${Date.now()}`;
+      const resp = await fetch(url, {
+        method: "GET",
+        // ключовий момент: змушуємо мережевий запит, не беремо з кешу
+        cache: "no-store",
+        headers: {
+          // деякі проксі/сервіси більш слухняні із цими хедерами
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
+      });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const blob = await resp.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = objectUrl;
+      a.download = inv.filename || "faktura.pdf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch (e) {
+      // запасний варіант: якщо щось пішло не так, відкриємо у новій вкладці
+      const fallback = `${downloadHrefFor(inv)}&r=${Date.now()}`;
+      window.open(fallback, "_blank", "noopener,noreferrer");
+    }
+  };
+
   const startEdit = (inv, idxInAll) => {
     setEditingIndex(idxInAll);
 
@@ -507,6 +646,17 @@ export default function SavedInvoicesPage() {
       "";
     let buyerNip = inv.buyer_nip || idParsed.nip || "";
     let buyerPesel = inv.buyer_pesel || idParsed.pesel || "";
+
+    // адреса: пріоритет — окремі поля; інакше — парсимо рядок
+    let buyerStreet = inv.buyer_street || "";
+    let buyerPostal = inv.buyer_postal || "";
+    let buyerCity = inv.buyer_city || "";
+    if (!buyerStreet && !buyerPostal && !buyerCity) {
+      const parsed = splitAddress(buyerAddress);
+      buyerStreet = parsed.street;
+      buyerPostal = parsed.postal;
+      buyerCity = parsed.city;
+    }
 
     // 2) доповнюємо з бази клієнтів по exact name
     const foundClient =
@@ -522,8 +672,14 @@ export default function SavedInvoicesPage() {
       const nipC = foundClient.nip || foundClient.NIP || "";
       const peselC = foundClient.pesel || foundClient.Pesel || "";
       const addrC = foundClient.address || foundClient.Adres || "";
-
       if (!buyerAddress) buyerAddress = addrC || "";
+
+      if (!buyerStreet && !buyerPostal && !buyerCity) {
+        const p = splitAddress(addrC);
+        buyerStreet = p.street;
+        buyerPostal = p.postal;
+        buyerCity = p.city;
+      }
       if (!buyerNip && !buyerPesel) {
         buyerNip = isFirma ? nipC : "";
         buyerPesel = !isFirma ? peselC : "";
@@ -538,11 +694,14 @@ export default function SavedInvoicesPage() {
       client: inv.client || "",
       buyer_nip: buyerNip,
       buyer_pesel: buyerPesel,
-      buyer_address: buyerAddress,
+      buyer_address:
+        buyerAddress || joinAddress(buyerStreet, buyerPostal, buyerCity),
+      buyer_street: buyerStreet,
+      buyer_postal: buyerPostal,
+      buyer_city: buyerCity,
       issueDate: inv.issueDate || todayISO(),
       dueDate: inv.dueDate || plusDaysISO(inv.issueDate || todayISO(), 7),
       status: inv.status || "issued",
-      // ✅ поzycje з цінами підтягуємо у формуляр
       items: (inv.items || []).map((it) => ({
         name: it.name || "",
         qty: Number(it.quantity || it.qty || 1),
@@ -584,7 +743,7 @@ export default function SavedInvoicesPage() {
     setInvoices(next);
     setConfirmOpen(false);
     setToDelete(null);
-    await fetch("/save-invoices", {
+    await fetch(api("/save-invoices"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(next),
@@ -598,7 +757,7 @@ export default function SavedInvoicesPage() {
     );
     next.sort(sortByNumberDesc);
     setInvoices(next);
-    await fetch("/save-invoices", {
+    await fetch(api("/save-invoices"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(next),
@@ -655,8 +814,22 @@ export default function SavedInvoicesPage() {
       { net: 0, vat: 0, gross: 0 }
     );
 
+    // Зібраний адресний рядок для сумісності/PDF
+    const buyer_address_joined = joinAddress(
+      form.buyer_street,
+      form.buyer_postal,
+      form.buyer_city
+    );
+
+    const nowIso = new Date().toISOString();
+
     const payload = {
       ...form,
+      buyer_address: buyer_address_joined || form.buyer_address || "",
+      buyer_street: form.buyer_street || "",
+      buyer_postal: form.buyer_postal || "",
+      buyer_city: form.buyer_city || "",
+      updatedAt: nowIso, // ✅ мітка для cache-busting
       items: computed.map((it) => ({
         name: it.name,
         quantity: it.qty,
@@ -712,13 +885,16 @@ export default function SavedInvoicesPage() {
       buyer_nip: "",
       buyer_pesel: "",
       buyer_address: "",
+      buyer_street: "",
+      buyer_postal: "",
+      buyer_city: "",
       issueDate: todayISO(),
       dueDate: plusDaysISO(todayISO(), 7),
       status: "issued",
       items: [{ name: "", qty: 1, price_gross: 0, vat_rate: 23 }],
     });
 
-    await fetch("/save-invoices", {
+    await fetch(api("/save-invoices"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(next),
@@ -746,6 +922,9 @@ export default function SavedInvoicesPage() {
       buyer_nip: "",
       buyer_pesel: "",
       buyer_address: "",
+      buyer_street: "",
+      buyer_postal: "",
+      buyer_city: "",
       issueDate: baseDate,
       dueDate: plusDaysISO(baseDate, 7),
       status: "issued",
@@ -981,16 +1160,42 @@ export default function SavedInvoicesPage() {
                 disabled={!!form.buyer_nip}
               />
             </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm mb-1">Adres</label>
+
+            {/* ====== НОВЕ: окремі поля адреси ====== */}
+            <div>
+              <label className="block text-sm mb-1">Kod pocztowy</label>
               <input
                 className="input w-full"
-                value={form.buyer_address}
+                placeholder="31-875"
+                value={form.buyer_postal}
                 onChange={(e) =>
-                  setForm({ ...form, buyer_address: e.target.value })
+                  setForm((f) => ({ ...f, buyer_postal: e.target.value }))
                 }
               />
             </div>
+            <div>
+              <label className="block text-sm mb-1">Miasto</label>
+              <input
+                className="input w-full"
+                placeholder="Kraków"
+                value={form.buyer_city}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, buyer_city: e.target.value }))
+                }
+              />
+            </div>
+            <div className="md:col-span-4">
+              <label className="block text-sm mb-1">Ulica</label>
+              <input
+                className="input w-full"
+                placeholder="Ulica 1/2"
+                value={form.buyer_street}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, buyer_street: e.target.value }))
+                }
+              />
+            </div>
+            {/* ====== кінець нових полів адреси ====== */}
 
             <div>
               <label className="block text-sm mb-1">Data wystawienia *</label>
@@ -1043,7 +1248,7 @@ export default function SavedInvoicesPage() {
           {/* Items */}
           <div className="mt-4">
             <div className="font-normal text-sm mb-2">
-              Pozycje (wszystkie поля wymagane)
+              Pozycje (wszystkie pola wymagane)
             </div>
 
             <div className="overflow-x-auto">
@@ -1392,12 +1597,7 @@ export default function SavedInvoicesPage() {
 
                       <IconButton
                         title={`Podgląd ${inv.number}`}
-                        onClick={() =>
-                          setPreview({
-                            open: true,
-                            src: previewSrcFor(inv),
-                          })
-                        }
+                        onClick={() => openPreviewNoCache(inv)}
                         variant="secondary"
                       >
                         <IconEye />
@@ -1405,9 +1605,7 @@ export default function SavedInvoicesPage() {
 
                       <IconButton
                         title={`Pobierz ${inv.number}`}
-                        onClick={() =>
-                          window.open(downloadHrefFor(inv), "_blank")
-                        }
+                        onClick={() => downloadInvoiceNoCache(inv)}
                         variant="secondary"
                       >
                         <IconDownload />
@@ -1511,6 +1709,7 @@ export default function SavedInvoicesPage() {
               </div>
             </div>
             <iframe
+              key={preview.src}
               src={preview.src}
               title="Podgląd faktury"
               className="flex-1 w-full"

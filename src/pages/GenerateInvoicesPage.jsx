@@ -240,17 +240,11 @@ export default function GenerateInvoicesPage() {
     );
   };
 
+  // заміни тіло handleGenerate на це
   const handleGenerate = async () => {
-    if (!file) {
-      setStatus("⚠️ Wybierz plik.");
-      return;
-    }
-    if (!issueDate) {
-      setStatus("⚠️ Wybierz datę wystawienia.");
-      return;
-    }
+    if (!file) return setStatus("⚠️ Wybierz plik.");
+    if (!issueDate) return setStatus("⚠️ Wybierz datę wystawienia.");
 
-    // почистимо попередній прогрес/стан
     setProgress({ total: 0, done: 0, status: "" });
     setJobId(null);
     setIsGenerating(true);
@@ -260,41 +254,37 @@ export default function GenerateInvoicesPage() {
         : "⏳ Generowanie…"
     );
 
+    // 1) Обов’язково й окремо ініціюємо лічильник
     try {
-      // 1) встановлюємо лічильник для місяця (seed)
-      await initCounter().catch((e) => {
-        setIsGenerating(false);
-        setStatus(`❌ ${e.message}`);
-        throw e;
-      });
+      await initCounter();
+    } catch (e) {
+      setIsGenerating(false);
+      setStatus(`❌ ${e.message}`);
+      return; // ← ключове: не генеруємо без валідного лічильника
+    }
 
-      // 2) гілка за форматом
+    // 2) Далі — гілка формату + обробка падіння лише startJob
+    try {
       if (format === "epp") {
         await startExportEpp();
         return;
       }
-
-      // 3) PDF ZIP з прогресом
       const id = await startJob();
       if (id) beginPolling(id);
-      else setIsGenerating(false); // коли спрацював sync fallback
+      else setIsGenerating(false); // коли спрацював sync fallback у startJob
     } catch (e) {
-      // очищення інтервалу при помилці
       if (pollRef.current) {
         clearInterval(pollRef.current);
         pollRef.current = null;
       }
-
       if (format === "pdf") {
-        // якщо впали НЕ на seed — пробуємо синхронний фолбек PDF:
         try {
-          await startSyncFallback();
-        } catch (err) {
+          await startSyncFallback(); // fallback тільки якщо завалився startJob, а НЕ initCounter
+        } catch {
           setIsGenerating(false);
           setStatus("❌ Wystąpił błąd podczas generowania faktur.");
         }
       } else {
-        // формат epp — просто покажемо помилку
         setIsGenerating(false);
         setStatus(e?.message || "❌ Wystąpił błąd podczas eksportu EPP.");
       }

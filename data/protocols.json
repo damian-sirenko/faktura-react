@@ -438,11 +438,36 @@
         },
         "signatures": {
           "transfer": {
-            "staff": "/signatures/K002-MC/2025-09/transfer_staff_1756753983468_mwsm0n.png"
+            "staff": "/signatures/k002-mc/2025-09/transfer_staff_1757189454172_12zjne.png"
           },
           "return": {
-            "staff": "/signatures/K002-MC/2025-09/return_staff_1756753983478_z5dkko.png",
+            "staff": "/signatures/k002-mc/2025-09/return_staff_1757189454181_cqjd3i.png",
             "client": "/signatures/K002-MC/2025-09/return_client_1756754007421_s8s5rw.png"
+          }
+        }
+      },
+      {
+        "date": "2025-09-06",
+        "tools": [
+          {
+            "name": "Cążki",
+            "count": 12
+          }
+        ],
+        "packages": 12,
+        "delivery": null,
+        "shipping": false,
+        "comment": "",
+        "queue": {
+          "courierPending": false,
+          "pointPending": true
+        },
+        "signatures": {
+          "transfer": {
+            "staff": "/signatures/k002-mc/2025-09/transfer_staff_1757189454189_kpdhwa.png"
+          },
+          "return": {
+            "staff": "/signatures/k002-mc/2025-09/return_staff_1757189454199_ufq0gn.png"
           }
         }
       }
@@ -544,6 +569,133 @@
           },
           "return": {
             "staff": "/signatures/k006-mk/2025-09/return_staff_1756993987893_jctj4b.png"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "K014-JW",
+    "month": "2025-09",
+    "entries": [
+      {
+        "date": "2025-09-06",
+        "tools": [
+          {
+            "name": "Frezy",
+            "count": 60
+          }
+        ],
+        "packages": 30,
+        "delivery": "odbior+dowoz",
+        "shipping": false,
+        "comment": "po godzinie 11",
+        "queue": {
+          "courierPending": false,
+          "pointPending": false
+        },
+        "signatures": {
+          "transfer": {
+            "staff": "/signatures/k014-jw/2025-09/transfer_staff_1757196739191_k7hmqv.png",
+            "client": "/signatures/k014-jw/2025-09/transfer_client_1757196821699_v6l3sl.png"
+          },
+          "return": {
+            "staff": "/signatures/k014-jw/2025-09/return_staff_1757196739197_7nms6c.png",
+            "client": "/signatures/k014-jw/2025-09/return_client_1757196914104_zst5b1.png"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "K004-BEL",
+    "month": "2025-09",
+    "entries": [
+      {
+        "date": "2025-09-08",
+        "tools": [
+          {
+            "name": "nożyczki",
+            "count": 34
+          }
+        ],
+        "packages": 34,
+        "delivery": "odbior",
+        "shipping": false,
+        "comment": "",
+        "signatures": {
+          "transfer": {
+            "staff": "/signatures/k004-bel/2025-09/transfer_staff_1757435313557_8k02q7.png"
+          },
+          "return": {
+            "staff": "/signatures/k004-bel/2025-09/return_staff_1757435313566_zpgvmp.png"
+          }
+        },
+        "queue": {
+          "courierPending": false,
+          "pointPending": true
+        }
+      },
+      {
+        "date": "2025-09-07",
+        "tools": [
+          {
+            "name": "nożyczki",
+            "count": 12
+          }
+        ],
+        "packages": 12,
+        "delivery": null,
+        "shipping": false,
+        "comment": ""
+      }
+    ]
+  },
+  {
+    "id": "K010-MP",
+    "month": "2025-09",
+    "entries": [
+      {
+        "date": "2025-09-08",
+        "tools": [
+          {
+            "name": "Cążki",
+            "count": 10
+          }
+        ],
+        "packages": 10,
+        "delivery": null,
+        "shipping": false,
+        "comment": ""
+      }
+    ]
+  },
+  {
+    "id": "K005-KM",
+    "month": "2025-09",
+    "entries": [
+      {
+        "date": "2025-09-08",
+        "tools": [
+          {
+            "name": "Cążki",
+            "count": 10
+          }
+        ],
+        "packages": 12,
+        "delivery": null,
+        "shipping": false,
+        "comment": "",
+        "queue": {
+          "courierPending": false,
+          "pointPending": true
+        },
+        "signatures": {
+          "transfer": {
+            "staff": "/signatures/k005-km/2025-09/transfer_staff_1757371136296_vhwj1p.png"
+          },
+          "return": {
+            "staff": "/signatures/k005-km/2025-09/return_staff_1757371136303_cc2me6.png"
           }
         }
       }

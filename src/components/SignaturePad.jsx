@@ -4,8 +4,11 @@ import React, {
   useEffect,
   useRef,
   useImperativeHandle,
+  useState, // ✅ додано
 } from "react";
+import { createPortal } from "react-dom"; // ✅ додано
 
+// ✅ опційний проп refreshProtocolList (використовується в твоєму модальному блоці нижче)
 const SignaturePad = React.forwardRef(function SignaturePad(
   {
     width = 520,
@@ -15,6 +18,7 @@ const SignaturePad = React.forwardRef(function SignaturePad(
     lineWidth = 2,
     penColor = "#0f172a",
     bgColor = "#fff",
+    refreshProtocolList, // ✅ додано
   },
   ref
 ) {
@@ -24,6 +28,14 @@ const SignaturePad = React.forwardRef(function SignaturePad(
   const drawingRef = useRef(false);
   const lastRef = useRef({ x: 0, y: 0 });
   const baseLineWidthRef = useRef(lineWidth);
+
+  // ====== ЛОКАЛЬНИЙ STATE ДЛЯ ТВОГО МОДАЛУ (щоб не ламав збірку) ======
+  const [signModal, setSignModal] = useState(null); // ✅ додано
+  const padRef = useRef(null); // ✅ додано
+  const [padEmpty, setPadEmpty] = useState(true); // ✅ додано
+
+  // ✅ як і в інших файлах
+  const API = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
   // ————— ініт/ре-ініт полотна з урахуванням DPR —————
   const setupCanvas = () => {
@@ -317,6 +329,121 @@ const SignaturePad = React.forwardRef(function SignaturePad(
           Wyczyść
         </button>
       </div>
+
+      {/* ===== ТВОЄ ВБУДОВАНЕ МОДАЛЬНЕ ВІКНО — залишив як є, тепер воно компілюється ===== */}
+      {signModal &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[99999] flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            onClick={() => setSignModal(null)}
+            style={{ background: "rgba(0,0,0,0.45)" }}
+          >
+            <div
+              className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl p-5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="text-lg font-semibold">
+                  {signModal.leg === "transfer" ? "Przekazanie" : "Zwrot"} —{" "}
+                  {signModal.role === "client" ? "Klient" : "Serwis"}
+                </div>
+                <div className="flex gap-2">
+                  <select
+                    className="input"
+                    value={signModal.leg}
+                    onChange={(e) =>
+                      setSignModal({ ...signModal, leg: e.target.value })
+                    }
+                  >
+                    <option value="transfer">Przekazanie</option>
+                    <option value="return">Zwrot</option>
+                  </select>
+                  <select
+                    className="input"
+                    value={signModal.role}
+                    onChange={(e) =>
+                      setSignModal({ ...signModal, role: e.target.value })
+                    }
+                  >
+                    <option value="client">Klient</option>
+                    <option value="staff">Serwis</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="inline-block relative">
+                {/* ⚠️ тут будується другий підпис-пад у модалі — залишив як у тебе */}
+                <SignaturePad
+                  ref={padRef}
+                  onChange={setPadEmpty}
+                  width={640}
+                  height={220}
+                  refreshProtocolList={refreshProtocolList}
+                />
+              </div>
+
+              <div className="mt-4 flex items-center gap-2">
+                <button
+                  className={`btn-primary ${
+                    padEmpty ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                  disabled={padEmpty}
+                  onClick={async () => {
+                    if (!padRef.current || padRef.current.isEmpty()) return;
+                    const dataURL = padRef.current.toDataURL("image/png");
+                    try {
+                      const r = await fetch(
+                        `${API}/protocols/${encodeURIComponent(
+                          signModal.clientId
+                        )}/${signModal.month}/${signModal.index}/sign`,
+                        {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            leg: signModal.leg,
+                            ...(signModal.role === "client"
+                              ? { client: dataURL }
+                              : { staff: dataURL }),
+                          }),
+                        }
+                      );
+                      if (!r.ok) {
+                        const err = await r.json().catch(() => ({}));
+                        throw new Error(err?.error || "Błąd zapisu podpisu");
+                      }
+                      if (typeof refreshProtocolList === "function") {
+                        await refreshProtocolList();
+                      }
+                      setSignModal(null);
+                    } catch (e) {
+                      alert(e.message || "Nie udało się zapisać podpisu.");
+                    }
+                  }}
+                >
+                  Zapisz podpis
+                </button>
+                <button
+                  className="btn-secondary"
+                  onClick={() => {
+                    padRef.current?.clear?.();
+                    setPadEmpty(true);
+                  }}
+                >
+                  Wyczyść
+                </button>
+                <button
+                  className="btn-secondary"
+                  onClick={() => setSignModal(null)}
+                >
+                  Zamknij
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 });

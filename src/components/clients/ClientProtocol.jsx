@@ -2,11 +2,17 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 
 import SignaturePad from "../SignaturePad.jsx";
-/* === PDF + локальне сховище документів (стабільні шляхи) === */
 import { buildProtocolPdf } from "../../utils/ProtocolPdf.js";
 import { saveProtocolDocMeta } from "../../utils/docStore.js";
 
-// --- Icon button (узгоджений стиль як на сторінці клієнтів) ---
+/* ===== API base (prod/dev) — так само як у ProtocolView ===== */
+const API = import.meta.env.VITE_API_URL || "";
+const api = (p) => (API ? `${API}${p}` : p);
+// Для <img src> з бекенду (/signatures/...), коли фронт і бек — на різних хостах
+const resolveImg = (u) =>
+  API && typeof u === "string" && u.startsWith("/") ? API + u : u;
+
+// --- Icon button ---
 const DeleteIcon = ({ className = "" }) => (
   <svg
     className={className}
@@ -30,10 +36,9 @@ const IconButton = ({
   title,
   onClick,
   className = "",
-  variant = "danger", // danger | primary | secondary
+  variant = "danger",
   children,
 }) => {
-  // квадратний фон (а не круглий)
   const base =
     "inline-flex items-center justify-center w-8 h-8 rounded-lg p-1.5 transition focus:outline-none focus:ring";
   const variants = {
@@ -54,7 +59,7 @@ const IconButton = ({
   );
 };
 
-/** Helpers */
+/* ===== Helpers ===== */
 const ymOf = (d) => {
   const dt = d instanceof Date ? d : new Date(d);
   const y = dt.getFullYear();
@@ -63,7 +68,7 @@ const ymOf = (d) => {
 };
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
-// стабільний slug без діакритиків — як на бекенді
+// slug без діакритиків
 function stripDiacritics(s) {
   return String(s || "")
     .normalize("NFD")
@@ -76,6 +81,26 @@ function slugFromName(name) {
     .replace(/(^-|-$)/g, "");
 }
 
+/* ===== Локальні фолбеки (працюють навіть без public/ і бекенду) ===== */
+const LOCAL_SERVICES_FALLBACK = [
+  "Cążki",
+  "Cęgi",
+  "Nożyczki",
+  "Frezy",
+  "Mandrele",
+  "Nośnik gumowy",
+  "Kopytka",
+  "Radełka",
+  "Sonda",
+  "Końcówki do mikro",
+  "Pęsety",
+  "Obcinacze",
+  "Łyżeczki Uno",
+  "Tarka",
+  "Omega",
+];
+
+/* ===== UI ===== */
 function MonthPicker({ value, onChange }) {
   return (
     <input
@@ -88,13 +113,12 @@ function MonthPicker({ value, onChange }) {
 }
 
 export default function ClientProtocol({ client }) {
-  // стабільний clientId
   const clientId =
     client?.id ||
     client?.ID ||
     slugFromName(client?.name || client?.Klient || "client");
 
-  // зберігаємо/відновлюємо останній вибраний місяць для цього клієнта
+  // зберігаємо останній місяць по клієнту
   const lastMonthKey = `proto:lastMonth:${clientId}`;
   const [month, setMonth] = useState(() => {
     try {
@@ -104,11 +128,9 @@ export default function ClientProtocol({ client }) {
     }
   });
   useEffect(() => {
-    // якщо змінився клієнт — підвантажити його останній місяць
     try {
       const m = localStorage.getItem(lastMonthKey);
-      if (m) setMonth(m);
-      else setMonth(ymOf(new Date()));
+      setMonth(m || ymOf(new Date()));
     } catch {
       setMonth(ymOf(new Date()));
     }
@@ -130,22 +152,57 @@ export default function ClientProtocol({ client }) {
 
   // словник інструментів
   const [dict, setDict] = useState([]);
+
+  // ⬇️ ОНОВЛЕНИЙ useEffect: ранній вихід без мережевих запитів
   useEffect(() => {
+    let cancelled = false;
+
+    // ЖОРСТКО вимикаємо запити, щоб не було 404 в консолі
+    const ENABLE_SERVICE_FETCH = false;
+
+    if (!ENABLE_SERVICE_FETCH) {
+      if (!cancelled) setDict(LOCAL_SERVICES_FALLBACK);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    // --- нижче залишаю код, але він НЕ виконається, доки ENABLE_SERVICE_FETCH === false ---
     (async () => {
+      const tryFetchJson = async (url) => {
+        const r = await fetch(url, { cache: "no-store" });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      };
+
+      let data = LOCAL_SERVICES_FALLBACK;
+
       try {
-        const r = await fetch("/services");
-        const data = await r.json();
-        if (Array.isArray(data)) setDict(data);
-      } catch {}
+        const d1 = await tryFetchJson(api("/services"));
+        if (Array.isArray(d1)) data = d1;
+      } catch (_) {}
+
+      if (data === LOCAL_SERVICES_FALLBACK) {
+        try {
+          const d2 = await tryFetchJson(api("/services.json"));
+          if (Array.isArray(d2)) data = d2;
+        } catch (_) {}
+      }
+
+      if (!cancelled) setDict(Array.isArray(data) ? data : []);
     })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  // завантаження протоколу
+  // завантаження протоколу з бекенду
   const load = async () => {
     if (!clientId || !month) return;
     try {
       const r = await fetch(
-        `/protocols/${encodeURIComponent(clientId)}/${month}`
+        api(`/protocols/${encodeURIComponent(clientId)}/${month}`)
       );
       const data = await r.json();
       setProto({
@@ -168,11 +225,10 @@ export default function ClientProtocol({ client }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientId, month]);
 
-  /** ======= ФОРМА ДОДАВАННЯ ЗАПИСУ ======= */
+  /** ======= ФОРМА ДОДАВАННЯ ======= */
   const emptyToolRow = { name: "", count: "" };
   const initialTools = Array.from({ length: 8 }, () => ({ ...emptyToolRow }));
 
-  // зберігаємо як рядки (щоб не губити "порожнє" значення)
   const [entry, setEntry] = useState({
     date: todayISO(),
     tools: initialTools,
@@ -204,13 +260,11 @@ export default function ClientProtocol({ client }) {
     } catch {}
   }, [draftKey, entry, clientId, month]);
 
-  // завантаження чернетки
   useEffect(() => {
     try {
       let draft = null;
       const raw = localStorage.getItem(draftKey);
       if (raw) draft = JSON.parse(raw);
-
       if (!draft) {
         const mapRaw = localStorage.getItem(DRAFTS_POOL);
         if (mapRaw) {
@@ -218,7 +272,6 @@ export default function ClientProtocol({ client }) {
           draft = map?.[`${clientId}::${month}`] || null;
         }
       }
-
       if (draft) {
         setEntry({
           date: draft.date || todayISO(),
@@ -254,12 +307,10 @@ export default function ClientProtocol({ client }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientId, month]);
 
-  // автосейв на кожну зміну entry
   useEffect(() => {
     saveDraft();
   }, [saveDraft]);
 
-  // автосейв при приховуванні вкладки/закритті
   useEffect(() => {
     const handler = () => saveDraft();
     document.addEventListener("visibilitychange", handler);
@@ -325,7 +376,7 @@ export default function ClientProtocol({ client }) {
     }
   };
 
-  /* ===== Підписи для вибраних записів ===== */
+  /* ===== Підписи ===== */
   const [signModalOpen, setSignModalOpen] = useState(false);
   const transferClientRef = useRef(null);
   const transferStaffRef = useRef(null);
@@ -338,18 +389,16 @@ export default function ClientProtocol({ client }) {
     returnStaff: true,
   });
 
-  /* ===== Вибірка рядків таблиці ===== */
+  /* ===== Вибірка ===== */
   const [selected, setSelected] = useState(() => new Set());
   const allChecked =
     proto.entries.length > 0 && selected.size === proto.entries.length;
-
   const [queueTypeForSelection, setQueueTypeForSelection] = useState(null); // 'courier' | 'point' | null
   const canSign = selected.size > 0 && !!queueTypeForSelection;
 
-  // --- Відстеження, які саме записи були "додані до протоколу" (локально) ---
+  // локальний „added” маркер
   const ADDED_KEY = `protocol:added:${clientId}:${month}`;
   const [addedHashes, setAddedHashes] = useState(new Set());
-
   useEffect(() => {
     try {
       const raw = localStorage.getItem(ADDED_KEY);
@@ -359,7 +408,6 @@ export default function ClientProtocol({ client }) {
       setAddedHashes(new Set());
     }
   }, [ADDED_KEY]);
-
   const persistAdded = (setObj) => {
     try {
       localStorage.setItem(ADDED_KEY, JSON.stringify(Array.from(setObj)));
@@ -373,7 +421,6 @@ export default function ClientProtocol({ client }) {
         count: Number(t?.count || 0),
       }))
       .sort((a, b) => a.name.localeCompare(b.name) || a.count - b.count);
-
     const sigObj = {
       date: row?.date || "",
       tools,
@@ -384,7 +431,6 @@ export default function ClientProtocol({ client }) {
     };
     return JSON.stringify(sigObj);
   };
-
   const isRowAdded = (row) => addedHashes.has(signatureEntry(row));
 
   const toggleRow = (idx) =>
@@ -403,15 +449,13 @@ export default function ClientProtocol({ client }) {
       setQueueTypeForSelection(null);
       return n;
     });
-
   const clearSelection = () => {
     setSelected(new Set());
     setQueueTypeForSelection(null);
   };
-
   const hasSelection = selected.size > 0;
 
-  /* ===== Збірник payload для створення ===== */
+  /* ===== Збереження рядка ===== */
   const buildCreatePayload = () => {
     const toolsPayload = entry.tools
       .filter((t) => String(t.name || "").trim())
@@ -420,7 +464,6 @@ export default function ClientProtocol({ client }) {
         count:
           t.count === "" ? 0 : Number(String(t.count).replace(",", ".")) || 0,
       }));
-
     return {
       date: entry.date,
       tools: toolsPayload,
@@ -438,15 +481,14 @@ export default function ClientProtocol({ client }) {
   };
 
   const clearAfterSave = () => {
-    const cleared = {
+    setEntry({
       date: todayISO(),
       tools: initialTools,
       packages: "",
       courierMode: "",
       shipping: false,
       comment: "",
-    };
-    setEntry(cleared);
+    });
     try {
       localStorage.removeItem(draftKey);
       const mapRaw = localStorage.getItem(DRAFTS_POOL);
@@ -458,10 +500,8 @@ export default function ClientProtocol({ client }) {
     } catch {}
   };
 
-  /* ====== Збереження нового запису (з валідацією) ====== */
   const saveEntry = async () => {
     if (!entry.date) return alert("Wpis: podaj datę.");
-
     const toolsValid = entry.tools.some(
       (t) =>
         String(t.name || "").trim() &&
@@ -471,21 +511,17 @@ export default function ClientProtocol({ client }) {
       entry.packages === ""
         ? NaN
         : Number(String(entry.packages).replace(",", "."));
-
-    if (!(packagesNum >= 1)) {
+    if (!(packagesNum >= 1))
       return alert("Wpis: liczba pakietów jest obowiązkowa (min. 1).");
-    }
-    if (!toolsValid) {
+    if (!toolsValid)
       return alert(
         "Wpis: dodaj co najmniej jedną pozycję narzędzi z ilością > 0."
       );
-    }
 
     const payload = buildCreatePayload();
-
     try {
       const r = await fetch(
-        `/protocols/${encodeURIComponent(clientId)}/${month}`,
+        api(`/protocols/${encodeURIComponent(clientId)}/${month}`),
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -504,7 +540,6 @@ export default function ClientProtocol({ client }) {
         totals: data?.protocol?.totals || { totalPackages: 0 },
       });
       clearAfterSave();
-      // (не активуємо тут "Dodaj do protokołu"; тепер воно залежить від чекбоксів/черги/подписів)
     } catch (e) {
       alert(e.message || "Nie udało się dodać wpisu.");
     }
@@ -520,17 +555,18 @@ export default function ClientProtocol({ client }) {
     showToast._t = window.setTimeout(() => setToastVisible(false), 3500);
   };
 
-  /* ====== Дії для обраних рядків ====== */
-  const addToQueue = async (type /* 'courier'|'point' */) => {
+  /* ====== Дії для вибраних ====== */
+  const addToQueue = async (type) => {
     if (!hasSelection) return;
     const other = type === "courier" ? "point" : "courier";
     setQueueTypeForSelection(type);
-
     try {
       await Promise.all(
         Array.from(selected).flatMap((idx) => [
           fetch(
-            `/protocols/${encodeURIComponent(clientId)}/${month}/${idx}/queue`,
+            api(
+              `/protocols/${encodeURIComponent(clientId)}/${month}/${idx}/queue`
+            ),
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -538,7 +574,9 @@ export default function ClientProtocol({ client }) {
             }
           ),
           fetch(
-            `/protocols/${encodeURIComponent(clientId)}/${month}/${idx}/queue`,
+            api(
+              `/protocols/${encodeURIComponent(clientId)}/${month}/${idx}/queue`
+            ),
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -580,15 +618,16 @@ export default function ClientProtocol({ client }) {
         ? returnStaffRef.current.toDataURL()
         : null;
 
-    if (!tClient && !tStaff && !rClient && !rStaff) {
+    if (!tClient && !tStaff && !rClient && !rStaff)
       return alert("Brak podpisów do zapisania.");
-    }
 
     try {
       for (const idx of Array.from(selected)) {
         if (tClient || tStaff) {
           await fetch(
-            `/protocols/${encodeURIComponent(clientId)}/${month}/${idx}/sign`,
+            api(
+              `/protocols/${encodeURIComponent(clientId)}/${month}/${idx}/sign`
+            ),
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -602,7 +641,9 @@ export default function ClientProtocol({ client }) {
         }
         if (rClient || rStaff) {
           await fetch(
-            `/protocols/${encodeURIComponent(clientId)}/${month}/${idx}/sign`,
+            api(
+              `/protocols/${encodeURIComponent(clientId)}/${month}/${idx}/sign`
+            ),
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -633,9 +674,6 @@ export default function ClientProtocol({ client }) {
           ? "Podpisy zapisane. Kolejka: kurier."
           : "Podpisy zapisane. Kolejka: punkt."
       );
-
-      // ⚠️ НЕ чистимо вибір — щоб можна було одразу додати до протоколу.
-      // clearSelection();
     } catch {
       alert("Nie udało się zapisać podpisów.");
     }
@@ -647,10 +685,9 @@ export default function ClientProtocol({ client }) {
       proto.entries && proto.entries[idx]
         ? signatureEntry(proto.entries[idx])
         : null;
-
     try {
       const r = await fetch(
-        `/protocols/${encodeURIComponent(clientId)}/${month}/${idx}`,
+        api(`/protocols/${encodeURIComponent(clientId)}/${month}/${idx}`),
         { method: "DELETE" }
       );
       if (!r.ok) throw new Error("Błąd usuwania wpisu.");
@@ -667,7 +704,6 @@ export default function ClientProtocol({ client }) {
         setAddedHashes(s);
         persistAdded(s);
       }
-
       setSelected((s) => {
         const n = new Set(
           Array.from(s)
@@ -681,18 +717,16 @@ export default function ClientProtocol({ client }) {
     }
   };
 
-  // Підсумок пакунків
   const totalPackages =
     (proto?.totals && Number(proto.totals.totalPackages)) ||
     (Array.isArray(proto.entries)
       ? proto.entries.reduce((a, r) => a + (Number(r?.packages || 0) || 0), 0)
       : 0);
 
-  /* ===== Upsert протоколу місяця у „Dokumenty → Protokoły” ===== */
   const upsertProtocolDoc = async ({ download = false } = {}) => {
     try {
       const r = await fetch(
-        `/protocols/${encodeURIComponent(clientId)}/${month}`
+        api(`/protocols/${encodeURIComponent(clientId)}/${month}`)
       );
       const data = await r.json();
       const protocol = {
@@ -701,17 +735,13 @@ export default function ClientProtocol({ client }) {
         entries: Array.isArray(data.entries) ? data.entries : [],
         totals: data.totals || { totalPackages: 0 },
       };
-
-      if (!protocol.entries.length) {
-        return alert("Brak wpisów w tym miesiącu.");
-      }
+      if (!protocol.entries.length) return alert("Brak wpisów w tym miesiącu.");
 
       const { doc, fileName } = buildProtocolPdf({
         month: protocol.month,
         client,
         protocol,
       });
-
       const dataUrl = doc.output("datauristring");
       saveProtocolDocMeta({
         id: `${clientId}:${protocol.month}`,
@@ -722,20 +752,16 @@ export default function ClientProtocol({ client }) {
         createdAt: new Date().toISOString(),
         dataUrl,
       });
-
       if (download) doc.save(fileName);
-
-      showToast("Dodano do protokołu (lista dokumentów zaktualizowana).");
+      showToast("Dodano do protokołu (lista dokumentów зaktualizowana).");
     } catch {
-      alert("Nie udało się zaktualizować протокоłu.");
+      alert("Nie udało się зaktualizować протокоłu.");
     }
   };
 
-  // ====== Умова активності "Dodaj zaznaczone do protokołu"
   const selectedRows = Array.from(selected)
     .map((i) => proto.entries[i])
     .filter(Boolean);
-
   const allHaveStaffSig =
     selectedRows.length > 0 &&
     selectedRows.every(
@@ -743,7 +769,6 @@ export default function ClientProtocol({ client }) {
         (r?.signatures?.transfer?.staff ? true : false) ||
         (r?.signatures?.return?.staff ? true : false)
     );
-
   const allHaveChosenQueue =
     queueTypeForSelection === "courier"
       ? selectedRows.every((r) => r?.queue?.courierPending)
@@ -755,20 +780,17 @@ export default function ClientProtocol({ client }) {
     selectedRows.length > 0 && allHaveStaffSig && allHaveChosenQueue;
   const addSelectedToProtocol = async () => {
     if (!canAddSelectedToProtocol) return;
-    // позначаємо вибрані як "додані"
     const newSet = new Set(addedHashes);
     selectedRows.forEach((r) => newSet.add(signatureEntry(r)));
     setAddedHashes(newSet);
     persistAdded(newSet);
-
     await upsertProtocolDoc({ download: false });
     showToast("Dodano zaznaczone do protokołu.");
   };
 
-  /** ======= РЕНДЕР ======= */
+  /** ======= Render ======= */
   return (
     <div className="space-y-4">
-      {/* Toast */}
       {toastVisible && (
         <div className="fixed bottom-4 right-4 z-[99999]">
           <div className="rounded-lg shadow-xl bg-gray-900 text-white px-4 py-3 text-sm">
@@ -970,7 +992,6 @@ export default function ClientProtocol({ client }) {
             Zapisz wpis
           </button>
 
-          {/* ➕ ДОДАТИ ДО ПРОТОКОЛУ — за умовами (чекбокси + kolejka + podpis pracownika) */}
           <button
             type="button"
             className={`btn-secondary ${
@@ -999,7 +1020,7 @@ export default function ClientProtocol({ client }) {
           </div>
         </div>
 
-        {/* Панель дій для ВИБРАНИХ записів */}
+        {/* Панель дій */}
         <div className="mt-2 flex flex-wrap gap-2 items-center">
           <button
             type="button"
@@ -1062,7 +1083,6 @@ export default function ClientProtocol({ client }) {
                 </th>
                 <th className="text-center w-[18ch] px-2">Podpisy (zwrot)</th>
                 <th className="text-center w-[10ch] px-2">Pakiety</th>
-                {/* ⛔️ Колонку з кнопками (Dodaj do protokołu) прибрано */}
               </tr>
             </thead>
             <tbody>
@@ -1122,23 +1142,21 @@ export default function ClientProtocol({ client }) {
                       )}
                     </div>
                   </td>
-
-                  {/* ПІДПИСИ — przekazanie */}
                   <td className="text-center align-top py-2 px-2">
                     {row.signatures?.transfer?.client ||
                     row.signatures?.transfer?.staff ? (
                       <div className="flex flex-col items-center justify-start gap-1 max-h-24 overflow-auto">
                         {row.signatures?.transfer?.client && (
                           <img
-                            src={row.signatures.transfer.client}
+                            src={resolveImg(row.signatures.transfer.client)}
                             alt="podpis klienta (przekazanie)"
                             className="h-7 w-auto max-w-[90%] object-contain border rounded bg-white p-0.5"
                           />
                         )}
                         {row.signatures?.transfer?.staff && (
                           <img
-                            src={row.signatures.transfer.staff}
-                            alt="podpis serwisu (przekazanie)"
+                            src={resolveImg(row.signatures.transfer.staff)}
+                            alt="podpis serwisu (прzekazanie)"
                             className="h-7 w-auto max-w-[90%] object-contain border rounded bg-white p-0.5"
                           />
                         )}
@@ -1147,22 +1165,20 @@ export default function ClientProtocol({ client }) {
                       <span className="text-gray-400 text-xs">—</span>
                     )}
                   </td>
-
-                  {/* ПІДПИСИ — zwrot */}
                   <td className="text-center align-top py-2 px-2">
                     {row.signatures?.return?.client ||
                     row.signatures?.return?.staff ? (
                       <div className="flex flex-col items-center justify-start gap-1 max-h-24 overflow-auto">
                         {row.signatures?.return?.client && (
                           <img
-                            src={row.signatures.return.client}
+                            src={resolveImg(row.signatures.return.client)}
                             alt="podpis klienta (zwrot)"
                             className="h-7 w-auto max-w-[90%] object-contain border rounded bg-white p-0.5"
                           />
                         )}
                         {row.signatures?.return?.staff && (
                           <img
-                            src={row.signatures.return.staff}
+                            src={resolveImg(row.signatures.return.staff)}
                             alt="podpis serwisu (zwrot)"
                             className="h-7 w-auto max-w-[90%] object-contain border rounded bg-white p-0.5"
                           />
@@ -1172,7 +1188,6 @@ export default function ClientProtocol({ client }) {
                       <span className="text-gray-400 text-xs">—</span>
                     )}
                   </td>
-
                   <td className="text-center align-top py-2 px-2">
                     <span className="text-base font-bold leading-none">
                       {row.packages}
@@ -1201,11 +1216,8 @@ export default function ClientProtocol({ client }) {
               className="btn-danger px-3 py-1 text-white"
               onClick={async () => {
                 if (!confirm("Usunąć zaznaczone wpisy?")) return;
-                // видалити по одному, від найбільших індексів
                 const toDelete = Array.from(selected).sort((a, b) => b - a);
-                for (const idx of toDelete) {
-                  await deleteEntry(idx);
-                }
+                for (const idx of toDelete) await deleteEntry(idx);
                 clearSelection();
               }}
             >
@@ -1215,7 +1227,7 @@ export default function ClientProtocol({ client }) {
         )}
       </div>
 
-      {/* MODAL: Podpisy (dla wybranych) */}
+      {/* MODAL: Podpisy */}
       {signModalOpen && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-lg w-full max-w-5xl max-h-[90vh] overflow-y-auto p-4">
@@ -1290,7 +1302,7 @@ export default function ClientProtocol({ client }) {
                 title={
                   canSign
                     ? "Zapisz podpisy do zaznaczonych"
-                    : "Najpierw wybierz: курier або пункт"
+                    : "Najpierw wybierz: kurier або punkt"
                 }
               >
                 Zapisz podpisy do zaznaczonych

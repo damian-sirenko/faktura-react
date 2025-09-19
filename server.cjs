@@ -1,54 +1,172 @@
-// server.cjs
 const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
+
 const analyticsRouter = require("./routes/analytics");
 const { createProtocolPDF, createProtocolZip } = require("./protocol.pdf.js");
 
-// ⬇️ НОВЕ: підключаємо генератор .epp і форматери 2 знаки (використовується у PDF-утиліті)
-const { generateEPPContent, to2 } = require("./epp.js");
+// генератор .epp і утиліти
+const { generateEPPContent, generateEPPBuffer, to2 } = require("./epp.js");
+
+// генерація PDF-фактур
+const { generatePDF } = require("./faktura.pdf.js");
 
 const app = express();
 
 /* -----------------------------
  * Шляхові константи
  * ----------------------------- */
-const DATA_DIR = path.join(__dirname, "data");
-const GENERATED_DIR = path.join(__dirname, "generated");
+const ROOT = __dirname;
+const DATA_DIR = path.join(ROOT, "data");
+const GENERATED_DIR = path.join(ROOT, "generated");
+const SIGNATURES_DIR = path.join(ROOT, "signatures");
+
 const CLIENTS_FILE = path.join(DATA_DIR, "clients.json");
 const INVOICES_FILE = path.join(DATA_DIR, "invoices.json");
 const SERVICES_FILE = path.join(DATA_DIR, "services.json");
 const PROTOCOLS_FILE = path.join(DATA_DIR, "protocols.json");
 const SETTINGS_FILE = path.join(DATA_DIR, "settings.json");
 
-/* ✅ ДОДАНО: директорія для підписів */
-const SIGNATURES_DIR = path.join(__dirname, "signatures");
+/* -----------------------------
+ * Ініціалізація директорій/файлів
+ * ----------------------------- */
+for (const dir of [DATA_DIR, GENERATED_DIR, SIGNATURES_DIR]) {
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+}
+if (!fs.existsSync(CLIENTS_FILE)) fs.writeFileSync(CLIENTS_FILE, "[]", "utf8");
+if (!fs.existsSync(INVOICES_FILE))
+  fs.writeFileSync(INVOICES_FILE, "[]", "utf8");
+if (!fs.existsSync(SERVICES_FILE))
+  fs.writeFileSync(SERVICES_FILE, "[]", "utf8");
+if (!fs.existsSync(PROTOCOLS_FILE))
+  fs.writeFileSync(PROTOCOLS_FILE, "[]", "utf8");
+if (!fs.existsSync(SETTINGS_FILE)) {
+  fs.writeFileSync(
+    SETTINGS_FILE,
+    JSON.stringify(
+      {
+        perPiecePriceGross: 6.0,
+        courierPriceGross: 0,
+        shippingPriceGross: 0,
+        defaultVat: 23,
+        currentIssueMonth: new Date().toISOString().slice(0, 7),
+      },
+      null,
+      2
+    ),
+    "utf8"
+  );
+}
 
-/* ✅ ДОДАНО: генерація PDF-фактур */
-const { generatePDF } = require("./faktura.pdf.js");
+/* -----------------------------
+ * CORS і парсери
+ * ----------------------------- */
+const DEV = process.env.NODE_ENV !== "production";
+
+// базовий список як у тебе + додаємо localhost:3000 (на випадок прямого ${API})
+const explicitAllow = new Set([
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:5174",
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+]);
+
+function isPrivateHost(hostname) {
+  return (
+    /^localhost$|^127\.0\.0\.1$|^0\.0\.0\.0$/.test(hostname) ||
+    /^10\.\d+\.\d+\.\d+$/.test(hostname) ||
+    /^192\.168\.\d+\.\d+$/.test(hostname) ||
+    /^172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+$/.test(hostname)
+  );
+}
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      // без Origin (curl/Postman/проксі Vite) — пропускаємо
+      if (!origin) return callback(null, true);
+
+      if (explicitAllow.has(origin)) return callback(null, true);
+
+      // у DEV дозволяємо локальні/LAN оріджини
+      try {
+        const { hostname } = new URL(origin);
+        if (DEV && isPrivateHost(hostname)) return callback(null, true);
+      } catch {
+        // якщо Origin кривий — не додаємо CORS-заголовки
+      }
+
+      // НЕ кидаємо помилку → Express не віддасть 500
+      return callback(null, false);
+    },
+    credentials: true,
+  })
+);
+
+app.use(express.json({ limit: process.env.JSON_LIMIT || "25mb" }));
+
+app.get("/__health", (_req, res) =>
+  res.json({ ok: true, time: new Date().toISOString() })
+);
+
+app.use((req, _res, next) => {
+  console.log(`[API] ${req.method} ${req.url}`);
+  next();
+});
 
 /* ===========================
- * Утиліти PDF та інвойсів
+ * Допоміжні утиліти
  * =========================== */
 
-function findInvoicePathDeep(filename) {
-  const stack = [GENERATED_DIR];
-  while (stack.length) {
-    const dir = stack.pop();
-    let entries = [];
+function safeSeg(s) {
+  return String(s || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+/** 🔧 Надійне читання JSON із дефолтом + автобекап зіпсованого файлу */
+function readJsonOrDefault(file, fallback) {
+  try {
+    if (!fs.existsSync(file)) {
+      fs.writeFileSync(file, JSON.stringify(fallback, null, 2), "utf8");
+      return fallback;
+    }
+    const raw = fs.readFileSync(file, "utf8");
+    if (!raw || !raw.trim()) {
+      fs.writeFileSync(file, JSON.stringify(fallback, null, 2), "utf8");
+      return fallback;
+    }
+    return JSON.parse(raw);
+  } catch (e) {
+    console.error(
+      `❌ Corrupt JSON in ${path.basename(file)}:`,
+      e?.message || e
+    );
     try {
-      entries = fs.readdirSync(dir, { withFileTypes: true });
-    } catch {
-      continue;
-    }
-    for (const e of entries) {
-      const full = path.join(dir, e.name);
-      if (e.isDirectory()) stack.push(full);
-      else if (e.isFile() && e.name === filename) return full;
-    }
+      const bak = `${file}.bak-${Date.now()}`;
+      fs.copyFileSync(file, bak);
+      console.warn(`↪︎ Backed up bad file to ${bak}`);
+    } catch {}
+    try {
+      fs.writeFileSync(file, JSON.stringify(fallback, null, 2), "utf8");
+    } catch {}
+    return fallback;
   }
-  return null;
+}
+
+function getAllInvoices() {
+  // використовуємо надійний рідер
+  return readJsonOrDefault(INVOICES_FILE, []);
+}
+
+function getInvoiceByFilename(filename) {
+  const safe = path.basename(String(filename || ""));
+  const all = getAllInvoices();
+  return all.find((i) => (i.filename || "") === safe) || null;
 }
 
 function findGeneratedFileDeep(filename) {
@@ -60,36 +178,11 @@ function findGeneratedFileDeep(filename) {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
     for (const e of entries) {
       const full = path.join(dir, e.name);
-      if (e.isDirectory()) {
-        stack.push(full);
-      } else if (e.isFile() && e.name === safe) {
-        return full;
-      }
+      if (e.isDirectory()) stack.push(full);
+      else if (e.isFile() && e.name === safe) return full;
     }
   }
   return null;
-}
-
-function safeSeg(s) {
-  return String(s || "")
-    .toLowerCase()
-    .replace(/[^a-z0-9._-]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}
-
-function getAllInvoices() {
-  if (!fs.existsSync(INVOICES_FILE)) return [];
-  try {
-    return JSON.parse(fs.readFileSync(INVOICES_FILE, "utf8"));
-  } catch {
-    return [];
-  }
-}
-
-function getInvoiceByFilename(filename) {
-  const safe = path.basename(String(filename || ""));
-  const all = getAllInvoices();
-  return all.find((i) => (i.filename || "") === safe) || null;
 }
 
 /* Дані продавця (для шаблону) */
@@ -147,7 +240,6 @@ function invoiceToPdfData(inv) {
   };
 }
 
-/* Створення PDF, якщо немає */
 async function ensurePdfForInvoice(inv) {
   if (!inv || !inv.number) return null;
 
@@ -161,143 +253,92 @@ async function ensurePdfForInvoice(inv) {
     inv.filename || `Faktura_${String(inv.number).replaceAll("/", "_")}.pdf`;
   const outputPath = path.join(outDir, path.basename(filename));
 
-  const found = findInvoicePathDeep(path.basename(filename));
+  const found = findGeneratedFileDeep(path.basename(filename));
   if (found && fs.existsSync(found)) return found;
 
   const data = invoiceToPdfData(inv);
   await generatePDF(data, outputPath);
 
-  const final = findInvoicePathDeep(path.basename(filename)) || outputPath;
+  const final = findGeneratedFileDeep(path.basename(filename)) || outputPath;
   return final;
 }
 
-/* Ініціалізація директорій/файлів */
-for (const dir of [DATA_DIR, GENERATED_DIR, SIGNATURES_DIR]) {
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-}
-if (!fs.existsSync(CLIENTS_FILE)) fs.writeFileSync(CLIENTS_FILE, "[]", "utf8");
-if (!fs.existsSync(INVOICES_FILE))
-  fs.writeFileSync(INVOICES_FILE, "[]", "utf8");
-if (!fs.existsSync(SERVICES_FILE))
-  fs.writeFileSync(SERVICES_FILE, "[]", "utf8");
-if (!fs.existsSync(PROTOCOLS_FILE))
-  fs.writeFileSync(PROTOCOLS_FILE, "[]", "utf8");
-
-if (!fs.existsSync(SETTINGS_FILE)) {
-  fs.writeFileSync(
-    SETTINGS_FILE,
-    JSON.stringify(
-      {
-        perPiecePriceGross: 6.0,
-        courierPriceGross: 0,
-        shippingPriceGross: 0,
-        defaultVat: 23,
-        currentIssueMonth: new Date().toISOString().slice(0, 7),
-      },
-      null,
-      2
-    ),
-    "utf8"
-  );
-}
-
 /* -----------------------------
- * CORS і парсери
+ * /generated/:filename — розумний віддавач/генератор PDF фактур
+ * (ставимо ДО статичної роздачі)
  * ----------------------------- */
-const allowedOrigins = [
-  "http://localhost:5173",
-  "http://localhost:5174",
-  "http://127.0.0.1:5173",
-  "http://127.0.0.1:5174",
-];
-
-app.use(
-  cors({
-    origin(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) callback(null, true);
-      else callback(new Error("CORS error: Origin not allowed"));
-    },
-    credentials: true,
-  })
-);
-
-app.use(express.json({ limit: process.env.JSON_LIMIT || "25mb" }));
-
-app.use((req, _res, next) => {
-  console.log(`[API] ${req.method} ${req.url}`);
-  next();
-});
-
-/* -----------------------------
- * /generated — віддача/генерація PDF
- * ----------------------------- */
-app.get("/generated/:filename", async (req, res, next) => {
-  const p = findInvoicePathDeep(req.params.filename);
-  if (p) {
-    res.setHeader(
-      "Content-Disposition",
-      `inline; filename="${req.params.filename}"`
-    );
-    return res.sendFile(p);
-  }
-  try {
-    const inv = getInvoiceByFilename(req.params.filename);
-    if (inv) {
-      const genPath = await ensurePdfForInvoice(inv);
-      if (genPath && fs.existsSync(genPath)) {
-        res.setHeader("Content-Type", "application/pdf");
-        res.setHeader(
-          "Content-Disposition",
-          `inline; filename="${path.basename(genPath)}"`
-        );
-        return res.sendFile(genPath);
-      }
-    }
-  } catch (e) {
-    console.error("❌ /generated first handler error:", e);
-  }
-  return next();
-});
-
-app.use("/generated", express.static(GENERATED_DIR));
-
 app.get("/generated/:filename", async (req, res) => {
-  const fileFromRoot = path.join(
-    GENERATED_DIR,
-    path.basename(req.params.filename)
-  );
+  const fn = path.basename(req.params.filename);
   try {
-    if (fs.existsSync(fileFromRoot)) {
+    // 1) якщо десь у generated вже є — віддаємо
+    let p = findGeneratedFileDeep(fn);
+    if (p && fs.existsSync(p)) {
       res.setHeader("Content-Type", "application/pdf");
-      return res.sendFile(fileFromRoot);
+      res.setHeader("Content-Disposition", `inline; filename="${fn}"`);
+      return res.sendFile(p);
     }
-    const deep = findGeneratedFileDeep(req.params.filename);
-    if (deep) {
-      res.setHeader("Content-Type", "application/pdf");
-      return res.sendFile(deep);
-    }
-    const inv = getInvoiceByFilename(req.params.filename);
+
+    // 2) якщо це наша фактура з /invoices — генеруємо на льоту
+    const inv = getInvoiceByFilename(fn);
     if (inv) {
-      const genPath = await ensurePdfForInvoice(inv);
-      if (genPath && fs.existsSync(genPath)) {
+      p = await ensurePdfForInvoice(inv);
+      if (p && fs.existsSync(p)) {
         res.setHeader("Content-Type", "application/pdf");
-        return res.sendFile(genPath);
+        res.setHeader("Content-Disposition", `inline; filename="${fn}"`);
+        return res.sendFile(p);
       }
     }
-    return res.status(404).send("Nie znaleziono faktury.");
+
+    // 3) 404
+    return res.status(404).send("Nie znaleziono pliku.");
   } catch (e) {
-    console.error("❌ /generated fallback error:", e);
+    console.error("❌ /generated error:", e);
     return res.status(500).send("Internal server error");
   }
 });
 
-app.use("/signatures", express.static(SIGNATURES_DIR));
+/* ✅ ДОДАНО: прев’ю/віддача для вкладених папок /generated/:folder/:filename */
+app.get("/generated/:folder/:filename", async (req, res) => {
+  const fn = path.basename(req.params.filename);
+  try {
+    // 1) якщо десь у generated вже є — віддаємо
+    let p = findGeneratedFileDeep(fn);
+    if (p && fs.existsSync(p)) {
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `inline; filename="${fn}"`);
+      return res.sendFile(p);
+    }
 
-app.use("/analytics", analyticsRouter);
+    // 2) якщо це наша фактура з /invoices — генеруємо на льоту
+    const inv = getInvoiceByFilename(fn);
+    if (inv) {
+      p = await ensurePdfForInvoice(inv);
+      if (p && fs.existsSync(p)) {
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Content-Disposition", `inline; filename="${fn}"`);
+        return res.sendFile(p);
+      }
+    }
+
+    // 3) 404
+    return res.status(404).send("Nie znaleziono pliku.");
+  } catch (e) {
+    console.error("❌ /generated (folder) error:", e);
+    return res.status(500).send("Internal server error");
+  }
+});
 
 /* -----------------------------
- * Маршрути генерації/завантаження інвойсів
+ * СТАТИКА
  * ----------------------------- */
+app.use("/signatures", express.static(SIGNATURES_DIR));
+app.use("/generated", express.static(GENERATED_DIR)); // прості статичні PDF (якщо вже є)
+
+/* -----------------------------
+ * Додаткові роутери
+ * ----------------------------- */
+app.use("/analytics", analyticsRouter);
+
 const uploadRouter = require("./routes/uploadInvoices");
 app.use("/upload", uploadRouter);
 
@@ -305,12 +346,18 @@ const genRouter = require("./routes/generateFromClients");
 app.use("/gen", genRouter);
 
 /* -----------------------------
- * API: Налаштування (settings)
+ * API: Налаштування
  * ----------------------------- */
 app.get("/settings", (_req, res) => {
   try {
-    const raw = fs.readFileSync(SETTINGS_FILE, "utf8");
-    const json = JSON.parse(raw);
+    const def = {
+      perPiecePriceGross: 6.0,
+      courierPriceGross: 0,
+      shippingPriceGross: 0,
+      defaultVat: 23,
+      currentIssueMonth: new Date().toISOString().slice(0, 7),
+    };
+    const json = readJsonOrDefault(SETTINGS_FILE, def);
     res.json(json);
   } catch (e) {
     console.error("❌ Error reading settings:", e);
@@ -321,9 +368,13 @@ app.get("/settings", (_req, res) => {
 app.post("/settings", (req, res) => {
   try {
     const s = req.body || {};
-    const prev = fs.existsSync(SETTINGS_FILE)
-      ? JSON.parse(fs.readFileSync(SETTINGS_FILE, "utf8"))
-      : {};
+    const prev = readJsonOrDefault(SETTINGS_FILE, {
+      perPiecePriceGross: 6.0,
+      courierPriceGross: 0,
+      shippingPriceGross: 0,
+      defaultVat: 23,
+      currentIssueMonth: new Date().toISOString().slice(0, 7),
+    });
 
     const out = {
       ...prev,
@@ -385,9 +436,8 @@ app.post("/clients/save", (req, res) => {
 
 app.get("/clients", (_req, res) => {
   try {
-    if (!fs.existsSync(CLIENTS_FILE)) return res.json([]);
-    const data = fs.readFileSync(CLIENTS_FILE, "utf8");
-    res.json(JSON.parse(data));
+    const data = readJsonOrDefault(CLIENTS_FILE, []);
+    res.json(data);
   } catch (err) {
     console.error("❌ Error reading clients:", err);
     res.status(500).json({ error: "Failed to load clients" });
@@ -395,26 +445,18 @@ app.get("/clients", (_req, res) => {
 });
 
 /* -----------------------------
- * Допоміжна утиліта — підсумки по протоколу
+ * API: invoices.json (метадані) + download
  * ----------------------------- */
-function collectMonth(proto /* {entries:[] } */, month /* "YYYY-MM" */) {
-  const entries = Array.isArray(proto?.entries) ? proto.entries : [];
-  let packages = 0,
-    courier = 0,
-    shipments = 0;
-  for (const e of entries) {
-    packages += Number(e?.packages || 0) || 0;
-    if (e?.shipping) shipments += 1;
-    const d = String(e?.delivery || "");
-    if (d === "odbior" || d === "dowoz") courier += 1;
-    else if (d === "odbior+dowoz") courier += 2;
+app.get("/invoices", (_req, res) => {
+  try {
+    const data = readJsonOrDefault(INVOICES_FILE, []);
+    res.json(data);
+  } catch (e) {
+    console.error("❌ Error reading invoices:", e);
+    res.status(500).json({ error: "Failed to load invoices" });
   }
-  return { packages, courier, shipments };
-}
+});
 
-/* -----------------------------
- * API: Скан PDF у /generated
- * ----------------------------- */
 app.get("/saved-invoices", (_req, res) => {
   const invoices = [];
   function readFolder(folderPath, parent = "") {
@@ -432,19 +474,6 @@ app.get("/saved-invoices", (_req, res) => {
   res.json(invoices);
 });
 
-/* -----------------------------
- * API: invoices.json (метадані)
- * ----------------------------- */
-app.get("/invoices", (_req, res) => {
-  try {
-    if (!fs.existsSync(INVOICES_FILE)) return res.json([]);
-    res.json(JSON.parse(fs.readFileSync(INVOICES_FILE, "utf8")));
-  } catch (e) {
-    console.error("❌ Error reading invoices:", e);
-    res.status(500).json({ error: "Failed to load invoices" });
-  }
-});
-
 app.post("/save-invoices", async (req, res) => {
   const invoices = req.body;
   if (!Array.isArray(invoices)) {
@@ -454,16 +483,15 @@ app.post("/save-invoices", async (req, res) => {
     fs.writeFileSync(INVOICES_FILE, JSON.stringify(invoices, null, 2), "utf8");
     res.json({ success: true });
 
+    // асинхронно догенеруємо відсутні PDF
     setImmediate(async () => {
       for (const inv of invoices) {
         try {
           const fname =
             inv.filename ||
             `Faktura_${String(inv.number || "").replaceAll("/", "_")}.pdf`;
-          const exists = findInvoicePathDeep(path.basename(fname));
-          if (!exists) {
-            await ensurePdfForInvoice(inv);
-          }
+          const exists = findGeneratedFileDeep(path.basename(fname));
+          if (!exists) await ensurePdfForInvoice(inv);
         } catch (e) {
           console.warn(
             "⚠️ PDF gen after save failed for",
@@ -482,12 +510,10 @@ app.post("/save-invoices", async (req, res) => {
 app.get("/download-invoice/:filename", async (req, res) => {
   const fn = path.basename(req.params.filename);
   try {
-    let p = findInvoicePathDeep(fn);
+    let p = findGeneratedFileDeep(fn);
     if (!p) {
       const inv = getInvoiceByFilename(fn);
-      if (inv) {
-        p = await ensurePdfForInvoice(inv);
-      }
+      if (inv) p = await ensurePdfForInvoice(inv);
     }
     if (p && fs.existsSync(p)) {
       res.setHeader("Content-Type", "application/pdf");
@@ -544,9 +570,7 @@ app.post("/download-multiple", (req, res) => {
         break;
       }
     }
-    if (!added) {
-      console.warn("[ZIP] File not found:", safe);
-    }
+    if (!added) console.warn("[ZIP] File not found:", safe);
   }
   archive.finalize();
 });
@@ -554,37 +578,8 @@ app.post("/download-multiple", (req, res) => {
 /* =============================
  * PROTOCOLS
  * ============================= */
-app.get(/^\/protocols\/([^\/]+)\/(\d{4}-\d{2})$/, (req, res) => {
-  try {
-    const clientId = decodeURIComponent(req.params[0]);
-    const month = req.params[1];
-    if (!/^\d{4}-\d{2}$/.test(month)) {
-      return res.status(400).json({ error: "Invalid month format" });
-    }
-    const all = readProtocols();
-    const found = all.find((p) => p.id === clientId && p.month === month) || {
-      id: clientId,
-      month,
-      entries: [],
-    };
-    const totals = computeMonthlyTotals(found);
-    res.json({ ...found, totals });
-  } catch (e) {
-    console.error("❌ Error reading protocol:", e);
-    res.status(500).json({ error: "Failed to load protocol" });
-  }
-});
 
-app.get("/protocols", (_req, res) => {
-  try {
-    const all = readProtocols();
-    res.json(all);
-  } catch (e) {
-    console.error("❌ Error reading protocols list:", e);
-    res.status(500).json({ error: "Failed to load protocols list" });
-  }
-});
-
+// helpers
 function readProtocols() {
   try {
     return JSON.parse(fs.readFileSync(PROTOCOLS_FILE, "utf8")) || [];
@@ -603,40 +598,49 @@ function computeMonthlyTotals(proto) {
   return { totalPackages };
 }
 
-function saveSignatureDataURL(dataURL, clientId, month, roleKey) {
-  if (!dataURL || typeof dataURL !== "string") return null;
-  const m = /^data:image\/(png|jpeg);base64,([A-Za-z0-9+/=]+)$/.exec(dataURL);
-  if (!m) return null;
-  const ext = m[1] === "jpeg" ? "jpg" : "png";
-  const b64 = m[2];
-
-  const safeClient = safeSeg(clientId);
-  const safeMonth = safeSeg(month);
-
-  const dir = path.join(SIGNATURES_DIR, safeClient, safeMonth);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-
-  const file = `${roleKey}_${Date.now()}_${Math.random()
-    .toString(36)
-    .slice(2, 8)}.${ext}`;
-  const abs = path.join(dir, file);
-  fs.writeFileSync(abs, Buffer.from(b64, "base64"));
-  const pub = `/signatures/${encodeURIComponent(
-    safeClient
-  )}/${encodeURIComponent(safeMonth)}/${encodeURIComponent(file)}`;
-  return pub;
-}
-
-app.get(/^\/protocols\/([^\/]+)\/(\d{4}-\d{2})\/pdf$/, (req, res) => {
-  req.params.clientId = decodeURIComponent(req.params[0]);
-  req.params.month = req.params[1];
-  return createProtocolPDF(req, res);
+/* ---- Список усіх ---- */
+app.get("/protocols", (_req, res) => {
+  try {
+    res.json(readProtocols());
+  } catch (e) {
+    console.error("❌ Error reading protocols list:", e);
+    res.status(500).json({ error: "Failed to load protocols list" });
+  }
 });
 
+/* ---- ZIP за місяць (ВИЩЕ за динамічні :clientId/:month) ---- */
 app.get("/protocols/:month/zip", (req, res) => {
   return createProtocolZip(req, res);
 });
 
+/* ---- PDF одного протоколу (ставимо ПЕРЕД /:clientId/:month) ---- */
+app.get("/protocols/:clientId/:month/pdf", (req, res) => {
+  return createProtocolPDF(req, res);
+});
+
+/* ---- Один протокол ---- */
+app.get("/protocols/:clientId/:month", (req, res) => {
+  try {
+    const clientId = decodeURIComponent(req.params.clientId);
+    const month = req.params.month;
+    if (!/^\d{4}-\d{2}$/.test(month)) {
+      return res.status(400).json({ error: "Invalid month format" });
+    }
+    const all = readProtocols();
+    const found = all.find((p) => p.id === clientId && p.month === month) || {
+      id: clientId,
+      month,
+      entries: [],
+    };
+    const totals = computeMonthlyTotals(found);
+    res.json({ ...found, totals });
+  } catch (e) {
+    console.error("❌ Error reading protocol:", e);
+    res.status(500).json({ error: "Failed to load protocol" });
+  }
+});
+
+/* ---- Додавання запису ---- */
 app.post("/protocols/:clientId/:month", (req, res) => {
   try {
     const { clientId, month } = req.params;
@@ -644,7 +648,6 @@ app.post("/protocols/:clientId/:month", (req, res) => {
       return res.status(400).json({ error: "Invalid month format" });
 
     const entry = req.body || {};
-
     const date = entry.date ? String(entry.date) : null;
     if (!date) return res.status(400).json({ error: "Brak 'date' w wpisie" });
 
@@ -657,8 +660,31 @@ app.post("/protocols/:clientId/:month", (req, res) => {
 
     const packages = Number(entry.packages || 0) || 0;
     const delivery = entry.delivery || null;
-    const shipping = Boolean(entry.shipping);
+    const shipping = !!entry.shipping;
     const comment = String(entry.comment || "");
+
+    function saveSignatureDataURL(dataURL, roleKey) {
+      if (!dataURL || typeof dataURL !== "string") return null;
+      const m = /^data:image\/(png|jpeg);base64,([A-Za-z0-9+/=]+)$/.exec(
+        dataURL
+      );
+      if (!m) return null;
+      const ext = m[1] === "jpeg" ? "jpg" : "png";
+      const b64 = m[2];
+
+      const dir = path.join(SIGNATURES_DIR, safeSeg(clientId), safeSeg(month));
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+      const file = `${roleKey}_${Date.now()}_${Math.random()
+        .toString(36)
+        .slice(2, 8)}.${ext}`;
+      const abs = path.join(dir, file);
+      fs.writeFileSync(abs, Buffer.from(b64, "base64"));
+      const pub = `/signatures/${encodeURIComponent(
+        safeSeg(clientId)
+      )}/${encodeURIComponent(safeSeg(month))}/${encodeURIComponent(file)}`;
+      return pub;
+    }
 
     let signatures = undefined;
     if (entry.signaturesData && typeof entry.signaturesData === "object") {
@@ -669,36 +695,22 @@ app.post("/protocols/:clientId/:month", (req, res) => {
         if (sd.transfer.client) {
           transfer.client = saveSignatureDataURL(
             sd.transfer.client,
-            clientId,
-            month,
             "transfer_client"
           );
         }
         if (sd.transfer.staff) {
           transfer.staff = saveSignatureDataURL(
             sd.transfer.staff,
-            clientId,
-            month,
             "transfer_staff"
           );
         }
       }
       if (sd.return && typeof sd.return === "object") {
         if (sd.return.client) {
-          ret.client = saveSignatureDataURL(
-            sd.return.client,
-            clientId,
-            month,
-            "return_client"
-          );
+          ret.client = saveSignatureDataURL(sd.return.client, "return_client");
         }
         if (sd.return.staff) {
-          ret.staff = saveSignatureDataURL(
-            sd.return.staff,
-            clientId,
-            month,
-            "return_staff"
-          );
+          ret.staff = saveSignatureDataURL(sd.return.staff, "return_staff");
         }
       }
       const hasTransfer = transfer.client || transfer.staff;
@@ -740,6 +752,7 @@ app.post("/protocols/:clientId/:month", (req, res) => {
   }
 });
 
+/* ---- Видалення рядка ---- */
 app.delete("/protocols/:clientId/:month/:index", (req, res) => {
   try {
     const { clientId, month, index } = req.params;
@@ -760,6 +773,7 @@ app.delete("/protocols/:clientId/:month/:index", (req, res) => {
   }
 });
 
+/* ---- Позначки черги (courier/point) ---- */
 app.post("/protocols/:clientId/:month/:index/queue", (req, res) => {
   try {
     const { clientId, month, index } = req.params;
@@ -786,6 +800,7 @@ app.post("/protocols/:clientId/:month/:index/queue", (req, res) => {
   }
 });
 
+/* ---- Збереження підписів (transfer/return) ---- */
 app.post("/protocols/:clientId/:month/:index/sign", (req, res) => {
   try {
     const { clientId, month, index } = req.params;
@@ -800,22 +815,41 @@ app.post("/protocols/:clientId/:month/:index/sign", (req, res) => {
     const entry = proto.entries[idx];
     if (!entry) return res.status(404).json({ error: "Entry not found" });
 
+    function saveSignatureDataURL(dataURL, roleKey) {
+      if (!dataURL || typeof dataURL !== "string") return null;
+      const m = /^data:image\/(png|jpeg);base64,([A-Za-z0-9+/=]+)$/.exec(
+        dataURL
+      );
+      if (!m) return null;
+      const ext = m[1] === "jpeg" ? "jpg" : "png";
+      const b64 = m[2];
+
+      const dir = path.join(SIGNATURES_DIR, safeSeg(clientId), safeSeg(month));
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+      const file = `${roleKey}_${Date.now()}_${Math.random()
+        .toString(36)
+        .slice(2, 8)}.${ext}`;
+      const abs = path.join(dir, file);
+      fs.writeFileSync(abs, Buffer.from(b64, "base64"));
+      const pub = `/signatures/${encodeURIComponent(
+        safeSeg(clientId)
+      )}/${encodeURIComponent(safeSeg(month))}/${encodeURIComponent(file)}`;
+      return pub;
+    }
+
     entry.signatures = entry.signatures || {};
     entry.signatures[leg] = entry.signatures[leg] || {};
 
     if (clientDataURL) {
       entry.signatures[leg].client = saveSignatureDataURL(
         clientDataURL,
-        clientId,
-        month,
         `${leg}_client`
       );
     }
     if (staffDataURL) {
       entry.signatures[leg].staff = saveSignatureDataURL(
         staffDataURL,
-        clientId,
-        month,
         `${leg}_staff`
       );
     }
@@ -841,6 +875,7 @@ app.post("/protocols/:clientId/:month/:index/sign", (req, res) => {
   }
 });
 
+/* ---- Оновлення повернення ---- */
 app.post("/protocols/:clientId/:month/:index/return", (req, res) => {
   try {
     const { clientId, month, index } = req.params;
@@ -904,43 +939,7 @@ app.post("/protocols/:clientId/:month/:index/return", (req, res) => {
   }
 });
 
-app.post("/protocols/:clientId/:month/return/bulk", (req, res) => {
-  try {
-    const { clientId, month } = req.params;
-    const { indices, returnDate } = req.body || {};
-    if (!Array.isArray(indices) || !indices.length) {
-      return res
-        .status(400)
-        .json({ error: "indices must be a non-empty array" });
-    }
-    if (
-      typeof returnDate !== "string" ||
-      !/^\d{4}-\d{2}-\d{2}$/.test(returnDate)
-    ) {
-      return res.status(400).json({ error: "Invalid returnDate" });
-    }
-
-    const all = readProtocols();
-    const proto = all.find((p) => p.id === clientId && p.month === month);
-    if (!proto) return res.status(404).json({ error: "Protocol not found" });
-
-    for (const i of indices) {
-      const idx = Number(i);
-      if (!Number.isInteger(idx)) continue;
-      const entry = proto.entries[idx];
-      if (!entry) continue;
-      entry.returnDate = returnDate;
-    }
-
-    writeProtocols(all);
-    const totals = computeMonthlyTotals(proto);
-    res.json({ success: true, protocol: { ...proto, totals } });
-  } catch (e) {
-    console.error("❌ Bulk returnDate update error:", e);
-    res.status(500).json({ error: "Failed to bulk update returnDate" });
-  }
-});
-
+/* ---- PATCH по запису ---- */
 app.patch("/protocols/:clientId/:month/:index", (req, res) => {
   try {
     const { clientId, month, index } = req.params;
@@ -1009,15 +1008,198 @@ app.patch("/protocols/:clientId/:month/:index", (req, res) => {
   }
 });
 
+/* ---- BULK оновлення дат повернення ---- */
+app.post("/protocols/:clientId/:month/return/bulk", (req, res) => {
+  try {
+    const { clientId, month } = req.params;
+    const { indices, returnDate } = req.body || {};
+    if (!Array.isArray(indices) || !indices.length) {
+      return res
+        .status(400)
+        .json({ error: "indices must be a non-empty array" });
+    }
+    if (
+      typeof returnDate !== "string" ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(returnDate)
+    ) {
+      return res.status(400).json({ error: "Invalid returnDate" });
+    }
+
+    const all = readProtocols();
+    const proto = all.find((p) => p.id === clientId && p.month === month);
+    if (!proto) return res.status(404).json({ error: "Protocol not found" });
+
+    for (const i of indices) {
+      const idx = Number(i);
+      if (!Number.isInteger(idx)) continue;
+      const entry = proto.entries[idx];
+      if (!entry) continue;
+      entry.returnDate = returnDate;
+    }
+
+    writeProtocols(all);
+    const totals = computeMonthlyTotals(proto);
+    res.json({ success: true, protocol: { ...proto, totals } });
+  } catch (e) {
+    console.error("❌ Bulk returnDate update error:", e);
+    res.status(500).json({ error: "Failed to bulk update returnDate" });
+  }
+});
+
+/* -----------------------------------------------------------
+ * SERVICES (GET /services, alias /services.json, POST /save-services)
+ * ----------------------------------------------------------- */
+
+const DEFAULT_SERVICES = [
+  "Cążki",
+  "Cęgi",
+  "Nożyczki",
+  "Frezy",
+  "Mandrele",
+  "Nośnik gumowy",
+  "Kopytka",
+  "Radełka",
+  "Sonda",
+  "Końcówki do mikro",
+  "Pęsety",
+  "Obcinacze",
+  "Łyżeczki Uno",
+  "Tarka",
+  "Omega",
+];
+
+function readServices() {
+  try {
+    const raw = fs.readFileSync(SERVICES_FILE, "utf8");
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr : [];
+  } catch {
+    return [];
+  }
+}
+
+app.get(["/services", "/services.json"], (_req, res) => {
+  try {
+    const list = readServices();
+    res.json(list.length ? list : DEFAULT_SERVICES);
+  } catch (e) {
+    console.error("❌ /services error:", e);
+    res.json(DEFAULT_SERVICES);
+  }
+});
+
+app.post("/save-services", (req, res) => {
+  try {
+    const list = req.body;
+    if (!Array.isArray(list))
+      return res.status(400).json({ error: "Invalid services payload" });
+    fs.writeFileSync(SERVICES_FILE, JSON.stringify(list, null, 2), "utf8");
+    res.json({ success: true });
+  } catch (e) {
+    console.error("❌ /save-services error:", e);
+    res.status(500).json({ error: "Failed to save services" });
+  }
+});
+
+/* -----------------------------------------------------------
+ * SIGN QUEUE API (GET /sign-queue?type=courier|point[&month=YYYY-MM])
+ * ----------------------------------------------------------- */
+function stripDiacritics(s) {
+  return String(s || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+function slugFromName(name) {
+  return stripDiacritics(String(name || ""))
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+function loadClientsIndex() {
+  let arr = [];
+  try {
+    if (fs.existsSync(CLIENTS_FILE)) {
+      arr = JSON.parse(fs.readFileSync(CLIENTS_FILE, "utf8")) || [];
+    }
+  } catch {}
+  const idx = {};
+  for (const c of arr) {
+    const name =
+      c?.name ||
+      c?.Klient ||
+      c?.client ||
+      c?.Client ||
+      c?.buyer_name ||
+      c?.Buyer ||
+      "";
+    const id = c?.id || c?.ID || slugFromName(name);
+    if (id) idx[id] = { name: name || id };
+  }
+  return idx;
+}
+
+app.get("/sign-queue", (req, res) => {
+  try {
+    const type = String(req.query.type || "").toLowerCase();
+    if (!["courier", "point"].includes(type)) {
+      return res
+        .status(400)
+        .json({ error: "type must be 'courier' or 'point'" });
+    }
+    const month =
+      typeof req.query.month === "string" &&
+      /^\d{4}-\d{2}$/.test(req.query.month)
+        ? req.query.month
+        : null;
+
+    const clientsIdx = loadClientsIndex();
+    const all = readProtocols();
+
+    const items = [];
+    for (const p of all) {
+      if (month && p.month !== month) continue;
+      const entries = Array.isArray(p.entries) ? p.entries : [];
+      for (let i = 0; i < entries.length; i++) {
+        const e = entries[i] || {};
+        const q = e.queue || {};
+        const pending =
+          type === "courier" ? !!q.courierPending : !!q.pointPending;
+        if (!pending) continue;
+
+        items.push({
+          clientId: p.id,
+          clientName: clientsIdx[p.id]?.name || p.id,
+          month: p.month,
+          index: i,
+          date: e.date || null,
+          tools: Array.isArray(e.tools) ? e.tools : [],
+          packages: Number(e.packages || 0) || 0,
+          delivery: e.delivery || null,
+          shipping: !!e.shipping,
+          comment: e.comment || "",
+          signatures: e.signatures || {},
+          queue: q,
+        });
+      }
+    }
+
+    res.json({ items });
+  } catch (e) {
+    console.error("❌ /sign-queue error:", e);
+    res.status(500).json({ error: "Failed to load sign queue" });
+  }
+});
+
 /* -----------------------------
  * EXPORT .EPP (InsERT GT/Nexo)
  * ----------------------------- */
 app.post("/export-epp", (req, res) => {
   try {
     const { files } = req.body || {};
-    const all = fs.existsSync(INVOICES_FILE)
-      ? JSON.parse(fs.readFileSync(INVOICES_FILE, "utf8"))
-      : [];
+
+    // ✅ безпечне читання (з автобекапом зіпсованого файлу)
+    const all = readJsonOrDefault(INVOICES_FILE, []);
+
     const selected =
       Array.isArray(files) && files.length
         ? all.filter(
@@ -1025,13 +1207,17 @@ app.post("/export-epp", (req, res) => {
           )
         : all;
 
-    const txt = generateEPPContent(selected);
+    // ✅ Генеруємо одразу у Windows-1250 (CP1250), як хоче InsERT
+    const buf = generateEPPBuffer(selected);
+
     res.setHeader("Content-Type", "application/octet-stream");
     res.setHeader("Content-Disposition", 'attachment; filename="export.epp"');
-    res.end(Buffer.from(txt, "utf8"));
+    res.setHeader("Content-Transfer-Encoding", "binary");
+    res.setHeader("Content-Length", buf.length);
+    return res.end(buf);
   } catch (e) {
     console.error("❌ EPP export error:", e);
-    res.status(500).json({ error: "Błąd eksportu EPP" });
+    return res.status(500).json({ error: "Błąd eksportu EPP" });
   }
 });
 
@@ -1042,3 +1228,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>
   console.log(`✅ Backend running on http://localhost:${PORT}`)
 );
+///////

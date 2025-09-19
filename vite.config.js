@@ -1,53 +1,59 @@
-// vite.config.js
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 
-export default defineConfig({
-  plugins: [react()],
-  server: {
-    host: true,
-    port: 5173,
-    strictPort: true,
-    proxy: {
-      // аналітика
-      "/analytics": { target: "http://localhost:3000", changeOrigin: true },
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), "");
+  const API = env.VITE_API_URL || "http://localhost:3000";
 
-      // клієнти
-      "/clients": { target: "http://localhost:3000", changeOrigin: true },
-      "/save-clients": { target: "http://localhost:3000", changeOrigin: true },
-      "/clients/save": { target: "http://localhost:3000", changeOrigin: true },
+  // однакові параметри для всіх цілей проксі
+  const tgt = {
+    target: API,
+    changeOrigin: true, // важливо для дев-проксі: підміняє Origin на бекенд
+    secure: false, // дозволяє самопідписані сертифікати (на випадок HTTPS)
+  };
 
-      // інвойси
-      "/invoices": { target: "http://localhost:3000", changeOrigin: true },
-      "/save-invoices": { target: "http://localhost:3000", changeOrigin: true },
-      "/download-invoice": {
-        target: "http://localhost:3000",
-        changeOrigin: true,
+  return {
+    plugins: [react()],
+    server: {
+      host: true, // дозволяє відкривати з LAN (192.168.x.x), не тільки localhost
+      port: 5173,
+      proxy: {
+        // базові JSON-API
+        "/clients": tgt,
+        "/clients/save": tgt, // ⬅️ залишаю як у вас
+        "/save-clients": tgt,
+        "/settings": tgt,
+        "/invoices": tgt,
+        "/save-invoices": tgt,
+        "/saved-invoices": tgt,
+
+        // сервіси (для підказок інструментів)
+        "/services": tgt,
+        "/services.json": tgt,
+        "/save-services": tgt,
+
+        // протоколи + PDF
+        "/protocols": tgt, // охоплює /:clientId/:month і /:clientId/:month/pdf
+        "/sign-queue": tgt,
+
+        // файли та завантаження
+        "/generated": tgt,
+        "/download-invoice": tgt,
+        "/signatures": tgt,
+        "/download-multiple": tgt, // ⬅️ додав, щоб архів теж ішов через проксі
+
+        // інші роутери
+        "/analytics": tgt,
+        "/upload": tgt,
+        "/gen": tgt,
+        "/export-epp": tgt,
       },
-      "/download-multiple": {
-        target: "http://localhost:3000",
-        changeOrigin: true,
-      },
-      "/export-epp": { target: "http://localhost:3000", changeOrigin: true },
-
-      // генерація/завантаження
-      "/gen": { target: "http://localhost:3000", changeOrigin: true },
-      "/upload": { target: "http://localhost:3000", changeOrigin: true },
-
-      // довідники/налаштування
-      "/services": { target: "http://localhost:3000", changeOrigin: true },
-      "/save-services": { target: "http://localhost:3000", changeOrigin: true },
-      "/settings": { target: "http://localhost:3000", changeOrigin: true },
-
-      // протоколи (API + PDF + ZIP)
-      "/protocols": { target: "http://localhost:3000", changeOrigin: true },
-
-      // черга підписів + статика підписів
-      "/sign-queue": { target: "http://localhost:3000", changeOrigin: true },
-      "/signatures": { target: "http://localhost:3000", changeOrigin: true },
-
-      // статика PDF
-      "/generated": { target: "http://localhost:3000", changeOrigin: true },
+      cors: true, // CORS для дев-асетів Vite (не впливає на бек, але не завадить)
     },
-  },
+
+    // гарантуємо наявність змінної в рантаймі фронта
+    define: {
+      "import.meta.env.VITE_API_URL": JSON.stringify(API),
+    },
+  };
 });

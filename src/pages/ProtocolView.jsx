@@ -1,6 +1,10 @@
 // src/pages/ProtocolView.jsx
 import React, { useEffect, useMemo, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useLocation } from "react-router-dom";
+
+/* ===== API base (prod/dev) — УНІФІКОВАНО з іншими сторінками ===== */
+const API = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const api = (p) => `${API}${p.startsWith("/") ? p : `/${p}`}`;
 
 /* ===== Helpers ===== */
 const getClientName = (c) => String(c?.name || c?.Klient || "").trim() || "—";
@@ -33,25 +37,33 @@ const toClientId = (c) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 
+/* Абсолютний URL для підписів (бо бек на 3000, фронт на 5173) */
+const absSig = (src) =>
+  typeof src === "string" && src.startsWith("/signatures/") ? api(src) : src;
+
 const plDate = (iso) => {
   if (!iso) return "";
   const [y, m, d] = iso.split("-");
   return `${d}.${m}.${y}`;
 };
 
-/* ==== робочі дні ==== */
-function toDate(iso) {
-  return new Date(`${iso}T00:00:00`);
-}
+/* ==== робочі дні (UTC-safe) ==== */
+const parseISO = (iso) => {
+  const [y, m, d] = String(iso || "")
+    .split("-")
+    .map(Number);
+  return new Date(Date.UTC(y, (m || 1) - 1, d || 1));
+};
+const fmtISO = (d) => d.toISOString().slice(0, 10);
+
 function isWeekendISO(iso) {
-  const d = toDate(iso);
-  const wd = d.getDay(); // 0=Sun,6=Sat
+  const wd = parseISO(iso).getUTCDay(); // 0=Sun..6=Sat
   return wd === 0 || wd === 6;
 }
 function addDaysISO(iso, days) {
-  const d = toDate(iso);
-  d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
+  const d = parseISO(iso);
+  d.setUTCDate(d.getUTCDate() + days);
+  return fmtISO(d);
 }
 function nextBusinessDay(iso) {
   let next = addDaysISO(iso, 1);
@@ -116,8 +128,51 @@ function countsEqual(a = [], b = []) {
   return true;
 }
 
+/* ==== ДОДАНО: нормалізація місяця і жорсткі запобіжники ==== */
+const MONTH_RE = /^\d{4}-(0[1-9]|1[0-2])$/;
+function normalizeYm(m) {
+  const s = String(m || "").trim();
+  if (MONTH_RE.test(s)) return s;
+  const mm = s.match(/^(\d{4})-(\d{1,2})$/);
+  if (mm) {
+    const y = mm[1];
+    const mo = String(mm[2]).padStart(2, "0");
+    if (/^(0[1-9]|1[0-2])$/.test(mo)) return `${y}-${mo}`;
+  }
+  return ""; // невалідно
+}
+
 export default function ProtocolView() {
-  const { clientId, month } = useParams();
+  const params = useParams();
+  const location = useLocation();
+
+  // підтримка різних назв параметрів + читання з query string
+  const clientIdParam =
+    params.clientId ??
+    params.client ??
+    params.id ??
+    params.cid ??
+    params.client_id ??
+    params.ClientId ??
+    params.ClientID;
+
+  let monthParam =
+    params.month ?? params.ym ?? params.yymm ?? params.m ?? params.MM;
+
+  if (!clientIdParam || !monthParam) {
+    const qs = new URLSearchParams(location.search || "");
+    monthParam =
+      monthParam ||
+      qs.get("month") ||
+      qs.get("ym") ||
+      qs.get("yymm") ||
+      qs.get("m") ||
+      qs.get("MM");
+  }
+
+  const clientId = clientIdParam;
+  const safeMonth = useMemo(() => normalizeYm(monthParam), [monthParam]); // ✅ 'YYYY-MM' або ''
+
   const [loading, setLoading] = useState(true);
   const [protocol, setProtocol] = useState(null);
   const [client, setClient] = useState(null);
@@ -137,10 +192,24 @@ export default function ProtocolView() {
       setError("");
       setEdit({});
       setSelected(new Set());
+
+      // 🔒 Захист від неправильного маршруту / відсутніх параметрів
+      if (!clientId || !safeMonth) {
+        if (!alive) return;
+        setError(
+          "Nieprawidłowy adres protokołu (brak ID klienta lub miesiąc w złym formacie)."
+        );
+        setProtocol(null);
+        setClient(null);
+        setLoading(false);
+        return;
+      }
+
       try {
         const r = await fetch(
-          `/protocols/${encodeURIComponent(clientId)}/${month}`
+          api(`/protocols/${encodeURIComponent(clientId)}/${safeMonth}`)
         );
+        if (!r.ok) throw new Error("HTTP " + r.status);
         const data = await r.json();
 
         if (!alive) return;
@@ -148,11 +217,11 @@ export default function ProtocolView() {
         const entries = Array.isArray(data?.entries) ? data.entries : [];
         setProtocol({
           id: data?.id || clientId,
-          month: data?.month || month,
+          month: data?.month || safeMonth,
           entries,
           totals: data?.totals || {
             totalPackages: entries.reduce(
-              (a, r) => a + (Number(r?.packages || 0) || 0),
+              (a, rr) => a + (Number(rr?.packages || 0) || 0),
               0
             ),
           },
@@ -165,7 +234,7 @@ export default function ProtocolView() {
       }
 
       try {
-        const rc = await fetch("/clients");
+        const rc = await fetch(api("/clients"));
         const list = (await rc.json()) || [];
         const found = list.find((c) => toClientId(c) === clientId) || null;
         if (alive) setClient(found);
@@ -178,7 +247,7 @@ export default function ProtocolView() {
     return () => {
       alive = false;
     };
-  }, [clientId, month]);
+  }, [clientId, safeMonth, location.search]);
 
   const clientName = getClientName(client);
   const clientAddr = getClientAddress(client);
@@ -288,7 +357,7 @@ export default function ProtocolView() {
     setEdit((prev) => ({ ...prev, [i]: { ...st, saving: true, error: "" } }));
     try {
       const res = await fetch(
-        `/protocols/${encodeURIComponent(clientId)}/${month}/${i}`,
+        api(`/protocols/${encodeURIComponent(clientId)}/${safeMonth}/${i}`),
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -306,7 +375,6 @@ export default function ProtocolView() {
         const json = await res.json();
         updated = json?.entry || null;
 
-        // якщо бек не повернув ці поля — домерджимо те, що ми відправили
         if (updated) {
           updated = {
             ...updated,
@@ -324,7 +392,7 @@ export default function ProtocolView() {
           }));
         }
       } catch {
-        // якщо відповіді немає — підемо по локальному шляху
+        // без тіла відповіді — локальне оновлення нижче
       }
 
       setProtocol((prev) => {
@@ -334,7 +402,6 @@ export default function ProtocolView() {
         if (updated) {
           arr[i] = updated;
         } else {
-          // локальне оновлення, якщо бек не повернув entry
           arr[i] = {
             ...arr[i],
             returnTools: body.returnTools,
@@ -376,22 +443,22 @@ export default function ProtocolView() {
     try {
       for (const idx of idxs) {
         await fetch(
-          `/protocols/${encodeURIComponent(clientId)}/${month}/${idx}`,
+          api(`/protocols/${encodeURIComponent(clientId)}/${safeMonth}/${idx}`),
           { method: "DELETE" }
         );
       }
       const r = await fetch(
-        `/protocols/${encodeURIComponent(clientId)}/${month}`
+        api(`/protocols/${encodeURIComponent(clientId)}/${safeMonth}`)
       );
       const data = await r.json();
       const entries = Array.isArray(data?.entries) ? data.entries : [];
       setProtocol({
         id: data?.id || clientId,
-        month: data?.month || month,
+        month: data?.month || safeMonth,
         entries,
         totals: data?.totals || {
           totalPackages: entries.reduce(
-            (a, r) => a + (Number(r?.packages || 0) || 0),
+            (a, rr) => a + (Number(rr?.packages || 0) || 0),
             0
           ),
         },
@@ -404,8 +471,17 @@ export default function ProtocolView() {
   }
 
   function openPdf() {
-    const url = `/protocols/${encodeURIComponent(clientId)}/${month}/pdf`;
-    window.open(url, "_blank", "noopener,noreferrer");
+    if (!clientId || !safeMonth) return; // 🔒 запобіжник
+    const url = api(
+      `/protocols/${encodeURIComponent(
+        clientId
+      )}/${safeMonth}/pdf?ts=${Date.now()}`
+    );
+    const w = window.open(url, "_blank", "noopener,noreferrer");
+    // Фолбек, якщо попап заблоковано/порожня вкладка
+    if (!w || w.closed || typeof w.closed === "undefined") {
+      window.location.href = url;
+    }
   }
 
   if (loading) {
@@ -471,7 +547,6 @@ export default function ProtocolView() {
         .toolbar { display:flex; gap:10px; align-items:center; flex-wrap: wrap; }
         .toolbar .select { min-width: 220px; font-size: 12px; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; }
         .btn-xs { font-size: 12px; padding: 4px 8px; border-radius: 6px; }
-        /* ▶️ Підсумкові рядки — трохи більший розмір і жирні */
         .total-row td { font-size: 12px !important; font-weight: 700 !important; }
       `}</style>
 
@@ -488,14 +563,11 @@ export default function ProtocolView() {
 
       {/* Аркуш */}
       <div className="sheet card p-4">
-        {/* Заголовок */}
         <div className="text-base font-semibold text-center mb-2">
           Protokół przekazania narzędzi
         </div>
 
-        {/* Верхній блок: зліва клієнт, по центру керування, справа період */}
         <div className="head-strip w-full grid grid-cols-1 md:grid-cols-3 gap-3 mb-3 rounded-lg border p-3 bg-slate-50">
-          {/* LEFT: дані клієнта */}
           <div className="min-w-0">
             <div className="font-semibold truncate">{clientName}</div>
             <div className="text-[11px] text-gray-700 break-words">
@@ -509,7 +581,6 @@ export default function ProtocolView() {
             </div>
           </div>
 
-          {/* CENTER: керування */}
           <div className="no-print">
             <div className="toolbar">
               <button
@@ -536,7 +607,6 @@ export default function ProtocolView() {
             </div>
           </div>
 
-          {/* RIGHT: Місяць + Рік */}
           <div className="shrink-0 text-right">
             <div className="text-[11px] text-gray-500">Okres</div>
             <div className="text-sm">
@@ -545,7 +615,6 @@ export default function ProtocolView() {
           </div>
         </div>
 
-        {/* Таблиця */}
         <div>
           <table className="proto-table table w-full">
             <colgroup>
@@ -600,23 +669,19 @@ export default function ProtocolView() {
             </thead>
             <tbody>
               {(protocol.entries || []).map((row, i) => {
-                // transfer
                 const tTools = (row.tools || []).filter((t) => t?.name);
                 const tCounts = tTools.map((t) => Number(t.count || 0));
-                const tClientSig = row?.signatures?.transfer?.client || null;
-                const tStaffSig = row?.signatures?.transfer?.staff || null;
+                const tClientSig = absSig(row?.signatures?.transfer?.client);
+                const tStaffSig = absSig(row?.signatures?.transfer?.staff);
 
-                // return
                 const rTools = (row.returnTools || row.tools || []).filter(
                   (t) => t?.name
                 );
                 const rCounts = rTools.map((t) => Number(t.count || 0));
-                const rClientSig = row?.signatures?.return?.client || null;
-                const rStaffSig = row?.signatures?.return?.staff || null;
+                const rClientSig = absSig(row?.signatures?.return?.client);
+                const rStaffSig = absSig(row?.signatures?.return?.staff);
 
                 const st = edit[i];
-
-                // дата звороту: якщо редагується — показуємо стейт; інакше збережене або дефолтне значення
                 const rDateISO =
                   (st ? st.date : row.returnDate) || nextBusinessDay(row.date);
 
@@ -643,7 +708,6 @@ export default function ProtocolView() {
                   <React.Fragment key={`${row.date}-${i}`}>
                     <tr id={`row-${i}`} className="align-top">
                       <td className="cell-center">
-                        {/* чекбокс виділення (не друкувати) */}
                         <div className="no-print" style={{ marginBottom: 2 }}>
                           <input
                             type="checkbox"
@@ -704,7 +768,7 @@ export default function ProtocolView() {
                             <img
                               className="sig-img"
                               src={tStaffSig}
-                              alt="Podpis Usługodawcy (przekazanie)"
+                              alt="Podpis Usługodawcy (прzekazanie)"
                             />
                           ) : (
                             <span className="text-xs muted">—</span>
@@ -763,7 +827,6 @@ export default function ProtocolView() {
                       </td>
                     </tr>
 
-                    {/* РЕДАКТОР ЗВОРОТУ (лише на екрані) */}
                     {edit[i] && (
                       <tr className="no-print">
                         <td colSpan={11}>
@@ -787,14 +850,14 @@ export default function ProtocolView() {
                                     if (checked) applySameAsTransfer(i);
                                   }}
                                 />
-                                <span>Zwrot = ilości przy przekazaniu</span>
+                                <span>Zwrot = ilości при przekazaniu</span>
                               </label>
                               {!edit[i].sameAsTransfer && (
                                 <button
                                   className="btn-secondary btn-xs"
                                   onClick={() => applySameAsTransfer(i)}
                                 >
-                                  Skopiuj ilości z przekazania
+                                  Skopiuj ilości з przekazania
                                 </button>
                               )}
                             </div>
@@ -917,7 +980,6 @@ export default function ProtocolView() {
                 );
               })}
 
-              {/* Suma przekazań */}
               <tr className="bg-slate-50 total-row">
                 <td className="cell-left" colSpan={3}>
                   Razem przekazań:
@@ -926,7 +988,6 @@ export default function ProtocolView() {
                 <td colSpan={7}></td>
               </tr>
 
-              {/* Suma pakietів */}
               <tr className="bg-slate-50 total-row">
                 <td className="cell-left" colSpan={3}>
                   Razem pakietów:

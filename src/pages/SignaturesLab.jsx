@@ -1,6 +1,10 @@
 // src/pages/SignaturesLab.jsx
 import React, { useEffect, useImperativeHandle, useRef, useState } from "react";
 
+/* ===== API base (prod/dev) ===== */
+const API = import.meta.env.VITE_API_URL || "";
+const api = (p) => (API ? `${API}${p}` : p);
+
 /* ===== Helpers ===== */
 const todayISO = () => new Date().toISOString().slice(0, 10);
 const ymNow = () => new Date().toISOString().slice(0, 7);
@@ -132,10 +136,10 @@ const SignaturePad = React.forwardRef(function SignaturePad(
     ctx.save();
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, c.width, c.height);
-    ctx.restore();
-    // знову білий фон
+    // знову білий фон (у device-пікселях)
     ctx.fillStyle = "#fff";
-    ctx.fillRect(0, 0, width, height);
+    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.restore();
     emptyRef.current = true;
     onChange && onChange(true);
   };
@@ -164,6 +168,7 @@ const SignaturePad = React.forwardRef(function SignaturePad(
           onPointerMove={supportsPointer ? move : undefined}
           onPointerUp={supportsPointer ? end : undefined}
           onPointerLeave={supportsPointer ? end : undefined}
+          onPointerCancel={supportsPointer ? end : undefined}
           // mouse fallback (лише якщо PointerEvent недоступний)
           onMouseDown={!supportsPointer ? start : undefined}
           onMouseMove={!supportsPointer ? move : undefined}
@@ -251,7 +256,7 @@ export default function SignaturesLab() {
     try {
       // 1) створюємо ПУСТИЙ запис у протоколі (мінімально)
       const create = await fetch(
-        `/protocols/${encodeURIComponent(clientId)}/${month}`,
+        api(`/protocols/${encodeURIComponent(clientId)}/${month}`),
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -281,7 +286,9 @@ export default function SignaturesLab() {
       if (!empty.ts) transferBody.staff = tStaffRef.current.toDataURL();
       if (transferBody.client || transferBody.staff) {
         const r = await fetch(
-          `/protocols/${encodeURIComponent(clientId)}/${month}/${index}/sign`,
+          api(
+            `/protocols/${encodeURIComponent(clientId)}/${month}/${index}/sign`
+          ),
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -296,7 +303,9 @@ export default function SignaturesLab() {
       if (!empty.rs) returnBody.staff = rStaffRef.current.toDataURL();
       if (returnBody.client || returnBody.staff) {
         const r = await fetch(
-          `/protocols/${encodeURIComponent(clientId)}/${month}/${index}/sign`,
+          api(
+            `/protocols/${encodeURIComponent(clientId)}/${month}/${index}/sign`
+          ),
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },

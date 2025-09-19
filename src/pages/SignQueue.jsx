@@ -2,7 +2,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
-
 import SignaturePad from "../components/SignaturePad.jsx";
 
 /* ========= Helpers ========= */
@@ -10,6 +9,19 @@ const todayISO = () => new Date().toISOString().slice(0, 10);
 const getQuery = () => new URLSearchParams(window.location.search);
 const legLabelPL = (leg) => (leg === "transfer" ? "Przekazanie" : "Zwrot");
 const legFromSelect = (val) => (val === "Przekazanie" ? "transfer" : "return");
+
+/* Базовий URL бекенду (узгоджено зі сторінкою Dokumenty → Protokoły) */
+const API = import.meta.env.VITE_API_URL || "http://localhost:3000";
+/* Абсолютний URL для підписів */
+const absSig = (src) => {
+  if (!src || typeof src !== "string") return src;
+  // data: URL або повний http(s) — віддаємо як є
+  if (src.startsWith("data:") || /^https?:\/\//i.test(src)) return src;
+  // вже абсолютний шлях типу /signatures/...
+  if (src.startsWith("/signatures/")) return `${API}${src}`;
+  // голе ім'я файлу (наприклад "169...png") -> /signatures/<name>
+  return `${API}/signatures/${src}`;
+};
 
 /* Клієнт */
 function getClientName(c) {
@@ -44,6 +56,109 @@ function getClientNip(c) {
 /* PDF / Документи */
 import { buildProtocolPdf } from "../utils/ProtocolPdf";
 import { saveProtocolDocMeta } from "../utils/docStore";
+
+/* ==== Додано: нормалізація місяця і елементів черги ==== */
+const MONTH_RE = /^\d{4}-(0[1-9]|1[0-2])$/;
+function normalizeYm(m) {
+  const s = String(m ?? "").trim();
+  if (MONTH_RE.test(s)) return s;
+  const s2 = s.replace(/[\/_.]/g, "-");
+  const mm = s2.match(/^(\d{4})-(\d{1,2})$/);
+  if (mm) {
+    const y = mm[1];
+    const mo = String(mm[2]).padStart(2, "0");
+    if (/^(0[1-9]|1[0-2])$/.test(mo)) return `${y}-${mo}`;
+  }
+  return "";
+}
+
+function toIntMaybe(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+/** Приводимо будь-який item з /sign-queue або з локального білду до спільного формату */
+function normalizeQueueItem(it = {}) {
+  // clientId з різних можливих ключів
+  const clientIdRaw =
+    it.clientId ??
+    it.client_id ??
+    it.client ??
+    it.cid ??
+    (it.clientObj ? getClientId(it.clientObj) : null) ??
+    (it.clientData ? getClientId(it.clientData) : null) ??
+    (it.clientInfo ? getClientId(it.clientInfo) : null) ??
+    (it.client && typeof it.client === "object"
+      ? getClientId(it.client)
+      : null) ??
+    it.id; // інколи сервер кладе id протоколу = clientId
+
+  const clientId = clientIdRaw ? String(clientIdRaw).trim() : "";
+
+  // month з різних ключів або з дати
+  const monthRaw =
+    it.month ??
+    it.ym ??
+    it.yy_mm ??
+    (typeof it.date === "string" ? it.date.slice(0, 7) : null) ??
+    (it.entry && typeof it.entry.date === "string"
+      ? it.entry.date.slice(0, 7)
+      : null);
+
+  const month = normalizeYm(monthRaw);
+
+  // index
+  const idxRaw =
+    it.index ?? it.idx ?? it.entryIndex ?? it.entry_index ?? it.i ?? null;
+  const index = toIntMaybe(idxRaw);
+
+  // інші поля
+  const date =
+    it.date ??
+    (it.entry ? it.entry.date : null) ??
+    (Array.isArray(it.dates) ? it.dates[0] : null) ??
+    null;
+  const tools = it.tools ?? (it.entry ? it.entry.tools : []) ?? [];
+  const packages =
+    it.packages ?? it.pakiety ?? (it.entry ? it.entry.packages : 0) ?? 0;
+
+  const delivery = it.delivery ?? (it.entry ? it.entry.delivery : null) ?? null;
+  const shipping =
+    typeof it.shipping === "boolean"
+      ? it.shipping
+      : !!(it.entry && it.entry.shipping);
+
+  const comment = it.comment ?? (it.entry ? it.entry.comment : "") ?? "";
+
+  const signatures =
+    it.signatures ?? (it.entry ? it.entry.signatures : {}) ?? {};
+
+  const queue = it.queue ?? {
+    pointPending: !!(it.pointPending ?? (it.entry && it.entry.pointPending)),
+    courierPending: !!(
+      it.courierPending ??
+      (it.entry && it.entry.courierPending)
+    ),
+  };
+
+  // валідність
+  if (!clientId || !month || index === null || index < 0) return null;
+
+  return {
+    clientId,
+    clientName: it.clientName || it.client_name || it.name || null,
+    month,
+    index,
+    date,
+    tools,
+    packages,
+    delivery,
+    shipping,
+    comment,
+    signatures,
+    queue,
+  };
+}
 
 export default function SignQueue() {
   const navigate = useNavigate();
@@ -83,7 +198,7 @@ export default function SignQueue() {
   useEffect(() => {
     (async () => {
       try {
-        const r = await fetch("/clients");
+        const r = await fetch(`${API}/clients`);
         const arr = await r.json();
         const map = {};
         for (const c of arr || []) {
@@ -97,18 +212,65 @@ export default function SignQueue() {
     })();
   }, []);
 
+  /* ==== Fallback: локальне складання черги з /protocols ==== */
+  const buildQueueFromProtocols = (allProtocols, monthStr, queueType) => {
+    const items = [];
+    const isPoint = queueType === "point";
+    for (const p of Array.isArray(allProtocols) ? allProtocols : []) {
+      if (p?.month !== monthStr) continue;
+      const entries = Array.isArray(p.entries) ? p.entries : [];
+      entries.forEach((e, idx) => {
+        const q = e?.queue || {};
+        const pending = isPoint ? q.pointPending : q.courierPending;
+        if (!pending) return;
+
+        items.push({
+          clientId: p.id,
+          clientName: p.clientName, // може бути відсутнє — не критично
+          month: p.month,
+          index: idx,
+          date: e.date,
+          tools: e.tools || [],
+          packages: e.packages || 0,
+          delivery: e.delivery || null,
+          shipping: !!e.shipping,
+          comment: e.comment || "",
+          signatures: e.signatures || {},
+          queue: q,
+        });
+      });
+    }
+    return items;
+  };
+
   /* Черга */
   const loadQueue = async () => {
     setLoading(true);
     try {
+      // 1) Перший варіант — серверний /sign-queue (якщо є)
       const r = await fetch(
-        `/sign-queue?type=${encodeURIComponent(type)}&month=${month}&strict=1`
+        `${API}/sign-queue?type=${encodeURIComponent(
+          type
+        )}&month=${month}&strict=1`
       );
-      const data = await r.json();
-      const loaded = Array.isArray(data.items) ? data.items : [];
-      setItems(loaded);
-      return loaded;
+
+      if (r.ok) {
+        const data = await r.json().catch(() => ({}));
+        const loaded = Array.isArray(data.items) ? data.items : [];
+        // НОРМАЛІЗАЦІЯ ↓↓↓
+        const normalized = loaded.map(normalizeQueueItem).filter(Boolean);
+        setItems(normalized);
+        return normalized;
+      }
+
+      // 2) Fallback — зібрати зі списку /protocols
+      const r2 = await fetch(`${API}/protocols`);
+      const all = await r2.json().catch(() => []);
+      const local = buildQueueFromProtocols(all, month, type);
+      setItems(local);
+      return local;
     } catch {
+      // 3) Якщо взагалі щось пішло не так — показуємо порожній список
       setItems([]);
       return [];
     } finally {
@@ -169,9 +331,9 @@ export default function SignQueue() {
       if (role === "staff") body.staff = dataURL;
 
       const r = await fetch(
-        `/protocols/${encodeURIComponent(active.clientId)}/${active.month}/${
-          active.index
-        }/sign`,
+        `${API}/protocols/${encodeURIComponent(active.clientId)}/${
+          active.month
+        }/${active.index}/sign`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -192,7 +354,6 @@ export default function SignQueue() {
       );
       if (updated) {
         setActive(updated);
-        // ✅ automatycznie podpowiedz następną „nogę”
         setActiveLeg(suggestLeg(updated));
       } else {
         backToList();
@@ -209,9 +370,9 @@ export default function SignQueue() {
     if (!active) return;
     try {
       await fetch(
-        `/protocols/${encodeURIComponent(active.clientId)}/${active.month}/${
-          active.index
-        }/queue`,
+        `${API}/protocols/${encodeURIComponent(active.clientId)}/${
+          active.month
+        }/${active.index}/queue`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -224,18 +385,18 @@ export default function SignQueue() {
       await loadQueue();
       backToList();
     } catch {
-      alert("Nie udało się usunąć z kolejki.");
+      alert("Nie udało się usunąć з kolejki.");
     }
   };
 
   const deleteEntry = async () => {
     if (!active) return;
-    if (!confirm("Usunąć cały wpis z protokołu?")) return;
+    if (!confirm("Usunąć cały wpis з протокоłu?")) return;
     try {
       await fetch(
-        `/protocols/${encodeURIComponent(active.clientId)}/${active.month}/${
-          active.index
-        }`,
+        `${API}/protocols/${encodeURIComponent(active.clientId)}/${
+          active.month
+        }/${active.index}`,
         { method: "DELETE" }
       );
       await loadQueue();
@@ -245,12 +406,14 @@ export default function SignQueue() {
     }
   };
 
-  // НОВЕ: видалення прямо зі списку
+  // Видалення прямо зі списку
   const deleteItemFromList = async (it) => {
-    if (!confirm("Usunąć wpis z protokołu?")) return;
+    if (!confirm("Usunąć wpis з протокоłu?")) return;
     try {
       await fetch(
-        `/protocols/${encodeURIComponent(it.clientId)}/${it.month}/${it.index}`,
+        `${API}/protocols/${encodeURIComponent(it.clientId)}/${it.month}/${
+          it.index
+        }`,
         { method: "DELETE" }
       );
       await loadQueue();
@@ -259,22 +422,28 @@ export default function SignQueue() {
     }
   };
 
-  // НОВЕ: перемикач Kurier/Punkt завжди повертає до списку
+  // Перемикач Kurier/Punkt завжди повертає до списку
   const switchType = (t) => {
     setType(t);
     setView("list");
   };
 
-  /* ===== Zapis/aktualizacja PDF protokołu dla klienta/miesiąca ===== */
+  /* ===== Zapis/aktualizacja PDF протоколу для клієнта/місяця ===== */
   const saveProtocolFor = async (clientId, monthStr) => {
+    const cid = String(clientId || "").trim();
+    const ym = normalizeYm(monthStr || month);
+    if (!cid || !ym) {
+      alert("Brak ID klienta lub nieprawidłowy miesiąc.");
+      return;
+    }
     try {
       const r = await fetch(
-        `/protocols/${encodeURIComponent(clientId)}/${monthStr}`
+        `${API}/protocols/${encodeURIComponent(cid)}/${ym}`
       );
       const data = await r.json();
       const protocol = {
-        id: data.id || clientId,
-        month: data.month || monthStr,
+        id: data.id || cid,
+        month: data.month || ym,
         entries: Array.isArray(data.entries) ? data.entries : [],
         totals: data.totals || { totalPackages: 0 },
       };
@@ -282,7 +451,7 @@ export default function SignQueue() {
         return alert("Brak wpisów w tym miesiącu.");
       }
 
-      const clientObj = clientsMap[clientId] || {};
+      const clientObj = clientsMap[cid] || {};
       const { doc, fileName } = buildProtocolPdf({
         month: protocol.month,
         client: clientObj,
@@ -292,13 +461,12 @@ export default function SignQueue() {
       // lokalnie:
       doc.save(fileName);
 
-      // i w “Dokumenty → Protokoły”
+      // і в “Документy → Protokoły”
       const dataUrl = doc.output("datauristring");
       saveProtocolDocMeta({
-        id: `${clientId}:${protocol.month}`,
-        clientId,
-        clientName:
-          getClientName(clientObj) || data.clientName || clientId || "—",
+        id: `${cid}:${protocol.month}`,
+        clientId: cid,
+        clientName: getClientName(clientObj) || data.clientName || cid || "—",
         month: protocol.month,
         fileName,
         createdAt: new Date().toISOString(),
@@ -306,7 +474,7 @@ export default function SignQueue() {
       });
       alert("Zapisano/odświeżono protokół w Dokumenty → Protokoły.");
     } catch {
-      alert("Nie udało się zapisać protokołu.");
+      alert("Nie udało się zapisać протокоłu.");
     }
   };
 
@@ -374,7 +542,7 @@ export default function SignQueue() {
 
               return (
                 <li
-                  key={`${it.clientId}-${it.index}`}
+                  key={`${it.clientId}-${it.index}-${it.month}`}
                   className="py-3 px-2 flex flex-wrap items-center gap-3"
                 >
                   <div className="min-w-[16rem]">
@@ -482,7 +650,7 @@ export default function SignQueue() {
 
           {src ? (
             <img
-              src={src}
+              src={absSig(src)}
               alt={label}
               className="h-9 w-auto object-contain border rounded bg-white px-1"
             />

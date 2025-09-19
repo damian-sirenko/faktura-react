@@ -1,7 +1,7 @@
+// src/components/clients/ClientCard.jsx
 import React, { useEffect, useState } from "react";
 import ClientProtocol from "./ClientProtocol";
 
-// dd.MM.yyyy
 function fmtPL(dateStr) {
   if (!dateStr) return "-";
   const d = new Date(dateStr);
@@ -11,8 +11,6 @@ function fmtPL(dateStr) {
   const yyyy = d.getUTCFullYear();
   return `${dd}.${mm}.${yyyy}`;
 }
-
-// — уніфікація з бекендом: прибираємо діакритики, робимо стабільний slug
 function stripDiacritics(s) {
   return String(s || "")
     .normalize("NFD")
@@ -27,8 +25,6 @@ function normalizeKey(s) {
 function slugFromName(name) {
   return normalizeKey(name).replace(/\s+/g, "-");
 }
-
-/* допоміжне: кінець наступного місяця (YYYY-MM-DD) */
 function endOfNextMonthISO(from = new Date()) {
   const d = new Date(from);
   d.setUTCDate(1);
@@ -36,8 +32,6 @@ function endOfNextMonthISO(from = new Date()) {
   d.setUTCDate(0);
   return d.toISOString().split("T")[0];
 }
-
-/* допоміжне: start + 6 місяців − 1 день (YYYY-MM-DD) */
 function sixMonthsMinusOneDayISO(startISO) {
   if (!startISO) return "";
   const d = new Date(startISO);
@@ -50,6 +44,15 @@ function sixMonthsMinusOneDayISO(startISO) {
   return u.toISOString().split("T")[0];
 }
 
+/* ===== локальний фолбек settings ===== */
+const LOCAL_SETTINGS_FALLBACK = {
+  perPiecePriceGross: 6,
+  defaultVat: 23,
+  currentIssueMonth: "2025-08",
+  courierPriceGross: 12,
+  shippingPriceGross: 22,
+};
+
 export default function ClientCard({
   client,
   onBack,
@@ -60,7 +63,7 @@ export default function ClientCard({
   const [tab, setTab] = useState("details");
   if (!client) return null;
 
-  // завантажуємо глобальні дефолти, щоб показати у виборі ("Global: X zł")
+  // завантажуємо дефолти з бекенду → /settings.json → локально
   const [defaults, setDefaults] = useState({
     courierPriceGross: 0,
     shippingPriceGross: 0,
@@ -68,25 +71,41 @@ export default function ClientCard({
     defaultVat: 23,
   });
   useEffect(() => {
+    let cancelled = false;
     (async () => {
+      const apply = (s) => {
+        if (cancelled) return;
+        setDefaults({
+          courierPriceGross: Number(s.courierPriceGross ?? 0),
+          shippingPriceGross: Number(s.shippingPriceGross ?? 0),
+          perPiecePriceGross: Number(s.perPiecePriceGross ?? 6),
+          defaultVat: Number(s.defaultVat ?? 23),
+        });
+      };
+      const tryGet = async (url) => {
+        const r = await fetch(url, { cache: "no-store" });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      };
+      let s = null;
       try {
-        const r = await fetch("/settings");
-        if (r.ok) {
-          const s = await r.json();
-          setDefaults({
-            courierPriceGross: Number(s.courierPriceGross ?? 0),
-            shippingPriceGross: Number(s.shippingPriceGross ?? 0),
-            perPiecePriceGross: Number(s.perPiecePriceGross ?? 6),
-            defaultVat: Number(s.defaultVat ?? 23),
-          });
-        }
-      } catch (_) {}
+        s = await tryGet("/settings");
+      } catch {}
+      if (!s) {
+        try {
+          s = await tryGet("/settings.json");
+        } catch {}
+      }
+      apply(s || LOCAL_SETTINGS_FALLBACK);
     })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const {
     id,
-    ID, // з Excel
+    ID,
     name = "",
     address = "",
     type = "op",
@@ -100,33 +119,23 @@ export default function ClientCard({
     subscriptionAmount = 0,
     notice = false,
 
-    // ↓↓↓ індивідуальні ціни
-    courierPriceMode = "global", // "global" | "custom"
+    courierPriceMode = "global",
     courierPriceGross = null,
     shippingPriceMode = "global",
     shippingPriceGross = null,
 
-    // ↓↓↓ режим розрахунку
-    billingMode, // "abonament" | "perpiece" (може бути не заданий у старих записах)
+    billingMode,
     comment = "",
   } = client;
 
-  // обчислюємо ефективний режим (на випадок старих даних без billingMode)
   const effectiveBillingMode =
     billingMode ||
     (String(subscription || "").trim() ? "abonament" : "perpiece");
+  const upd = (patch) => onUpdate && onUpdate({ ...client, ...patch });
 
-  // апдейтер у батька
-  const upd = (patch) => {
-    onUpdate && onUpdate({ ...client, ...patch });
-  };
-
-  // ID для показу — віддаємо перевагу реальному id, інакше стабільний slug як у бекенді
   const displayId = id || ID || slugFromName(name || "");
-
   const todayISO = new Date().toISOString().split("T")[0];
 
-  // логіка відображення "Obowiązuje do"
   const isEnded = Boolean(
     String(agreementEnd || "") && String(agreementEnd) < todayISO
   );
@@ -136,6 +145,10 @@ export default function ClientCard({
   const noticeBtnText = isDisabled
     ? "Zgłoszono wypowiedzenie umowy"
     : "Wypowiedzenie umowy";
+
+  /* ✅ БЕЗПЕЧНІ ДАНІ ДЛЯ вкладки “Protokół” */
+  const safeClientId = String(displayId || "").trim(); // "" якщо немає
+  const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
 
   return (
     <div className="min-w-0">
@@ -151,7 +164,6 @@ export default function ClientCard({
             {displayId || "—"}
           </span>
         </div>
-        {/* (прибрано) <div className="muted">Szczegóły kontrahenta</div> */}
       </div>
 
       {/* Tabs */}
@@ -182,7 +194,6 @@ export default function ClientCard({
 
       {tab === "details" ? (
         <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
-          {/* Лева колонка: Dane podstawowe + Коментар */}
           <div className="card w-full">
             <div className="font-semibold mb-2">Dane podstawowe</div>
             <div className="text-sm space-y-1">
@@ -225,7 +236,6 @@ export default function ClientCard({
               </p>
             </div>
 
-            {/* Коментар (перенесено сюди, ліміт 3000) */}
             <div className="mt-4">
               <textarea
                 className="input w-full min-h-[120px]"
@@ -240,7 +250,6 @@ export default function ClientCard({
             </div>
           </div>
 
-          {/* Права колонка: Umowa i abonament — ПРИХОВАТИ для klientów 'perpiece' */}
           {effectiveBillingMode !== "perpiece" && (
             <div className="card w-full">
               <div className="font-semibold mb-2">Umowa i abonament</div>
@@ -254,7 +263,6 @@ export default function ClientCard({
                     placeholder="np. Steryl 50 / Plan A…"
                   />
                 </div>
-
                 <div>
                   <label className="block text-sm mb-1">
                     Kwota abonamentu (brutto)
@@ -287,17 +295,16 @@ export default function ClientCard({
                       {agreementStart ? fmtPL(agreementStart) : "—"}
                     </div>
                   </div>
-
                   <div>
                     <label className="block text-sm mb-1">Obowiązuje do</label>
-
-                    {/* Якщо дата закінчення ВЖЕ МИНУЛА — показуємо "czas nieokreślony" */}
-                    {isEnded ? (
+                    {Boolean(
+                      String(agreementEnd || "") &&
+                        String(agreementEnd) < todayISO
+                    ) ? (
                       <div className="p-2 rounded bg-amber-50 text-amber-800 text-sm">
                         czas nieokreślony
                       </div>
                     ) : notice && agreementEnd ? (
-                      // після "Wypowiedzenie umowy" — показуємо НЕредаговане поле з датою кінця наступного місяця
                       <>
                         <input
                           type="date"
@@ -311,17 +318,18 @@ export default function ClientCard({
                         </div>
                       </>
                     ) : (
-                      // інакше (договір ще не закінчився) — показуємо розрахунок start + 6m − 1d
                       <>
                         <input
                           type="date"
                           className="input w-full"
-                          value={computedSixMEnd || ""}
+                          value={sixMonthsMinusOneDayISO(agreementStart) || ""}
                           readOnly
                           aria-readonly="true"
                         />
                         <div className="text-xs text-gray-500 mt-1">
-                          {computedSixMEnd ? fmtPL(computedSixMEnd) : "—"}
+                          {sixMonthsMinusOneDayISO(agreementStart)
+                            ? fmtPL(sixMonthsMinusOneDayISO(agreementStart))
+                            : "—"}
                         </div>
                       </>
                     )}
@@ -332,17 +340,18 @@ export default function ClientCard({
                   <button
                     type="button"
                     onClick={onSetNotice}
-                    disabled={isDisabled}
+                    disabled={Boolean(notice)}
                     className="btn-primary whitespace-nowrap min-w-[260px]"
                     title={
-                      isDisabled
+                      Boolean(notice)
                         ? "Wypowiedzenie już zgłoszono"
                         : "Ustaw wypowiedzenie na koniec następnego miesiąca"
                     }
                   >
-                    {noticeBtnText}
+                    {Boolean(notice)
+                      ? "Zgłoszono wypowiedzenie umowy"
+                      : "Wypowiedzenie umowy"}
                   </button>
-
                   {notice && (
                     <button
                       type="button"
@@ -358,11 +367,9 @@ export default function ClientCard({
             </div>
           )}
 
-          {/* Ceny indywidualne: кур'єр / wysyłka */}
           <div className="card w-full md:col-span-2">
             <div className="font-semibold mb-2">Ceny dostaw (indywidualne)</div>
 
-            {/* Kurier */}
             <div className="grid md:grid-cols-[1fr_auto_auto] gap-2 items-end">
               <div>
                 <div className="text-sm font-medium mb-1">Dojazd kuriera</div>
@@ -390,7 +397,6 @@ export default function ClientCard({
                   </label>
                 </div>
               </div>
-
               <div className="md:justify-self-end">
                 <label className="block text-sm mb-1">Kwota (brutto)</label>
                 <input
@@ -405,13 +411,10 @@ export default function ClientCard({
                       : Number(defaults.courierPriceGross || 0)
                   }
                   onChange={(e) =>
-                    upd({
-                      courierPriceGross: Number(e.target.value) || 0,
-                    })
+                    upd({ courierPriceGross: Number(e.target.value) || 0 })
                   }
                 />
               </div>
-
               <div className="text-xs text-gray-500 md:justify-self-end">
                 1 dojazd = 1 szt. (liczone z protokołu)
               </div>
@@ -419,7 +422,6 @@ export default function ClientCard({
 
             <div className="my-3 border-t" />
 
-            {/* Wysyłka */}
             <div className="grid md:grid-cols-[1fr_auto_auto] gap-2 items-end">
               <div>
                 <div className="text-sm font-medium mb-1">Wysyłka</div>
@@ -447,7 +449,6 @@ export default function ClientCard({
                   </label>
                 </div>
               </div>
-
               <div className="md:justify-self-end">
                 <label className="block text-sm mb-1">Kwota (brutto)</label>
                 <input
@@ -462,13 +463,10 @@ export default function ClientCard({
                       : Number(defaults.shippingPriceGross || 0)
                   }
                   onChange={(e) =>
-                    upd({
-                      shippingPriceGross: Number(e.target.value) || 0,
-                    })
+                    upd({ shippingPriceGross: Number(e.target.value) || 0 })
                   }
                 />
               </div>
-
               <div className="text-xs text-gray-500 md:justify-self-end">
                 Zliczane z protokołu (pole „Wysyłka”)
               </div>
@@ -476,8 +474,19 @@ export default function ClientCard({
           </div>
         </div>
       ) : (
+        // ✅ Рендеримо вкладку "Protokół" ТІЛЬКИ якщо є валідний clientId.
         <div className="mt-4">
-          <ClientProtocol client={client} />
+          {safeClientId ? (
+            <ClientProtocol
+              client={client}
+              clientId={safeClientId}
+              currentMonth={currentMonth}
+            />
+          ) : (
+            <div className="p-3 rounded-lg border bg-amber-50 text-amber-800 text-sm">
+              Brak identyfikatora klienta — nie można załadować protokołu.
+            </div>
+          )}
         </div>
       )}
     </div>
