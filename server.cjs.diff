@@ -1,0 +1,72 @@
+--- server.cjs	2025-11-16 12:55:35
++++ server.remote.cjs	2025-11-25 14:32:46
+@@ -1,3 +1,5 @@
++
++
+ require("dotenv").config();
+ 
+ const cors = require("cors");
+@@ -159,10 +161,21 @@
+   // Дозволяємо токен у query, напр. ?bearer=JWT
+   if (!req.headers.authorization && req.query && req.query.bearer) {
+     req.headers.authorization = `Bearer ${req.query.bearer}`;
++  }
++  next();
++});
++
++// Нормалізація префікса /api, коли 
++app.use((req, res, next) => {
++  if (req.url === "/api" || req.url === "/api/") {
++    req.url = "/";
++  } else if (req.url.startsWith("/api/")) {
++    req.url = req.url.slice(4); // зрізаємо "/api"
+   }
+   next();
+ });
+ 
++
+ process.on("unhandledRejection", (e) => {
+ 
+ });
+@@ -317,7 +330,8 @@
+ 
+ app.use("/analytics", authGuard, analyticsRouter);
+ 
+-// server.js — вставити нижче будь-яких app.get(...) діагностичних маршрутів, до "СТАТИКА"
++// server.js — вставити нижче будь-яких 
++
+ app.get("/favicon.ico", (_req, res) => res.status(204).end());
+ app.get("/site.webmanifest", (_req, res) => res.status(204).end());
+ app.get("/manifest.webmanifest", (_req, res) => res.status(204).end());
+@@ -344,6 +358,31 @@
+   }
+ });
+ 
++app.get("/tools", async (_req, res) => {
++  try {
++    const [rows] = await pool.query(
++      "SELECT name, type FROM tools ORDER BY type, name"
++    );
++
++    const result = { cosmetic: [], medical: [] };
++
++    for (const row of rows) {
++      if (row.type === "cosmetic") {
++        result.cosmetic.push(row.name);
++      } else if (row.type === "medical") {
++        result.medical.push(row.name);
++      }
++    }
++
++    res.json(result);
++  } catch (e) {
++    console.error("❌ /tools error:", e);
++    res.status(500).json({ error: "Internal server error" });
++  }
++});
++
++
++
+ app.use((req, _res, next) => {
+   console.log(`[API] ${req.method} ${req.url}`);
+   next();

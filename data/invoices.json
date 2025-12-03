@@ -1,5 +1,5587 @@
 [
   {
+    "number": "ST-027/10/2025",
+    "client": "Dariusz Dusik",
+    "buyer_nip": 5130210477,
+    "buyer_pesel": "",
+    "buyer_address": "na. Pętli 7, 32-087 Krakow",
+    "buyer_street": "na. Pętli 7",
+    "buyer_postal": "32-087",
+    "buyer_city": "Krakow",
+    "issueDate": "2025-10-23",
+    "dueDate": "2025-10-23",
+    "status": "paid",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi",
+        "quantity": 33,
+        "gross_price": "6.00",
+        "net_price": "4.88",
+        "net_total": "160.98",
+        "vat_rate": "23.00%",
+        "vat_amount": "37.02",
+        "gross_total": "198.00"
+      }
+    ],
+    "updatedAt": "2025-10-24T13:16:33.127Z",
+    "net": "160,98",
+    "gross": "198,00",
+    "filename": "Faktura_ST-027_10_2025.pdf",
+    "folder": ""
+  },
+  {
+    "number": "ST-026/10/2025",
+    "client": "Anna Kawalska",
+    "buyer_nip": "",
+    "buyer_pesel": "",
+    "buyer_address": "",
+    "buyer_street": "",
+    "buyer_postal": "",
+    "buyer_city": "",
+    "issueDate": "2025-10-22",
+    "dueDate": "2025-10-22",
+    "status": "paid",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi",
+        "quantity": 18,
+        "gross_price": "6.00",
+        "net_price": "4.88",
+        "net_total": "87.80",
+        "vat_rate": "23.00%",
+        "vat_amount": "20.20",
+        "gross_total": "108.00"
+      },
+      {
+        "name": "Wysylka",
+        "quantity": 1,
+        "gross_price": "22.00",
+        "net_price": "17.89",
+        "net_total": "17.89",
+        "vat_rate": "23.00%",
+        "vat_amount": "4.11",
+        "gross_total": "22.00"
+      }
+    ],
+    "updatedAt": "2025-10-24T13:14:25.458Z",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-026_10_2025.pdf",
+    "folder": ""
+  },
+  {
+    "number": "ST-025/10/2025",
+    "client": "Klaudia Michalik",
+    "buyer_nip": "",
+    "buyer_pesel": "",
+    "buyer_address": "",
+    "buyer_street": "",
+    "buyer_postal": "",
+    "buyer_city": "",
+    "issueDate": "2025-10-22",
+    "dueDate": "2025-10-22",
+    "status": "paid",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi",
+        "quantity": 18,
+        "gross_price": "6.00",
+        "net_price": "4.88",
+        "net_total": "87.80",
+        "vat_rate": "23.00%",
+        "vat_amount": "20.20",
+        "gross_total": "108.00"
+      },
+      {
+        "name": "Wysylka",
+        "quantity": 1,
+        "gross_price": "22.00",
+        "net_price": "17.89",
+        "net_total": "17.89",
+        "vat_rate": "23.00%",
+        "vat_amount": "4.11",
+        "gross_total": "22.00"
+      }
+    ],
+    "updatedAt": "2025-10-24T13:13:28.816Z",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-025_10_2025.pdf",
+    "folder": ""
+  },
+  {
+    "number": "ST-024/10/2025",
+    "client": "Paulina Kollek-Klebba",
+    "buyer_nip": "",
+    "buyer_pesel": "",
+    "buyer_address": "",
+    "buyer_street": "",
+    "buyer_postal": "",
+    "buyer_city": "",
+    "issueDate": "2025-10-21",
+    "dueDate": "2025-10-21",
+    "status": "paid",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi",
+        "quantity": 3,
+        "gross_price": "6.00",
+        "net_price": "4.88",
+        "net_total": "14.63",
+        "vat_rate": "23.00%",
+        "vat_amount": "3.37",
+        "gross_total": "18.00"
+      },
+      {
+        "name": "Wysylka",
+        "quantity": 1,
+        "gross_price": "22.00",
+        "net_price": "17.89",
+        "net_total": "17.89",
+        "vat_rate": "23.00%",
+        "vat_amount": "4.11",
+        "gross_total": "22.00"
+      }
+    ],
+    "updatedAt": "2025-10-24T13:12:42.030Z",
+    "net": "32,52",
+    "gross": "40,00",
+    "filename": "Faktura_ST-024_10_2025.pdf",
+    "folder": ""
+  },
+  {
+    "number": "ST-023/10/2025",
+    "client": "Alicja Bondaruk",
+    "buyer_nip": "",
+    "buyer_pesel": "",
+    "buyer_address": "",
+    "buyer_street": "",
+    "buyer_postal": "",
+    "buyer_city": "",
+    "issueDate": "2025-10-21",
+    "dueDate": "2025-10-21",
+    "status": "paid",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi",
+        "quantity": 9,
+        "gross_price": "6.00",
+        "net_price": "4.88",
+        "net_total": "43.90",
+        "vat_rate": "23.00%",
+        "vat_amount": "10.10",
+        "gross_total": "54.00"
+      },
+      {
+        "name": "Wysylka",
+        "quantity": 1,
+        "gross_price": "22.00",
+        "net_price": "17.89",
+        "net_total": "17.89",
+        "vat_rate": "23.00%",
+        "vat_amount": "4.11",
+        "gross_total": "22.00"
+      }
+    ],
+    "updatedAt": "2025-10-24T13:12:10.297Z",
+    "net": "61,79",
+    "gross": "76,00",
+    "filename": "Faktura_ST-023_10_2025.pdf",
+    "folder": ""
+  },
+  {
+    "number": "ST-022/10/2025",
+    "client": "Kosmetyka Adriana Sikorska-Mrzewa",
+    "buyer_nip": "9490980446",
+    "buyer_pesel": "",
+    "buyer_address": "al.Wyzwolenia 2/91, 42-215 Częstochowa",
+    "buyer_street": "al.Wyzwolenia 2/91",
+    "buyer_postal": "42-215",
+    "buyer_city": "Częstochowa",
+    "issueDate": "2025-10-20",
+    "dueDate": "2025-10-20",
+    "status": "paid",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi",
+        "quantity": 18,
+        "gross_price": "6.00",
+        "net_price": "4.88",
+        "net_total": "87.80",
+        "vat_rate": "23.00%",
+        "vat_amount": "20.20",
+        "gross_total": "108.00"
+      },
+      {
+        "name": "Wysylka",
+        "quantity": 1,
+        "gross_price": "22.00",
+        "net_price": "17.89",
+        "net_total": "17.89",
+        "vat_rate": "23.00%",
+        "vat_amount": "4.11",
+        "gross_total": "22.00"
+      }
+    ],
+    "updatedAt": "2025-10-24T13:11:26.002Z",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-022_10_2025.pdf",
+    "folder": ""
+  },
+  {
+    "number": "ST-021/10/2025",
+    "client": "Oliwia Machura",
+    "buyer_nip": "",
+    "buyer_pesel": "",
+    "buyer_address": "",
+    "buyer_street": "",
+    "buyer_postal": "",
+    "buyer_city": "",
+    "issueDate": "2025-10-17",
+    "dueDate": "2025-10-17",
+    "status": "paid",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi",
+        "quantity": 9,
+        "gross_price": "6.00",
+        "net_price": "4.88",
+        "net_total": "43.90",
+        "vat_rate": "23.00%",
+        "vat_amount": "10.10",
+        "gross_total": "54.00"
+      },
+      {
+        "name": "Wysylka",
+        "quantity": 1,
+        "gross_price": "22.00",
+        "net_price": "17.89",
+        "net_total": "17.89",
+        "vat_rate": "23.00%",
+        "vat_amount": "4.11",
+        "gross_total": "22.00"
+      }
+    ],
+    "updatedAt": "2025-10-24T13:10:33.414Z",
+    "net": "61,79",
+    "gross": "76,00",
+    "filename": "Faktura_ST-021_10_2025.pdf",
+    "folder": ""
+  },
+  {
+    "number": "ST-020/10/2025",
+    "client": "Kinga Iracka",
+    "buyer_nip": "",
+    "buyer_pesel": "",
+    "buyer_address": "",
+    "buyer_street": "",
+    "buyer_postal": "",
+    "buyer_city": "",
+    "issueDate": "2025-10-16",
+    "dueDate": "2025-10-16",
+    "status": "paid",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi",
+        "quantity": 8,
+        "gross_price": "6.00",
+        "net_price": "4.88",
+        "net_total": "39.02",
+        "vat_rate": "23.00%",
+        "vat_amount": "8.98",
+        "gross_total": "48.00"
+      },
+      {
+        "name": "Wysylka",
+        "quantity": 1,
+        "gross_price": "22.00",
+        "net_price": "17.89",
+        "net_total": "17.89",
+        "vat_rate": "23.00%",
+        "vat_amount": "4.11",
+        "gross_total": "22.00"
+      }
+    ],
+    "updatedAt": "2025-10-24T13:09:51.321Z",
+    "net": "56,91",
+    "gross": "70,00",
+    "filename": "Faktura_ST-020_10_2025.pdf",
+    "folder": ""
+  },
+  {
+    "number": "ST-019/10/2025",
+    "client": "Kalina Czerniakiewicz",
+    "buyer_nip": "",
+    "buyer_pesel": "",
+    "buyer_address": "",
+    "buyer_street": "",
+    "buyer_postal": "",
+    "buyer_city": "",
+    "issueDate": "2025-10-16",
+    "dueDate": "2025-10-17",
+    "status": "paid",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi",
+        "quantity": 18,
+        "gross_price": "6.00",
+        "net_price": "4.88",
+        "net_total": "87.80",
+        "vat_rate": "23.00%",
+        "vat_amount": "20.20",
+        "gross_total": "108.00"
+      },
+      {
+        "name": "Wysylka",
+        "quantity": 1,
+        "gross_price": "22.00",
+        "net_price": "17.89",
+        "net_total": "17.89",
+        "vat_rate": "23.00%",
+        "vat_amount": "4.11",
+        "gross_total": "22.00"
+      }
+    ],
+    "updatedAt": "2025-10-24T13:08:53.818Z",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-019_10_2025.pdf",
+    "folder": ""
+  },
+  {
+    "number": "ST-018/10/2025",
+    "client": "Angela Wróblewska",
+    "buyer_nip": "",
+    "buyer_pesel": "",
+    "buyer_address": "",
+    "buyer_street": "",
+    "buyer_postal": "",
+    "buyer_city": "",
+    "issueDate": "2025-10-16",
+    "dueDate": "2025-10-16",
+    "status": "paid",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi",
+        "quantity": 11,
+        "gross_price": "6.00",
+        "net_price": "4.88",
+        "net_total": "53.66",
+        "vat_rate": "23.00%",
+        "vat_amount": "12.34",
+        "gross_total": "66.00"
+      },
+      {
+        "name": "Wysylka",
+        "quantity": 1,
+        "gross_price": "22.00",
+        "net_price": "17.89",
+        "net_total": "17.89",
+        "vat_rate": "23.00%",
+        "vat_amount": "4.11",
+        "gross_total": "22.00"
+      }
+    ],
+    "updatedAt": "2025-10-16T12:56:50.411Z",
+    "net": "71,54",
+    "gross": "88,00",
+    "filename": "Faktura_ST-018_10_2025.pdf",
+    "folder": ""
+  },
+  {
+    "number": "ST-017/10/2025",
+    "client": "Karolina Szymańska",
+    "buyer_nip": "",
+    "buyer_pesel": "",
+    "buyer_address": "",
+    "buyer_street": "",
+    "buyer_postal": "",
+    "buyer_city": "",
+    "issueDate": "2025-10-16",
+    "dueDate": "2025-10-16",
+    "status": "paid",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi",
+        "quantity": 8,
+        "gross_price": "6.00",
+        "net_price": "4.88",
+        "net_total": "39.02",
+        "vat_rate": "23.00%",
+        "vat_amount": "8.98",
+        "gross_total": "48.00"
+      },
+      {
+        "name": "Wysylka",
+        "quantity": 1,
+        "gross_price": "22.00",
+        "net_price": "17.89",
+        "net_total": "17.89",
+        "vat_rate": "23.00%",
+        "vat_amount": "4.11",
+        "gross_total": "22.00"
+      }
+    ],
+    "updatedAt": "2025-10-16T12:55:56.337Z",
+    "net": "56,91",
+    "gross": "70,00",
+    "filename": "Faktura_ST-017_10_2025.pdf",
+    "folder": ""
+  },
+  {
+    "number": "ST-016/10/2025",
+    "client": "Klaudia Michalik",
+    "buyer_nip": "",
+    "buyer_pesel": "",
+    "buyer_address": "",
+    "buyer_street": "",
+    "buyer_postal": "",
+    "buyer_city": "",
+    "issueDate": "2025-10-13",
+    "dueDate": "2025-10-13",
+    "status": "paid",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi",
+        "quantity": 19,
+        "gross_price": "6.00",
+        "net_price": "4.88",
+        "net_total": "92.68",
+        "vat_rate": "23.00%",
+        "vat_amount": "21.32",
+        "gross_total": "114.00"
+      },
+      {
+        "name": "Wysylka",
+        "quantity": 1,
+        "gross_price": "22.00",
+        "net_price": "17.89",
+        "net_total": "17.89",
+        "vat_rate": "23.00%",
+        "vat_amount": "4.11",
+        "gross_total": "22.00"
+      }
+    ],
+    "updatedAt": "2025-10-13T13:30:15.985Z",
+    "net": "110,57",
+    "gross": "136,00",
+    "filename": "Faktura_ST-016_10_2025.pdf",
+    "folder": ""
+  },
+  {
+    "number": "ST-015/10/2025",
+    "client": "Daria Wilczyńska",
+    "buyer_nip": "",
+    "buyer_pesel": "",
+    "buyer_address": "Łupaszki 7/26, Kraków",
+    "buyer_street": "",
+    "buyer_postal": "",
+    "buyer_city": "",
+    "issueDate": "2025-10-13",
+    "dueDate": "2025-10-13",
+    "status": "paid",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi",
+        "quantity": 8,
+        "gross_price": "6.00",
+        "net_price": "4.88",
+        "net_total": "39.02",
+        "vat_rate": "23.00%",
+        "vat_amount": "8.98",
+        "gross_total": "48.00"
+      },
+      {
+        "name": "Dojazd kuriera",
+        "quantity": 2,
+        "gross_price": "15.00",
+        "net_price": "12.20",
+        "net_total": "24.39",
+        "vat_rate": "23.00%",
+        "vat_amount": "5.61",
+        "gross_total": "30.00"
+      }
+    ],
+    "updatedAt": "2025-10-13T13:35:47.752Z",
+    "net": "63,41",
+    "gross": "78,00",
+    "filename": "Faktura_ST-015_10_2025.pdf",
+    "folder": ""
+  },
+  {
+    "number": "ST-014/10/2025",
+    "client": "Julia Osiewacz",
+    "buyer_nip": "",
+    "buyer_pesel": "",
+    "buyer_address": "",
+    "buyer_street": "",
+    "buyer_postal": "",
+    "buyer_city": "",
+    "issueDate": "2025-10-10",
+    "dueDate": "2025-10-10",
+    "status": "paid",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi",
+        "quantity": 15,
+        "gross_price": "6.00",
+        "net_price": "4.88",
+        "net_total": "73.17",
+        "vat_rate": "23.00%",
+        "vat_amount": "16.83",
+        "gross_total": "90.00"
+      },
+      {
+        "name": "Wysylka",
+        "quantity": 1,
+        "gross_price": "22.00",
+        "net_price": "17.89",
+        "net_total": "17.89",
+        "vat_rate": "23.00%",
+        "vat_amount": "4.11",
+        "gross_total": "22.00"
+      }
+    ],
+    "updatedAt": "2025-10-13T13:26:51.344Z",
+    "net": "91,06",
+    "gross": "112,00",
+    "filename": "Faktura_ST-014_10_2025.pdf",
+    "folder": ""
+  },
+  {
+    "number": "ST-013/10/2025",
+    "client": "Magdalena Bimkiewicz",
+    "buyer_nip": "",
+    "buyer_pesel": "",
+    "buyer_address": "magdan692@gmail.com",
+    "buyer_street": "magdan692@gmail.com",
+    "buyer_postal": "",
+    "buyer_city": "",
+    "issueDate": "2025-10-10",
+    "dueDate": "2025-10-10",
+    "status": "paid",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi",
+        "quantity": 17,
+        "gross_price": "6.00",
+        "net_price": "4.88",
+        "net_total": "82.93",
+        "vat_rate": "23.00%",
+        "vat_amount": "19.07",
+        "gross_total": "102.00"
+      },
+      {
+        "name": "Wysylka",
+        "quantity": 1,
+        "gross_price": "20.00",
+        "net_price": "16.26",
+        "net_total": "16.26",
+        "vat_rate": "23.00%",
+        "vat_amount": "3.74",
+        "gross_total": "20.00"
+      }
+    ],
+    "updatedAt": "2025-10-13T13:25:47.618Z",
+    "net": "99,19",
+    "gross": "122,00",
+    "filename": "Faktura_ST-013_10_2025.pdf",
+    "folder": ""
+  },
+  {
+    "number": "ST-012/10/2025",
+    "client": "Anna Golonka",
+    "buyer_nip": "",
+    "buyer_pesel": "",
+    "buyer_address": "",
+    "buyer_street": "",
+    "buyer_postal": "",
+    "buyer_city": "",
+    "issueDate": "2025-10-09",
+    "dueDate": "2025-10-09",
+    "status": "paid",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi",
+        "quantity": 6,
+        "gross_price": "6.00",
+        "net_price": "4.88",
+        "net_total": "29.27",
+        "vat_rate": "23.00%",
+        "vat_amount": "6.73",
+        "gross_total": "36.00"
+      },
+      {
+        "name": "Wysylka",
+        "quantity": 1,
+        "gross_price": "22.00",
+        "net_price": "17.89",
+        "net_total": "17.89",
+        "vat_rate": "23.00%",
+        "vat_amount": "4.11",
+        "gross_total": "22.00"
+      }
+    ],
+    "updatedAt": "2025-10-09T12:33:32.930Z",
+    "net": "47,15",
+    "gross": "58,00",
+    "filename": "Faktura_ST-012_10_2025.pdf",
+    "folder": ""
+  },
+  {
+    "number": "ST-011/10/2025",
+    "client": "Berenika Kosińska",
+    "buyer_nip": "",
+    "buyer_pesel": "",
+    "buyer_address": "",
+    "buyer_street": "",
+    "buyer_postal": "",
+    "buyer_city": "",
+    "issueDate": "2025-10-09",
+    "dueDate": "2025-10-09",
+    "status": "paid",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi",
+        "quantity": 17,
+        "gross_price": "6.00",
+        "net_price": "4.88",
+        "net_total": "82.93",
+        "vat_rate": "23.00%",
+        "vat_amount": "19.07",
+        "gross_total": "102.00"
+      },
+      {
+        "name": "Wysylka",
+        "quantity": 1,
+        "gross_price": "22.00",
+        "net_price": "17.89",
+        "net_total": "17.89",
+        "vat_rate": "23.00%",
+        "vat_amount": "4.11",
+        "gross_total": "22.00"
+      }
+    ],
+    "updatedAt": "2025-10-09T12:32:40.980Z",
+    "net": "100,81",
+    "gross": "124,00",
+    "filename": "Faktura_ST-011_10_2025.pdf",
+    "folder": ""
+  },
+  {
+    "number": "ST-010/10/2025",
+    "client": "Anita Tomasik",
+    "buyer_nip": "",
+    "buyer_pesel": "",
+    "buyer_address": "",
+    "buyer_street": "",
+    "buyer_postal": "",
+    "buyer_city": "",
+    "issueDate": "2025-10-09",
+    "dueDate": "2025-10-09",
+    "status": "paid",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi",
+        "quantity": 13,
+        "gross_price": "6.00",
+        "net_price": "4.88",
+        "net_total": "63.41",
+        "vat_rate": "23.00%",
+        "vat_amount": "14.59",
+        "gross_total": "78.00"
+      },
+      {
+        "name": "Wysylka",
+        "quantity": 1,
+        "gross_price": "22.00",
+        "net_price": "17.89",
+        "net_total": "17.89",
+        "vat_rate": "23.00%",
+        "vat_amount": "4.11",
+        "gross_total": "22.00"
+      }
+    ],
+    "updatedAt": "2025-10-09T12:31:26.687Z",
+    "net": "81,30",
+    "gross": "100,00",
+    "filename": "Faktura_ST-010_10_2025.pdf",
+    "folder": ""
+  },
+  {
+    "number": "ST-009/10/2025",
+    "client": "Magdalena Szychowska",
+    "buyer_nip": "",
+    "buyer_pesel": "",
+    "buyer_address": "",
+    "buyer_street": "",
+    "buyer_postal": "",
+    "buyer_city": "",
+    "issueDate": "2025-10-08",
+    "dueDate": "2025-10-09",
+    "status": "paid",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi",
+        "quantity": 14,
+        "gross_price": "6.00",
+        "net_price": "4.88",
+        "net_total": "68.29",
+        "vat_rate": "23.00%",
+        "vat_amount": "15.71",
+        "gross_total": "84.00"
+      },
+      {
+        "name": "Wysylka",
+        "quantity": 1,
+        "gross_price": "22.00",
+        "net_price": "17.89",
+        "net_total": "17.89",
+        "vat_rate": "23.00%",
+        "vat_amount": "4.11",
+        "gross_total": "22.00"
+      }
+    ],
+    "updatedAt": "2025-10-09T12:29:51.824Z",
+    "net": "86,18",
+    "gross": "106,00",
+    "filename": "Faktura_ST-009_10_2025.pdf",
+    "folder": ""
+  },
+  {
+    "number": "ST-008/10/2025",
+    "client": "Paulina Kosiba",
+    "buyer_nip": "",
+    "buyer_pesel": "",
+    "buyer_address": "",
+    "buyer_street": "",
+    "buyer_postal": "",
+    "buyer_city": "",
+    "issueDate": "2025-10-07",
+    "dueDate": "2025-10-08",
+    "status": "paid",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi",
+        "quantity": 17,
+        "gross_price": "6.00",
+        "net_price": "4.88",
+        "net_total": "82.93",
+        "vat_rate": "23.00%",
+        "vat_amount": "19.07",
+        "gross_total": "102.00"
+      },
+      {
+        "name": "Wysylka",
+        "quantity": 1,
+        "gross_price": "22.00",
+        "net_price": "17.89",
+        "net_total": "17.89",
+        "vat_rate": "23.00%",
+        "vat_amount": "4.11",
+        "gross_total": "22.00"
+      }
+    ],
+    "updatedAt": "2025-10-09T12:28:01.494Z",
+    "net": "100,81",
+    "gross": "124,00",
+    "filename": "Faktura_ST-008_10_2025.pdf",
+    "folder": ""
+  },
+  {
+    "number": "ST-007/10/2025",
+    "client": "Aleksandra Podsiadło",
+    "buyer_nip": "6762697793",
+    "buyer_pesel": "",
+    "buyer_address": "Henryka Siemiradzkiego 9/9, 31-137 Kraków",
+    "buyer_street": "Henryka Siemiradzkiego 9/9",
+    "buyer_postal": "31-137",
+    "buyer_city": "Kraków",
+    "issueDate": "2025-10-06",
+    "dueDate": "2025-10-06",
+    "status": "paid",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi",
+        "quantity": 14,
+        "gross_price": "6.00",
+        "net_price": "4.88",
+        "net_total": "68.29",
+        "vat_rate": "23.00%",
+        "vat_amount": "15.71",
+        "gross_total": "84.00"
+      }
+    ],
+    "updatedAt": "2025-10-06T17:49:50.628Z",
+    "net": "68,29",
+    "gross": "84,00",
+    "filename": "Faktura_ST-007_10_2025.pdf",
+    "folder": ""
+  },
+  {
+    "number": "ST-006/10/2025",
+    "client": "Jadwiga Cichorz",
+    "buyer_nip": "",
+    "buyer_pesel": "",
+    "buyer_address": "",
+    "buyer_street": "",
+    "buyer_postal": "",
+    "buyer_city": "",
+    "issueDate": "2025-10-03",
+    "dueDate": "2025-10-03",
+    "status": "paid",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi",
+        "quantity": 12,
+        "gross_price": "6.00",
+        "net_price": "4.88",
+        "net_total": "58.54",
+        "vat_rate": "23.00%",
+        "vat_amount": "13.46",
+        "gross_total": "72.00"
+      },
+      {
+        "name": "Wysylka",
+        "quantity": 1,
+        "gross_price": "24.00",
+        "net_price": "19.51",
+        "net_total": "19.51",
+        "vat_rate": "23.00%",
+        "vat_amount": "4.49",
+        "gross_total": "24.00"
+      }
+    ],
+    "updatedAt": "2025-10-06T13:28:41.678Z",
+    "net": "78,05",
+    "gross": "96,00",
+    "filename": "Faktura_ST-006_10_2025.pdf",
+    "folder": ""
+  },
+  {
+    "number": "ST-005/10/2025",
+    "client": "Martyna Kussy",
+    "buyer_nip": "",
+    "buyer_pesel": "",
+    "buyer_address": "",
+    "buyer_street": "",
+    "buyer_postal": "",
+    "buyer_city": "",
+    "issueDate": "2025-10-03",
+    "dueDate": "2025-10-03",
+    "status": "paid",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi",
+        "quantity": 18,
+        "gross_price": "6.00",
+        "net_price": "4.88",
+        "net_total": "87.80",
+        "vat_rate": "23.00%",
+        "vat_amount": "20.20",
+        "gross_total": "108.00"
+      },
+      {
+        "name": "Wysylka",
+        "quantity": 1,
+        "gross_price": "22.00",
+        "net_price": "17.89",
+        "net_total": "17.89",
+        "vat_rate": "23.00%",
+        "vat_amount": "4.11",
+        "gross_total": "22.00"
+      }
+    ],
+    "updatedAt": "2025-10-06T13:22:39.090Z",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-005_10_2025.pdf",
+    "folder": ""
+  },
+  {
+    "number": "ST-004/10/2025",
+    "client": "Kinga Iracka",
+    "buyer_nip": "",
+    "buyer_pesel": "",
+    "buyer_address": "",
+    "buyer_street": "",
+    "buyer_postal": "",
+    "buyer_city": "",
+    "issueDate": "2025-10-02",
+    "dueDate": "2025-10-02",
+    "status": "paid",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi",
+        "quantity": 6,
+        "gross_price": "6.00",
+        "net_price": "4.88",
+        "net_total": "29.27",
+        "vat_rate": "23.00%",
+        "vat_amount": "6.73",
+        "gross_total": "36.00"
+      },
+      {
+        "name": "Wysylka",
+        "quantity": 1,
+        "gross_price": "22.00",
+        "net_price": "17.89",
+        "net_total": "17.89",
+        "vat_rate": "23.00%",
+        "vat_amount": "4.11",
+        "gross_total": "22.00"
+      }
+    ],
+    "updatedAt": "2025-10-06T13:20:06.234Z",
+    "net": "47,15",
+    "gross": "58,00",
+    "filename": "Faktura_ST-004_10_2025.pdf",
+    "folder": ""
+  },
+  {
+    "number": "ST-003/10/2025",
+    "client": "Wiktoria Maćkowiak",
+    "buyer_nip": "",
+    "buyer_pesel": "",
+    "buyer_address": "",
+    "buyer_street": "",
+    "buyer_postal": "",
+    "buyer_city": "",
+    "issueDate": "2025-10-01",
+    "dueDate": "2025-10-01",
+    "status": "paid",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi",
+        "quantity": 21,
+        "gross_price": "6.00",
+        "net_price": "4.88",
+        "net_total": "102.44",
+        "vat_rate": "23.00%",
+        "vat_amount": "23.56",
+        "gross_total": "126.00"
+      },
+      {
+        "name": "Wysylka",
+        "quantity": 1,
+        "gross_price": "22.00",
+        "net_price": "17.89",
+        "net_total": "17.89",
+        "vat_rate": "23.00%",
+        "vat_amount": "4.11",
+        "gross_total": "22.00"
+      }
+    ],
+    "updatedAt": "2025-10-06T14:21:45.389Z",
+    "net": "120,33",
+    "gross": "148,00",
+    "filename": "Faktura_ST-003_10_2025.pdf",
+    "folder": ""
+  },
+  {
+    "number": "ST-002/10/2025",
+    "client": "Natalia Wielgus",
+    "buyer_nip": "",
+    "buyer_pesel": "",
+    "buyer_address": "",
+    "buyer_street": "",
+    "buyer_postal": "",
+    "buyer_city": "",
+    "issueDate": "2025-10-01",
+    "dueDate": "2025-10-01",
+    "status": "paid",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi",
+        "quantity": 1,
+        "gross_price": "6.00",
+        "net_price": "4.88",
+        "net_total": "4.88",
+        "vat_rate": "23.00%",
+        "vat_amount": "1.12",
+        "gross_total": "6.00"
+      },
+      {
+        "name": "Wysylka",
+        "quantity": 1,
+        "gross_price": "22.00",
+        "net_price": "17.89",
+        "net_total": "17.89",
+        "vat_rate": "23.00%",
+        "vat_amount": "4.11",
+        "gross_total": "22.00"
+      }
+    ],
+    "updatedAt": "2025-10-06T13:17:19.467Z",
+    "net": "22,76",
+    "gross": "28,00",
+    "filename": "Faktura_ST-002_10_2025.pdf",
+    "folder": ""
+  },
+  {
+    "number": "ST-001/10/2025",
+    "client": "Alicja Bondaruk",
+    "buyer_nip": "",
+    "buyer_pesel": "",
+    "buyer_address": "",
+    "buyer_street": "",
+    "buyer_postal": "",
+    "buyer_city": "",
+    "issueDate": "2025-10-01",
+    "dueDate": "2025-10-01",
+    "status": "paid",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi",
+        "quantity": 9,
+        "gross_price": "6.00",
+        "net_price": "4.88",
+        "net_total": "43.90",
+        "vat_rate": "23.00%",
+        "vat_amount": "10.10",
+        "gross_total": "54.00"
+      },
+      {
+        "name": "Wysylka",
+        "quantity": 1,
+        "gross_price": "22.00",
+        "net_price": "17.89",
+        "net_total": "17.89",
+        "vat_rate": "23.00%",
+        "vat_amount": "4.11",
+        "gross_total": "22.00"
+      }
+    ],
+    "updatedAt": "2025-10-06T13:15:33.590Z",
+    "net": "61,79",
+    "gross": "76,00",
+    "filename": "Faktura_ST-001_10_2025.pdf",
+    "folder": ""
+  },
+  {
+    "number": "ST-162/09/2025",
+    "client": "Kacper Kaniewski",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "253,46",
+    "gross": "311,75",
+    "filename": "Faktura_ST-162_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 200 za mies. 09/2025",
+        "quantity": 1,
+        "gross_price": "311.75",
+        "net_price": "253.46",
+        "net_total": "253.46",
+        "vat_rate": "23.00%",
+        "vat_amount": "58.29",
+        "gross_total": "311.75"
+      }
+    ],
+    "buyer_address": "Doktora Jana Piltza 33/45, 30-392 Kraków",
+    "buyer_nip": "",
+    "buyer_pesel": "03302108690",
+    "status": "paid",
+    "buyer_street": "Doktora Jana Piltza 33/45",
+    "buyer_postal": "30-392",
+    "buyer_city": "Kraków",
+    "updatedAt": "2025-10-02T13:45:00.561Z"
+  },
+  {
+    "number": "ST-161/09/2025",
+    "client": "ANNA MAKEUP & BEAUTY Anna Rezmer",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "40,24",
+    "gross": "49,50",
+    "filename": "Faktura_ST-161_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "gross_price": "27.50",
+        "net_price": "22.36",
+        "net_total": "22.36",
+        "vat_rate": "23.00%",
+        "vat_amount": "5.14",
+        "gross_total": "27.50"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "gross_price": "22.00",
+        "net_price": "17.89",
+        "net_total": "17.89",
+        "vat_rate": "23.00%",
+        "vat_amount": "4.11",
+        "gross_total": "22.00"
+      }
+    ],
+    "buyer_address": "Mikołaja Kopernika 4A/1, 38-200 Jasło",
+    "buyer_nip": "6852288555",
+    "buyer_pesel": "",
+    "status": "paid",
+    "buyer_street": "Mikołaja Kopernika 4A/1",
+    "buyer_postal": "38-200",
+    "buyer_city": "Jasło",
+    "updatedAt": "2025-10-02T13:45:14.827Z"
+  },
+  {
+    "number": "ST-160/09/2025",
+    "client": "Bogumiła Pałczyńska",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "130,08",
+    "gross": "160,00",
+    "filename": "Faktura_ST-160_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "ul. Polna 8, 62-330 Zasutowo",
+    "buyer_nip": "",
+    "buyer_pesel": "81092502287",
+    "status": "paid"
+  },
+  {
+    "number": "ST-159/09/2025",
+    "client": "Ewelina Krzyżanowska",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "107,32",
+    "gross": "132,00",
+    "filename": "Faktura_ST-159_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "17,89",
+        "gross_price": "22,00",
+        "net_total": "17,89",
+        "vat_rate": "23%",
+        "vat_amount": "4,11",
+        "gross_total": "22,00"
+      }
+    ],
+    "buyer_address": "Kaszyce Wielkie 27d/2, 55-110 Prusice",
+    "buyer_nip": 9151826228,
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-158/09/2025",
+    "client": "Jolanta Gontarczyk",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "130,08",
+    "gross": "160,00",
+    "filename": "Faktura_ST-158_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "Nowogrodzka 10, 18-413 Miastkowo",
+    "buyer_nip": "",
+    "buyer_pesel": "92051205121",
+    "status": "paid"
+  },
+  {
+    "number": "ST-157/09/2025",
+    "client": "Brows_by_TETIANA SHUTSKO",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-157_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      }
+    ],
+    "buyer_address": "Rakowicka 20L H381, 31-510 Kraków",
+    "buyer_nip": 7922308075,
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-156/09/2025",
+    "client": "Sylwia Łukasik",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-156_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "Insurekcji kościuszkowskiej 66/36 43-600 Jaworzno",
+    "buyer_nip": "",
+    "buyer_pesel": "85010605944",
+    "status": "paid"
+  },
+  {
+    "number": "ST-155/09/2025",
+    "client": "Indywidualna praktyka lekarska Oleksandr Hrytsaienko",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "186,99",
+    "gross": "230,00",
+    "filename": "Faktura_ST-155_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 50 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "170,73",
+        "gross_price": "210,00",
+        "net_total": "170,73",
+        "vat_rate": "23%",
+        "vat_amount": "39,27",
+        "gross_total": "210,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "ul. Grunwaldzka 62a/10, 85-239 Bydgoszcz",
+    "buyer_nip": 9671391920,
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-154/09/2025",
+    "client": "Natalia Żółtowska",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "170,73",
+    "gross": "210,00",
+    "filename": "Faktura_ST-154_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 50 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "170,73",
+        "gross_price": "210,00",
+        "net_total": "170,73",
+        "vat_rate": "23%",
+        "vat_amount": "39,27",
+        "gross_total": "210,00"
+      }
+    ],
+    "buyer_address": "Zdunowo 8A, 09-142 Załuski",
+    "buyer_nip": 5671847186,
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-153/09/2025",
+    "client": "\"ANNAILS\" Anna Zając",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "260,16",
+    "gross": "320,00",
+    "filename": "Faktura_ST-153_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 100 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "243,90",
+        "gross_price": "300,00",
+        "net_total": "243,90",
+        "vat_rate": "23%",
+        "vat_amount": "56,10",
+        "gross_total": "300,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "Nadbrzeżna 19/2, 59-920 Bogatynia",
+    "buyer_nip": 6152050018,
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-152/09/2025",
+    "client": "Gabinet Leczenia Ran Indywidualna Praktyka Pielęgniarska Renata Cecelon",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "260,16",
+    "gross": "320,00",
+    "filename": "Faktura_ST-152_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 100 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "243,90",
+        "gross_price": "300,00",
+        "net_total": "243,90",
+        "vat_rate": "23%",
+        "vat_amount": "56,10",
+        "gross_total": "300,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "Adama Mickiewicza 32, 28-200 Staszów",
+    "buyer_nip": 8661087226,
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-151/09/2025",
+    "client": "Paulina Wiktorska",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-151_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "ul. Krakowska, nr 80B, 26-800 Białobrzegi",
+    "buyer_nip": "7981485206",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-150/09/2025",
+    "client": "NEWMEDICAL SPÓŁKA AKCYJNA",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "263,41",
+    "gross": "324,00",
+    "filename": "Faktura_ST-150_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 100 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "243,90",
+        "gross_price": "300,00",
+        "net_total": "243,90",
+        "vat_rate": "23%",
+        "vat_amount": "56,10",
+        "gross_total": "300,00"
+      },
+      {
+        "name": "Dojazd kuriera",
+        "quantity": 2,
+        "net_price": "9,76",
+        "gross_price": "12,00",
+        "net_total": "19,51",
+        "vat_rate": "23%",
+        "vat_amount": "4,49",
+        "gross_total": "24,00"
+      }
+    ],
+    "buyer_address": "Marynarki Polskiej 59, 80-557 Gdańsk",
+    "buyer_nip": "9571151984",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-149/09/2025",
+    "client": "Praktyka Lekarska Ewa Gostkowska",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-149_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "Połczyńska 53/3 , 80-174 Gdańsk",
+    "buyer_nip": "8911590051",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-148/09/2025",
+    "client": "Patrycja Hornicka Pazurki u Patki",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-148_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "Czostków ul. Wiosenna 5, 29-105 Krasocin",
+    "buyer_nip": "6090087219",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-147/09/2025",
+    "client": "BE READY BEAUTY SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "146,34",
+    "gross": "180,00",
+    "filename": "Faktura_ST-147_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 2,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "32,52",
+        "vat_rate": "23%",
+        "vat_amount": "7,48",
+        "gross_total": "40,00"
+      }
+    ],
+    "buyer_address": "Warszawska 40/2A, 40-008 Katowice",
+    "buyer_nip": "9542873539",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-146/09/2025",
+    "client": "Arkadiusz Cieślikowski",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-146_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "Spółdzielcza 9/14, 96-300 Żyrardów",
+    "buyer_nip": "",
+    "buyer_pesel": "99060808639",
+    "status": "paid"
+  },
+  {
+    "number": "ST-145/09/2025",
+    "client": "PIELĘGNACJA STÓP Małgorzata Kowalska",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "276,42",
+    "gross": "340,00",
+    "filename": "Faktura_ST-145_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 100 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "243,90",
+        "gross_price": "300,00",
+        "net_total": "243,90",
+        "vat_rate": "23%",
+        "vat_amount": "56,10",
+        "gross_total": "300,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 2,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "32,52",
+        "vat_rate": "23%",
+        "vat_amount": "7,48",
+        "gross_total": "40,00"
+      }
+    ],
+    "buyer_address": "ul. Grunwaldzka 70/3, 50-357 Wrocław",
+    "buyer_nip": "6112649915",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-144/09/2025",
+    "client": "Wiktoria Gozdowska",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "190,26",
+    "gross": "234,01",
+    "filename": "Faktura_ST-144_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      },
+      {
+        "name": "Pakiety poza abonamentem",
+        "quantity": 3,
+        "net_price": "3,80",
+        "gross_price": "4,67",
+        "net_total": "11,40",
+        "vat_rate": "23%",
+        "vat_amount": "2,61",
+        "gross_total": "14,01"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 4,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "65,04",
+        "vat_rate": "23%",
+        "vat_amount": "14,96",
+        "gross_total": "80,00"
+      }
+    ],
+    "buyer_address": "Topolowa 6\n62-005 Promnice",
+    "buyer_nip": "6090087219",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-143/09/2025",
+    "client": "Dominika Żak",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "186,99",
+    "gross": "230,00",
+    "filename": "Faktura_ST-143_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 50 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "170,73",
+        "gross_price": "210,00",
+        "net_total": "170,73",
+        "vat_rate": "23%",
+        "vat_amount": "39,27",
+        "gross_total": "210,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "ul. Zegadłowicza 1\n34-100 Wadowice",
+    "buyer_nip": "5512671556",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-142/09/2025",
+    "client": "ANNA SKOWIERZAK SALON KOSMETYCZNY SOLAYA",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "113,82",
+    "gross": "140,00",
+    "filename": "Faktura_ST-142_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      }
+    ],
+    "buyer_address": "Osiedle Piastów 65/U 8B, 31-623 Kraków",
+    "buyer_nip": "6782629234",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-141/09/2025",
+    "client": "Katarzyna Ozorkiewicz",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-141_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "2-go Października 7/1, 64-000 Kościan",
+    "buyer_nip": "",
+    "buyer_pesel": "99021009882",
+    "status": "paid"
+  },
+  {
+    "number": "ST-140/09/2025",
+    "client": "K.K. Stylizacja Paznokci Karina Król",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-140_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "Ul. Księżnej Mechtyldy 1/18, 67-200 Głogów",
+    "buyer_nip": "6932159216",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-139/09/2025",
+    "client": "Paulina Gil",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-139_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      }
+    ],
+    "buyer_address": "Braciejówka 154, 32-300 Olkusz",
+    "buyer_nip": "",
+    "buyer_pesel": "95090905300",
+    "status": "paid"
+  },
+  {
+    "number": "ST-138/09/2025",
+    "client": "ART IN BEAUTY CLINIC SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "108,94",
+    "gross": "134,00",
+    "filename": "Faktura_ST-138_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      },
+      {
+        "name": "Dojazd kuriera",
+        "quantity": 2,
+        "net_price": "9,76",
+        "gross_price": "12,00",
+        "net_total": "19,51",
+        "vat_rate": "23%",
+        "vat_amount": "4,49",
+        "gross_total": "24,00"
+      }
+    ],
+    "buyer_address": "płk. Ryszarda Kuklińskiego 7/15, 30-720 Kraków",
+    "buyer_nip": "6793276696",
+    "buyer_pesel": "",
+    "status": "issued"
+  },
+  {
+    "number": "ST-137/09/2025",
+    "client": "SALONIK KOSMETYCZNY \"KASIA\" KATARZYNA HARŁOŻYŃSKA",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "156,68",
+    "gross": "192,69",
+    "filename": "Faktura_ST-137_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      },
+      {
+        "name": "Pakiety poza abonamentem",
+        "quantity": 7,
+        "net_price": "3,80",
+        "gross_price": "4,67",
+        "net_total": "26,60",
+        "vat_rate": "23%",
+        "vat_amount": "6,09",
+        "gross_total": "32,69"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "22 Stycznia 1863 r. 13, 62-240 Trzemeszno",
+    "buyer_nip": "5571096272",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-136/09/2025",
+    "client": "Izabela Biernat",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "130,08",
+    "gross": "160,00",
+    "filename": "Faktura_ST-136_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "Ul. Mieszka I 7/8, 72-010 Police",
+    "buyer_nip": "",
+    "buyer_pesel": "95051303400",
+    "status": "paid"
+  },
+  {
+    "number": "ST-135/09/2025",
+    "client": "NEUBAUER GRUPPE SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "241,41",
+    "gross": "297,00",
+    "filename": "Faktura_ST-135_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      },
+      {
+        "name": "Pakiety poza abonamentem",
+        "quantity": 34,
+        "net_price": "4,47",
+        "gross_price": "5,50",
+        "net_total": "151,98",
+        "vat_rate": "23%",
+        "vat_amount": "35,02",
+        "gross_total": "187,00"
+      }
+    ],
+    "buyer_address": "Turystyczna 2, 38-600 Lesko",
+    "buyer_nip": "6871970845",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-134/09/2025",
+    "client": "WellSupply KLAUDIA LISKOWSKA",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "178,86",
+    "gross": "220,00",
+    "filename": "Faktura_ST-134_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 4,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "65,04",
+        "vat_rate": "23%",
+        "vat_amount": "14,96",
+        "gross_total": "80,00"
+      }
+    ],
+    "buyer_address": "Prezydenta Ryszarda Kaczorowskiego 14B/3, 64-800 Chodzież",
+    "buyer_nip": "6070089787",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-133/09/2025",
+    "client": "Renata Końpa",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-133_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      }
+    ],
+    "buyer_address": "Zybułtowo 18/1, 14-107 Gierzwałd",
+    "buyer_nip": "7412104675",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-132/09/2025",
+    "client": "Jest Pięknie Klaudia Zięba",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "219,51",
+    "gross": "270,00",
+    "filename": "Faktura_ST-132_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 50 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "170,73",
+        "gross_price": "210,00",
+        "net_total": "170,73",
+        "vat_rate": "23%",
+        "vat_amount": "39,27",
+        "gross_total": "210,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 3,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "48,78",
+        "vat_rate": "23%",
+        "vat_amount": "11,22",
+        "gross_total": "60,00"
+      }
+    ],
+    "buyer_address": "Karola Kornasa 2/1, 40-667 Katowice",
+    "buyer_nip": "9542884477",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-131/09/2025",
+    "client": "Nail Studio, Aneta Kania",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-131_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "ul. Jana Kochanowskiego 6/4 58-371 Boguszów-Gorce",
+    "buyer_nip": "8863038107",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-130/09/2025",
+    "client": "Shine Milena Żuk",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "133,88",
+    "gross": "164,67",
+    "filename": "Faktura_ST-130_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      },
+      {
+        "name": "Pakiety poza abonamentem",
+        "quantity": 1,
+        "net_price": "3,80",
+        "gross_price": "4,67",
+        "net_total": "3,80",
+        "vat_rate": "23%",
+        "vat_amount": "0,87",
+        "gross_total": "4,67"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "Partyzantów 1a, 32-310 Klucze",
+    "buyer_nip": " 6372172806",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-129/09/2025",
+    "client": "Katarzyna Cebula ManiLa Studio Urody",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "341,46",
+    "gross": "420,00",
+    "filename": "Faktura_ST-129_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 150 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "292,68",
+        "gross_price": "360,00",
+        "net_total": "292,68",
+        "vat_rate": "23%",
+        "vat_amount": "67,32",
+        "gross_total": "360,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 3,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "48,78",
+        "vat_rate": "23%",
+        "vat_amount": "11,22",
+        "gross_total": "60,00"
+      }
+    ],
+    "buyer_address": " 47-120 Zawadzkie, ul. Polna 2 ",
+    "buyer_nip": "7561953540",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-128/09/2025",
+    "client": "Perfect Match Katarzyna Waśko",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-128_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      }
+    ],
+    "buyer_address": "Głowackiego 24/98\n30-085 Kraków",
+    "buyer_nip": "8691979053",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-127/09/2025",
+    "client": "Dobrosława Wieczorek",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "170,73",
+    "gross": "210,00",
+    "filename": "Faktura_ST-127_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 50 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "170,73",
+        "gross_price": "210,00",
+        "net_total": "170,73",
+        "vat_rate": "23%",
+        "vat_amount": "39,27",
+        "gross_total": "210,00"
+      }
+    ],
+    "buyer_address": "Sidzina 1027, 34-236 Sidzina",
+    "buyer_nip": "5521737680",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-126/09/2025",
+    "client": "Patrycja Kardaszewicz",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "113,82",
+    "gross": "140,00",
+    "filename": "Faktura_ST-126_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      }
+    ],
+    "buyer_address": "ul.Studzienna 6/33 15-771 Białystok",
+    "buyer_nip": "5423496790",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-125/09/2025",
+    "client": "Dorota Tomaśko",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "113,82",
+    "gross": "140,00",
+    "filename": "Faktura_ST-125_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      }
+    ],
+    "buyer_address": "Włosień 223/3, 59-816 Platerówka",
+    "buyer_nip": "",
+    "buyer_pesel": "92020705629 ",
+    "status": "paid"
+  },
+  {
+    "number": "ST-124/09/2025",
+    "client": "Dojechane Paznokcie Pamela Kałuska",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "161,54",
+    "gross": "198,68",
+    "filename": "Faktura_ST-124_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      },
+      {
+        "name": "Pakiety poza abonamentem",
+        "quantity": 4,
+        "net_price": "3,80",
+        "gross_price": "4,67",
+        "net_total": "15,20",
+        "vat_rate": "23%",
+        "vat_amount": "3,48",
+        "gross_total": "18,68"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 2,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "32,52",
+        "vat_rate": "23%",
+        "vat_amount": "7,48",
+        "gross_total": "40,00"
+      }
+    ],
+    "buyer_address": "ul. Grunwaldzka 52a/21, 37-700 Przemyśl",
+    "buyer_nip": "7952585773",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-123/09/2025",
+    "client": "Alicja Urbaniak",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-123_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      }
+    ],
+    "buyer_address": "Alicja Urbaniak Tarce 20a/6 63-200 Jarocin",
+    "buyer_nip": "6172232550",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-122/09/2025",
+    "client": "Katarzyna Dobrzańska",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "113,82",
+    "gross": "140,00",
+    "filename": "Faktura_ST-122_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      }
+    ],
+    "buyer_address": "ul. Wojska Polskiego 56, 59-222 Miłkowice",
+    "buyer_nip": "6912576023",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-121/09/2025",
+    "client": "Roksana Pełech",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-121_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "Surochów 25A 37-500 Jarosław",
+    "buyer_nip": "7922326794 ",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-120/09/2025",
+    "client": "Milena Mrowiec",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-120_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "ul. Radomska 65a, 42-221 Częstochowa",
+    "buyer_nip": "5771959192",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-119/09/2025",
+    "client": "Sylwia Kolec",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-119_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      }
+    ],
+    "buyer_address": "ul. Zadworze 9, 30-718 Kraków",
+    "buyer_nip": "6793295251",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-118/09/2025",
+    "client": "MJ STUDIO PAZNOKCI MONIKA JEWIARZ",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "130,08",
+    "gross": "160,00",
+    "filename": "Faktura_ST-118_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "Szczaworyż 96, 28-100 Busko Zdrój",
+    "buyer_nip": "6551987554",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-117/09/2025",
+    "client": "Robert Skibiński “DR. SKIBIŃSKI CHIRURGIA ESTETYCZNA” PRAKTYKA LEKARSKA",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-117_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      }
+    ],
+    "buyer_address": "Starowiślna 83/4, 31-052 Kraków",
+    "buyer_nip": " 9542528050",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-116/09/2025",
+    "client": "Izabela Turek",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-116_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      }
+    ],
+    "buyer_address": "Stogniowice 83, 32-100 Proszowice",
+    "buyer_nip": "6821806782",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-115/09/2025",
+    "client": "Paulina Rynduch",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "170,73",
+    "gross": "210,00",
+    "filename": "Faktura_ST-115_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 50 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "170,73",
+        "gross_price": "210,00",
+        "net_total": "170,73",
+        "vat_rate": "23%",
+        "vat_amount": "39,27",
+        "gross_total": "210,00"
+      }
+    ],
+    "buyer_address": "ul. Powstańców 32, 31-422 Kraków ",
+    "buyer_nip": "6832143405",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-114/09/2025",
+    "client": "MS Vesna Studio Urody Marta Sztaba",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "203,25",
+    "gross": "250,00",
+    "filename": "Faktura_ST-114_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 50 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "170,73",
+        "gross_price": "210,00",
+        "net_total": "170,73",
+        "vat_rate": "23%",
+        "vat_amount": "39,27",
+        "gross_total": "210,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 2,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "32,52",
+        "vat_rate": "23%",
+        "vat_amount": "7,48",
+        "gross_total": "40,00"
+      }
+    ],
+    "buyer_address": "ul. Borkowska 27D/3 30-438 Kraków ",
+    "buyer_nip": " 6793274421",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-113/09/2025",
+    "client": "FIRMA MEDYCZNA MARK-MED SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "289,13",
+    "gross": "355,80",
+    "filename": "Faktura_ST-113_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 50 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "170,73",
+        "gross_price": "210,00",
+        "net_total": "170,73",
+        "vat_rate": "23%",
+        "vat_amount": "39,27",
+        "gross_total": "210,00"
+      },
+      {
+        "name": "Pakiety poza abonamentem",
+        "quantity": 29,
+        "net_price": "3,41",
+        "gross_price": "4,20",
+        "net_total": "98,89",
+        "vat_rate": "23%",
+        "vat_amount": "22,91",
+        "gross_total": "121,80"
+      },
+      {
+        "name": "Dojazd kuriera",
+        "quantity": 2,
+        "net_price": "9,76",
+        "gross_price": "12,00",
+        "net_total": "19,51",
+        "vat_rate": "23%",
+        "vat_amount": "4,49",
+        "gross_total": "24,00"
+      }
+    ],
+    "buyer_address": "Osiedle Na Skarpie 27/211A, 31-910 Kraków",
+    "buyer_nip": "6751243829",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-112/09/2025",
+    "client": "Gabinet kosmetyczny solarium \"MAJORKA\" Agnieszka Stoińska",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "130,08",
+    "gross": "160,00",
+    "filename": "Faktura_ST-112_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "ul. Adama Mickiewicza 3, 62-045 Pniewy",
+    "buyer_nip": "7871736647",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-111/09/2025",
+    "client": "Diamond Nails Stylizacja Paznokci Sylwia Warwas",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "276,42",
+    "gross": "340,00",
+    "filename": "Faktura_ST-111_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 100 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "243,90",
+        "gross_price": "300,00",
+        "net_total": "243,90",
+        "vat_rate": "23%",
+        "vat_amount": "56,10",
+        "gross_total": "300,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 2,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "32,52",
+        "vat_rate": "23%",
+        "vat_amount": "7,48",
+        "gross_total": "40,00"
+      }
+    ],
+    "buyer_address": "Pl. M. Reja 2, 28-363 Oksa",
+    "buyer_nip": "6631837383",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-110/09/2025",
+    "client": "ManiMania Beata Chwastowska",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "113,82",
+    "gross": "140,00",
+    "filename": "Faktura_ST-110_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      }
+    ],
+    "buyer_address": " św. Anny 24, 32-095 Krasieniec Zakupny",
+    "buyer_nip": "6821707531",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-109/09/2025",
+    "client": "Agata Mikołajczyk",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "260,16",
+    "gross": "320,00",
+    "filename": "Faktura_ST-109_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 100 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "243,90",
+        "gross_price": "300,00",
+        "net_total": "243,90",
+        "vat_rate": "23%",
+        "vat_amount": "56,10",
+        "gross_total": "300,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "ul. Opłotki 9, 98-200 Sieradz",
+    "buyer_nip": "",
+    "buyer_pesel": "93050309441",
+    "status": "paid"
+  },
+  {
+    "number": "ST-108/09/2025",
+    "client": "Monika Ostafin",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "283,14",
+    "gross": "348,12",
+    "filename": "Faktura_ST-108_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      },
+      {
+        "name": "Pakiety poza abonamentem",
+        "quantity": 36,
+        "net_price": "3,80",
+        "gross_price": "4,67",
+        "net_total": "136,80",
+        "vat_rate": "23%",
+        "vat_amount": "31,32",
+        "gross_total": "168,12"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 2,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "32,52",
+        "vat_rate": "23%",
+        "vat_amount": "7,48",
+        "gross_total": "40,00"
+      }
+    ],
+    "buyer_address": "Trzebunia 384, 32-438 Trzebunia",
+    "buyer_nip": "",
+    "buyer_pesel": "96071806605",
+    "status": "paid"
+  },
+  {
+    "number": "ST-107/09/2025",
+    "client": "Magdalena Molenda",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "170,73",
+    "gross": "210,00",
+    "filename": "Faktura_ST-107_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 50 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "170,73",
+        "gross_price": "210,00",
+        "net_total": "170,73",
+        "vat_rate": "23%",
+        "vat_amount": "39,27",
+        "gross_total": "210,00"
+      }
+    ],
+    "buyer_address": "Ul. Kołobrzeska 6, 78-120 Gościno",
+    "buyer_nip": "",
+    "buyer_pesel": "92110103368",
+    "status": "paid"
+  },
+  {
+    "number": "ST-106/09/2025",
+    "client": "Wszechpiękna JUSTYNA ŻAK",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "130,08",
+    "gross": "160,00",
+    "filename": "Faktura_ST-106_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "Mikołaja Kopernika 4/1U, 90-509 Łódź",
+    "buyer_nip": "7712933743",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-105/09/2025",
+    "client": "KOSMED MAJA JANKOWSKA",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "263,09",
+    "gross": "323,60",
+    "filename": "Faktura_ST-105_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 50 za mies. 09/2025",
+        "quantity": 1,
+        "gross_price": "210.00",
+        "net_price": "170.73",
+        "net_total": "170.73",
+        "vat_rate": "23.00%",
+        "vat_amount": "39.27",
+        "gross_total": "210.00"
+      },
+      {
+        "name": "Pakiety poza abonamentem",
+        "quantity": 8,
+        "gross_price": "4.20",
+        "net_price": "3.41",
+        "net_total": "27.32",
+        "vat_rate": "23.00%",
+        "vat_amount": "6.28",
+        "gross_total": "33.60"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 4,
+        "gross_price": "20.00",
+        "net_price": "16.26",
+        "net_total": "65.04",
+        "vat_rate": "23.00%",
+        "vat_amount": "14.96",
+        "gross_total": "80.00"
+      }
+    ],
+    "buyer_address": "Stefana Dembęgo 5/U1, 02-796 Warszawa",
+    "buyer_nip": "7011093078",
+    "buyer_pesel": "",
+    "status": "paid",
+    "buyer_street": "Stefana Dembęgo 5/U1",
+    "buyer_postal": "02-796",
+    "buyer_city": "Warszawa",
+    "updatedAt": "2025-10-02T13:46:55.611Z"
+  },
+  {
+    "number": "ST-104/09/2025",
+    "client": "ZŁOTE LUSTRO Agnieszka Jańczyk",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "302,14",
+    "gross": "371,80",
+    "filename": "Faktura_ST-104_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 50 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "170,73",
+        "gross_price": "210,00",
+        "net_total": "170,73",
+        "vat_rate": "23%",
+        "vat_amount": "39,27",
+        "gross_total": "210,00"
+      },
+      {
+        "name": "Pakiety poza abonamentem",
+        "quantity": 29,
+        "net_price": "3,41",
+        "gross_price": "4,20",
+        "net_total": "98,89",
+        "vat_rate": "23%",
+        "vat_amount": "22,91",
+        "gross_total": "121,80"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 2,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "32,52",
+        "vat_rate": "23%",
+        "vat_amount": "7,48",
+        "gross_total": "40,00"
+      }
+    ],
+    "buyer_address": "Wojska Polskiego 23M/3, 97-400 Bełchatów",
+    "buyer_nip": " 7692067158",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-103/09/2025",
+    "client": "Magdalena Gądek",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-103_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      }
+    ],
+    "buyer_address": "Wielmoża ul.szkolna 49, 32-045 Sułoszowa",
+    "buyer_nip": " 5130208799",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-102/09/2025",
+    "client": "Izabela Tates",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "224,76",
+    "gross": "276,50",
+    "filename": "Faktura_ST-102_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      },
+      {
+        "name": "Pakiety poza abonamentem",
+        "quantity": 23,
+        "net_price": "4,47",
+        "gross_price": "5,50",
+        "net_total": "102,81",
+        "vat_rate": "23%",
+        "vat_amount": "23,69",
+        "gross_total": "126,50"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 2,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "32,52",
+        "vat_rate": "23%",
+        "vat_amount": "7,48",
+        "gross_total": "40,00"
+      }
+    ],
+    "buyer_address": "ul. Księżnej Zofii 1/27, 76-200 Słupsk",
+    "buyer_nip": "",
+    "buyer_pesel": "80012608704",
+    "status": "paid"
+  },
+  {
+    "number": "ST-101/09/2025",
+    "client": "Patrycja Cebula",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-101_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      }
+    ],
+    "buyer_address": "Buszkowice 46, 27-440 Ćmielów",
+    "buyer_nip": "",
+    "buyer_pesel": "00272004708",
+    "status": "paid"
+  },
+  {
+    "number": "ST-100/09/2025",
+    "client": "Usługi kosmetyczne Magdalena Krupa-Spaleniak",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "146,34",
+    "gross": "180,00",
+    "filename": "Faktura_ST-100_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 2,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "32,52",
+        "vat_rate": "23%",
+        "vat_amount": "7,48",
+        "gross_total": "40,00"
+      }
+    ],
+    "buyer_address": "Parczew 67A, 63-405 Sieroszewice",
+    "buyer_nip": "6222859370",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-099/09/2025",
+    "client": "Natalia Wojtowicz",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-099_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "ul. Wodna 8, 98-300 Wieluń",
+    "buyer_nip": "",
+    "buyer_pesel": "99120600544",
+    "status": "paid"
+  },
+  {
+    "number": "ST-098/09/2025",
+    "client": "SALON FRYZJERSKI MONA Monika Mroczka",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-098_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      }
+    ],
+    "buyer_address": "Stanisława Kadyiego 12, 38-200 Jasło",
+    "buyer_nip": "6852202789",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-097/09/2025",
+    "client": "LASERAPLUS POLAND SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-097_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      }
+    ],
+    "buyer_address": "Ostrobramska 101 A/301, 04-041 Warszawa",
+    "buyer_nip": "1133081216",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-096/09/2025",
+    "client": "Studio Urody ODNOWA Joanna Jakubczak",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "203,25",
+    "gross": "250,00",
+    "filename": "Faktura_ST-096_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 50 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "170,73",
+        "gross_price": "210,00",
+        "net_total": "170,73",
+        "vat_rate": "23%",
+        "vat_amount": "39,27",
+        "gross_total": "210,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 2,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "32,52",
+        "vat_rate": "23%",
+        "vat_amount": "7,48",
+        "gross_total": "40,00"
+      }
+    ],
+    "buyer_address": "700-lecia 34/12, 88-400 Żnin",
+    "buyer_nip": "5621795837",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-095/09/2025",
+    "client": "MOBILNY GABINET PODOLOGICZNY MAGDA KROLL",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "113,82",
+    "gross": "140,00",
+    "filename": "Faktura_ST-095_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      }
+    ],
+    "buyer_address": "Bł. Ks. Jerzego Popiełuszki 29, 64-980 Trzcianka",
+    "buyer_nip": "7632074249",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-094/09/2025",
+    "client": "KATARZYNA SANETRA GABINET KOSMETYCZNY",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "186,99",
+    "gross": "230,00",
+    "filename": "Faktura_ST-094_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 50 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "170,73",
+        "gross_price": "210,00",
+        "net_total": "170,73",
+        "vat_rate": "23%",
+        "vat_amount": "39,27",
+        "gross_total": "210,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "gen. Andrzeja Galicy 9, 43-300 Bielsko-Biała",
+    "buyer_nip": "9372427797",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-093/09/2025",
+    "client": "Izabela Bręk",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "218,70",
+    "gross": "269,00",
+    "filename": "Faktura_ST-093_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "gross_price": "140.00",
+        "net_price": "113.82",
+        "net_total": "113.82",
+        "vat_rate": "23.00%",
+        "vat_amount": "26.18",
+        "gross_total": "140.00"
+      },
+      {
+        "name": "Pakiety poza abonamentem",
+        "quantity": 18,
+        "gross_price": "4.67",
+        "net_price": "3.79",
+        "net_total": "68.29",
+        "vat_rate": "23.00%",
+        "vat_amount": "15.71",
+        "gross_total": "84.00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "gross_price": "20.00",
+        "net_price": "16.26",
+        "net_total": "16.26",
+        "vat_rate": "23.00%",
+        "vat_amount": "3.74",
+        "gross_total": "20.00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "gross_price": "25.00",
+        "net_price": "20.33",
+        "net_total": "20.33",
+        "vat_rate": "23.00%",
+        "vat_amount": "4.67",
+        "gross_total": "25.00"
+      }
+    ],
+    "buyer_address": "Rakowice Wielkie 48a/10, 59-600 Rakowice Wielkie",
+    "buyer_nip": "",
+    "buyer_pesel": "01270302768",
+    "status": "paid",
+    "buyer_street": "Rakowice Wielkie 48a/10",
+    "buyer_postal": "59-600",
+    "buyer_city": "Rakowice Wielkie",
+    "updatedAt": "2025-10-02T13:46:43.304Z"
+  },
+  {
+    "number": "ST-092/09/2025",
+    "client": "Gabriela Strzępka",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "121,41",
+    "gross": "149,33",
+    "filename": "Faktura_ST-092_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "gross_price": "140.00",
+        "net_price": "113.82",
+        "net_total": "113.82",
+        "vat_rate": "23.00%",
+        "vat_amount": "26.18",
+        "gross_total": "140.00"
+      },
+      {
+        "name": "Pakiety poza abonamentem",
+        "quantity": 2,
+        "gross_price": "4.67",
+        "net_price": "3.79",
+        "net_total": "7.59",
+        "vat_rate": "23.00%",
+        "vat_amount": "1.75",
+        "gross_total": "9.33"
+      }
+    ],
+    "buyer_address": "Wola Zgłobieńska 216a, 36-046 Zgłobień",
+    "buyer_nip": "",
+    "buyer_pesel": "03301009688",
+    "status": "paid",
+    "buyer_street": "Wola Zgłobieńska 216a",
+    "buyer_postal": "36-046",
+    "buyer_city": "Zgłobień",
+    "updatedAt": "2025-10-02T13:59:52.499Z"
+  },
+  {
+    "number": "ST-091/09/2025",
+    "client": "Lucyna Wiśniewska",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "146,34",
+    "gross": "180,00",
+    "filename": "Faktura_ST-091_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 2,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "32,52",
+        "vat_rate": "23%",
+        "vat_amount": "7,48",
+        "gross_total": "40,00"
+      }
+    ],
+    "buyer_address": "Plac 3-go Maja 10/4, 59-800 Lubań",
+    "buyer_nip": "6161509723",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-090/09/2025",
+    "client": "NATALIIA SALTEVSKA",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "258,54",
+    "gross": "318,00",
+    "filename": "Faktura_ST-090_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 100 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "243,90",
+        "gross_price": "300,00",
+        "net_total": "243,90",
+        "vat_rate": "23%",
+        "vat_amount": "56,10",
+        "gross_total": "300,00"
+      },
+      {
+        "name": "Pakiety poza abonamentem",
+        "quantity": 6,
+        "net_price": "2,44",
+        "gross_price": "3,00",
+        "net_total": "14,64",
+        "vat_rate": "23%",
+        "vat_amount": "3,36",
+        "gross_total": "18,00"
+      }
+    ],
+    "buyer_address": "Osiedle 2 Pułku Lotniczego 1F/51, 31-867 Kraków",
+    "buyer_nip": "6783214469",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-089/09/2025",
+    "client": "Anna Przybył",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-089_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "Pępice 9, 49-317 Pępice",
+    "buyer_nip": "7471741366",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-088/09/2025",
+    "client": "Malwina Dzióbek",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "149,08",
+    "gross": "183,35",
+    "filename": "Faktura_ST-088_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      },
+      {
+        "name": "Pakiety poza abonamentem",
+        "quantity": 5,
+        "net_price": "3,80",
+        "gross_price": "4,67",
+        "net_total": "19,00",
+        "vat_rate": "23%",
+        "vat_amount": "4,35",
+        "gross_total": "23,35"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "Plac Słoneczny 5, 32-600 Oświęcim",
+    "buyer_nip": "5492470109",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-087/09/2025",
+    "client": "Anna Szymborska",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "292,68",
+    "gross": "360,00",
+    "filename": "Faktura_ST-087_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 100 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "243,90",
+        "gross_price": "300,00",
+        "net_total": "243,90",
+        "vat_rate": "23%",
+        "vat_amount": "56,10",
+        "gross_total": "300,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 3,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "48,78",
+        "vat_rate": "23%",
+        "vat_amount": "11,22",
+        "gross_total": "60,00"
+      }
+    ],
+    "buyer_address": "Świerkowa 1a, 18-413 Miastkowo",
+    "buyer_nip": "",
+    "buyer_pesel": "85092502926",
+    "status": "paid"
+  },
+  {
+    "number": "ST-086/09/2025",
+    "client": "LK MED SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "427,05",
+    "gross": "525,60",
+    "filename": "Faktura_ST-086_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 50 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "170,73",
+        "gross_price": "210,00",
+        "net_total": "170,73",
+        "vat_rate": "23%",
+        "vat_amount": "39,27",
+        "gross_total": "210,00"
+      },
+      {
+        "name": "Pakiety poza abonamentem",
+        "quantity": 58,
+        "net_price": "3,41",
+        "gross_price": "4,20",
+        "net_total": "197,78",
+        "vat_rate": "23%",
+        "vat_amount": "45,82",
+        "gross_total": "243,60"
+      },
+      {
+        "name": "Dojazd kuriera",
+        "quantity": 6,
+        "net_price": "9,76",
+        "gross_price": "12,00",
+        "net_total": "58,54",
+        "vat_rate": "23%",
+        "vat_amount": "13,46",
+        "gross_total": "72,00"
+      }
+    ],
+    "buyer_address": "ul. Grzegórzecka 67F lok.38, 31-559 Kraków",
+    "buyer_nip": "6751752672",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-085/09/2025",
+    "client": "Monika Matusińska",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-085_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      }
+    ],
+    "buyer_address": "ul. Mistrzejowicka 12, 31-651 Kraków",
+    "buyer_nip": "",
+    "buyer_pesel": "94010310561",
+    "status": "paid"
+  },
+  {
+    "number": "ST-084/09/2025",
+    "client": "WIKS Wiktoria Dziambor Educator",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "190,40",
+    "gross": "234,20",
+    "filename": "Faktura_ST-084_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 50 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "170,73",
+        "gross_price": "210,00",
+        "net_total": "170,73",
+        "vat_rate": "23%",
+        "vat_amount": "39,27",
+        "gross_total": "210,00"
+      },
+      {
+        "name": "Pakiety poza abonamentem",
+        "quantity": 1,
+        "net_price": "3,41",
+        "gross_price": "4,20",
+        "net_total": "3,41",
+        "vat_rate": "23%",
+        "vat_amount": "0,79",
+        "gross_total": "4,20"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "Wincentego Witosa 1B/1B, 42-202 Częstochowa",
+    "buyer_nip": "9492254939",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-083/09/2025",
+    "client": "Marika Tucholska",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "177,80",
+    "gross": "218,68",
+    "filename": "Faktura_ST-083_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      },
+      {
+        "name": "Pakiety poza abonamentem",
+        "quantity": 4,
+        "net_price": "3,80",
+        "gross_price": "4,67",
+        "net_total": "15,20",
+        "vat_rate": "23%",
+        "vat_amount": "3,48",
+        "gross_total": "18,68"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 3,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "48,78",
+        "vat_rate": "23%",
+        "vat_amount": "11,22",
+        "gross_total": "60,00"
+      }
+    ],
+    "buyer_address": "Konopaty 35, 09-304 Lubowidz",
+    "buyer_nip": "",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-082/09/2025",
+    "client": "Julita Maryjko",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "281,30",
+    "gross": "346,00",
+    "filename": "Faktura_ST-082_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 100 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "243,90",
+        "gross_price": "300,00",
+        "net_total": "243,90",
+        "vat_rate": "23%",
+        "vat_amount": "56,10",
+        "gross_total": "300,00"
+      },
+      {
+        "name": "Pakiety poza abonamentem",
+        "quantity": 2,
+        "net_price": "2,44",
+        "gross_price": "3,00",
+        "net_total": "4,88",
+        "vat_rate": "23%",
+        "vat_amount": "1,12",
+        "gross_total": "6,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 2,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "32,52",
+        "vat_rate": "23%",
+        "vat_amount": "7,48",
+        "gross_total": "40,00"
+      }
+    ],
+    "buyer_address": "Szczutków 66a, 37-600 Szczutków",
+    "buyer_nip": "",
+    "buyer_pesel": "03212105541",
+    "status": "paid"
+  },
+  {
+    "number": "ST-081/09/2025",
+    "client": "Daria Rzeźnik",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "260,16",
+    "gross": "320,00",
+    "filename": "Faktura_ST-081_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 100 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "243,90",
+        "gross_price": "300,00",
+        "net_total": "243,90",
+        "vat_rate": "23%",
+        "vat_amount": "56,10",
+        "gross_total": "300,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "ul.Główna 35/4, 59-921 Kopaczów",
+    "buyer_nip": "",
+    "buyer_pesel": "89092312640",
+    "status": "paid"
+  },
+  {
+    "number": "ST-080/09/2025",
+    "client": "Beata Jastrzębska",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-080_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      }
+    ],
+    "buyer_address": "Józefin ul. Wspólna 11, 05-074 Halinów",
+    "buyer_nip": "",
+    "buyer_pesel": "95011509246",
+    "status": "paid"
+  },
+  {
+    "number": "ST-079/09/2025",
+    "client": "ANNA LITWIN STYLIZACJA PAZNOKCI",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "209,75",
+    "gross": "258,00",
+    "filename": "Faktura_ST-079_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 50 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "170,73",
+        "gross_price": "210,00",
+        "net_total": "170,73",
+        "vat_rate": "23%",
+        "vat_amount": "39,27",
+        "gross_total": "210,00"
+      },
+      {
+        "name": "Dojazd kuriera",
+        "quantity": 4,
+        "net_price": "9,76",
+        "gross_price": "12,00",
+        "net_total": "39,02",
+        "vat_rate": "23%",
+        "vat_amount": "8,98",
+        "gross_total": "48,00"
+      }
+    ],
+    "buyer_address": "ul. Filipa Kallimacha 15/1, 30-834 Kraków",
+    "buyer_nip": "6782459967",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-078/09/2025",
+    "client": "S.O.S.pazury SYLWIA SZULC",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "113,82",
+    "gross": "140,00",
+    "filename": "Faktura_ST-078_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      }
+    ],
+    "buyer_address": "Nądnia, ul. Świerkowa 2, 64-360 Zbąszyń",
+    "buyer_nip": "7881856637",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-077/09/2025",
+    "client": "COLONNIQUE Karolina Anna Colonna-Walewska",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-077_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      }
+    ],
+    "buyer_address": "ul. Kręta 6, 65-770 Zielona Góra",
+    "buyer_nip": "9731061765",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-076/09/2025",
+    "client": "Katarzyna Służewska",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-076_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "gross_price": "110.00",
+        "net_price": "89.43",
+        "net_total": "89.43",
+        "vat_rate": "23.00%",
+        "vat_amount": "20.57",
+        "gross_total": "110.00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "gross_price": "20.00",
+        "net_price": "16.26",
+        "net_total": "16.26",
+        "vat_rate": "23.00%",
+        "vat_amount": "3.74",
+        "gross_total": "20.00"
+      }
+    ],
+    "buyer_address": "Poręby 25, 05-311 Dębe Wielkie",
+    "buyer_nip": "",
+    "buyer_pesel": "",
+    "status": "paid",
+    "buyer_street": "Poręby 25",
+    "buyer_postal": "05-311",
+    "buyer_city": "Dębe Wielkie",
+    "updatedAt": "2025-10-02T15:03:26.664Z"
+  },
+  {
+    "number": "ST-075/09/2025",
+    "client": "Marta Karwot-Pięta Usługi Neurologopedyczne",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "438,98",
+    "gross": "540,00",
+    "filename": "Faktura_ST-075_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "203,25",
+        "gross_price": "250,00",
+        "net_total": "203,25",
+        "vat_rate": "23%",
+        "vat_amount": "46,75",
+        "gross_total": "250,00"
+      },
+      {
+        "name": "Pakiety poza abonamentem",
+        "quantity": 16,
+        "net_price": "10,16",
+        "gross_price": "12,50",
+        "net_total": "162,56",
+        "vat_rate": "23%",
+        "vat_amount": "37,44",
+        "gross_total": "200,00"
+      },
+      {
+        "name": "Dojazd kuriera",
+        "quantity": 6,
+        "net_price": "12,20",
+        "gross_price": "15,00",
+        "net_total": "73,17",
+        "vat_rate": "23%",
+        "vat_amount": "16,83",
+        "gross_total": "90,00"
+      }
+    ],
+    "buyer_address": "Władysława Żeleńskiego 86, 31-353 Kraków",
+    "buyer_nip": "6472186653",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-074/09/2025",
+    "client": "FOOT CARE PIONEERS Olga Legkoszkur",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "219,51",
+    "gross": "270,00",
+    "filename": "Faktura_ST-074_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 50 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "170,73",
+        "gross_price": "210,00",
+        "net_total": "170,73",
+        "vat_rate": "23%",
+        "vat_amount": "39,27",
+        "gross_total": "210,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 3,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "48,78",
+        "vat_rate": "23%",
+        "vat_amount": "11,22",
+        "gross_total": "60,00"
+      }
+    ],
+    "buyer_address": "ul. Marcina Radockiego 134/21, 40-645 Katowice,",
+    "buyer_nip": "9542693004",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-073/09/2025",
+    "client": "Klaudia Kolo",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "186,99",
+    "gross": "230,00",
+    "filename": "Faktura_ST-073_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 50 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "170,73",
+        "gross_price": "210,00",
+        "net_total": "170,73",
+        "vat_rate": "23%",
+        "vat_amount": "39,27",
+        "gross_total": "210,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "ul. Daszyńskiego 2A/16, 08-110 Siedlce",
+    "buyer_nip": "",
+    "buyer_pesel": "91031601263",
+    "status": "paid"
+  },
+  {
+    "number": "ST-072/09/2025",
+    "client": "KAROLINA HYDZIK-SOBOCIŃSKA SPECJALISTYCZNY GABINET LARYNGOLOGICZNY",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "152,84",
+    "gross": "188,00",
+    "filename": "Faktura_ST-072_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      },
+      {
+        "name": "Dojazd kuriera",
+        "quantity": 4,
+        "net_price": "9,76",
+        "gross_price": "12,00",
+        "net_total": "39,02",
+        "vat_rate": "23%",
+        "vat_amount": "8,98",
+        "gross_total": "48,00"
+      }
+    ],
+    "buyer_address": "Brzegi 163, 32-040 Wrząsowice",
+    "buyer_nip": "9441794175",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-071/09/2025",
+    "client": "La Belle Dame Aneta Jędruch",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "108,94",
+    "gross": "134,00",
+    "filename": "Faktura_ST-071_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      },
+      {
+        "name": "Dojazd kuriera",
+        "quantity": 2,
+        "net_price": "9,76",
+        "gross_price": "12,00",
+        "net_total": "19,51",
+        "vat_rate": "23%",
+        "vat_amount": "4,49",
+        "gross_total": "24,00"
+      }
+    ],
+    "buyer_address": "ul. Aleksandry 21/124, 30-837 Kraków",
+    "buyer_nip": "6792917437",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-070/09/2025",
+    "client": "Marek Galiński",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-070_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "ul. Słoneczna 1, 59-180 GAWORZYCE",
+    "buyer_nip": "6932008753",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-069/09/2025",
+    "client": "Brows&Lashes Kinga Chorostowska",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "170,73",
+    "gross": "210,00",
+    "filename": "Faktura_ST-069_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 50 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "170,73",
+        "gross_price": "210,00",
+        "net_total": "170,73",
+        "vat_rate": "23%",
+        "vat_amount": "39,27",
+        "gross_total": "210,00"
+      }
+    ],
+    "buyer_address": "ul. Długa 26/7, 87-100 Toruń",
+    "buyer_nip": "9562382827",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-068/09/2025",
+    "client": "MAGDALENA DUDEK MaDu SUGAR and NAILS",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "113,82",
+    "gross": "140,00",
+    "filename": "Faktura_ST-068_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      }
+    ],
+    "buyer_address": "Bibice, ul. Tadeusza Kościuszki 53, 32-087 Zielonki",
+    "buyer_nip": "6772327431",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-067/09/2025",
+    "client": "ZMALOVANE Małgorzata Gajda",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "170,73",
+    "gross": "210,00",
+    "filename": "Faktura_ST-067_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 50 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "170,73",
+        "gross_price": "210,00",
+        "net_total": "170,73",
+        "vat_rate": "23%",
+        "vat_amount": "39,27",
+        "gross_total": "210,00"
+      }
+    ],
+    "buyer_address": "Juliusza Słowackiego 3, 08-500 Ryki",
+    "buyer_nip": 5060109737,
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-066/09/2025",
+    "client": "ELSTAR Emilia Kraus",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "154,47",
+    "gross": "190,00",
+    "filename": "Faktura_ST-066_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 4,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "65,04",
+        "vat_rate": "23%",
+        "vat_amount": "14,96",
+        "gross_total": "80,00"
+      }
+    ],
+    "buyer_address": "ul. Łużycka 1/3 , 3a, 57-300 Kłodzko",
+    "buyer_nip": "8831874556",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-065/09/2025",
+    "client": "Justyna Iwan",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "191,85",
+    "gross": "236,00",
+    "filename": "Faktura_ST-065_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      },
+      {
+        "name": "Pakiety poza abonamentem",
+        "quantity": 12,
+        "net_price": "4,47",
+        "gross_price": "5,50",
+        "net_total": "53,64",
+        "vat_rate": "23%",
+        "vat_amount": "12,36",
+        "gross_total": "66,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 3,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "48,78",
+        "vat_rate": "23%",
+        "vat_amount": "11,22",
+        "gross_total": "60,00"
+      }
+    ],
+    "buyer_address": "ul. Świętokrzyska 57, 26-004 Bieliny",
+    "buyer_nip": "",
+    "buyer_pesel": "93030806946",
+    "status": "paid"
+  },
+  {
+    "number": "ST-064/09/2025",
+    "client": "Kamil Staszkiewicz-Chudy",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "130,08",
+    "gross": "160,00",
+    "filename": "Faktura_ST-064_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "Drożków 26/3, 68-200 Żary",
+    "buyer_nip": "9282052922",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-063/09/2025",
+    "client": "ANGEL CLINIC SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "263,41",
+    "gross": "324,00",
+    "filename": "Faktura_ST-063_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 100 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "243,90",
+        "gross_price": "300,00",
+        "net_total": "243,90",
+        "vat_rate": "23%",
+        "vat_amount": "56,10",
+        "gross_total": "300,00"
+      },
+      {
+        "name": "Dojazd kuriera",
+        "quantity": 2,
+        "net_price": "9,76",
+        "gross_price": "12,00",
+        "net_total": "19,51",
+        "vat_rate": "23%",
+        "vat_amount": "4,49",
+        "gross_total": "24,00"
+      }
+    ],
+    "buyer_address": "ul. Królewska 57/II PIĘTRO, 30-081 Kraków",
+    "buyer_nip": "6772392440",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-062/09/2025",
+    "client": "CENTRUM MEDYCZNE DBAMYOMAMY.PL SPÓŁKA PARTNERSKA",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "113,82",
+    "gross": "140,00",
+    "filename": "Faktura_ST-062_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      }
+    ],
+    "buyer_address": "ul. Żabiniec 66/34, 31-215 Kraków",
+    "buyer_nip": "6793158703",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-061/09/2025",
+    "client": "KATARZYNA ŁEMPICKA STUDIO URODY ESSEREBELLA",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "276,42",
+    "gross": "340,00",
+    "filename": "Faktura_ST-061_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 100 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "243,90",
+        "gross_price": "300,00",
+        "net_total": "243,90",
+        "vat_rate": "23%",
+        "vat_amount": "56,10",
+        "gross_total": "300,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 2,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "32,52",
+        "vat_rate": "23%",
+        "vat_amount": "7,48",
+        "gross_total": "40,00"
+      }
+    ],
+    "buyer_address": "ul. Owsiana 24, 40-780 Katowice",
+    "buyer_nip": "6342747449",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-060/09/2025",
+    "client": "CENTRUM MEDYCZNE FEMMEMEDICA SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-060_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      }
+    ],
+    "buyer_address": "Arcybiskupa Zygmunta Szczęsnego Felińskiego 20A/LU3\n31-236 Kraków",
+    "buyer_nip": "9452253767",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-059/09/2025",
+    "client": "Inna Dorokhova",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-059_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      }
+    ],
+    "buyer_address": "ul. Pod Fortem 5\\23, 31-102 Kraków",
+    "buyer_nip": "6793293306",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-058/09/2025",
+    "client": "Studio Urody Glamour Krystyna Szary",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-058_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "ul. Gen. Władysława Sikorskiego 25\n78-550 Czaplinek",
+    "buyer_nip": "2530024802",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-057/09/2025",
+    "client": "PZU ZDROWIE SPÓŁKA AKCYJNA",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "263,41",
+    "gross": "324,00",
+    "filename": "Faktura_ST-057_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 100 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "243,90",
+        "gross_price": "300,00",
+        "net_total": "243,90",
+        "vat_rate": "23%",
+        "vat_amount": "56,10",
+        "gross_total": "300,00"
+      },
+      {
+        "name": "Dojazd kuriera",
+        "quantity": 2,
+        "net_price": "9,76",
+        "gross_price": "12,00",
+        "net_total": "19,51",
+        "vat_rate": "23%",
+        "vat_amount": "4,49",
+        "gross_total": "24,00"
+      }
+    ],
+    "buyer_address": "Rondo Ignacego Daszyńskiego 4\n00-843 Warszawa",
+    "buyer_nip": "5272663852",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-056/09/2025",
+    "client": "Klaudia Marek",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-056_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      }
+    ],
+    "buyer_address": "ul. Skotnicka 30, 44-340 Łaziska",
+    "buyer_nip": "",
+    "buyer_pesel": "00261304884",
+    "status": "paid"
+  },
+  {
+    "number": "ST-055/09/2025",
+    "client": "Dominika Fajt Unique Beauty",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "170,73",
+    "gross": "210,00",
+    "filename": "Faktura_ST-055_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 50 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "170,73",
+        "gross_price": "210,00",
+        "net_total": "170,73",
+        "vat_rate": "23%",
+        "vat_amount": "39,27",
+        "gross_total": "210,00"
+      }
+    ],
+    "buyer_address": "os. Centrum A 10/45, 31-924 Kraków",
+    "buyer_nip": "6783084794",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-054/09/2025",
+    "client": "Pure Skin Natalia Konieczny",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-054_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      }
+    ],
+    "buyer_address": "Bolesława Orlińskiego 1B/33\n31-878 Kraków",
+    "buyer_nip": "8172052932",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-053/09/2025",
+    "client": "Alicja Zubek",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "105,69",
+    "gross": "130,00",
+    "filename": "Faktura_ST-053_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "ul. Polna 56, 78-320 Połczyn Zdrój",
+    "buyer_nip": "",
+    "buyer_pesel": "91061901885",
+    "status": "paid"
+  },
+  {
+    "number": "ST-052/09/2025",
+    "client": "RAFAŁ KUBSIK PERSOCOM.PL",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-052_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      }
+    ],
+    "buyer_address": "ul. Rakuś 32, 30-864 Kraków",
+    "buyer_nip": "6792920623",
+    "buyer_pesel": "",
+    "status": "issued"
+  },
+  {
+    "number": "ST-051/09/2025",
+    "client": "Agnieszka Suszkiewicz Specjalistyczna Praktyka Otolaryngologiczna",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "258,54",
+    "gross": "318,00",
+    "filename": "Faktura_ST-051_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 100 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "243,90",
+        "gross_price": "300,00",
+        "net_total": "243,90",
+        "vat_rate": "23%",
+        "vat_amount": "56,10",
+        "gross_total": "300,00"
+      },
+      {
+        "name": "Pakiety poza abonamentem",
+        "quantity": 6,
+        "net_price": "2,44",
+        "gross_price": "3,00",
+        "net_total": "14,64",
+        "vat_rate": "23%",
+        "vat_amount": "3,36",
+        "gross_total": "18,00"
+      }
+    ],
+    "buyer_address": "Ochmanów 174, 32-003 Ochmanów",
+    "buyer_nip": "9451997075",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-050/09/2025",
+    "client": "velleitie nails JAGNA SZALKOWSKA",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "349,59",
+    "gross": "430,00",
+    "filename": "Faktura_ST-050_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 200 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "349,59",
+        "gross_price": "430,00",
+        "net_total": "349,59",
+        "vat_rate": "23%",
+        "vat_amount": "80,41",
+        "gross_total": "430,00"
+      }
+    ],
+    "buyer_address": "Osiedle Albertyńskie 1-2/231\n31-872 Kraków",
+    "buyer_nip": "9562244108",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-049/09/2025",
+    "client": "Oliwia Kopaczyńska",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "156,68",
+    "gross": "192,69",
+    "filename": "Faktura_ST-049_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      },
+      {
+        "name": "Pakiety poza abonamentem",
+        "quantity": 7,
+        "net_price": "3,80",
+        "gross_price": "4,67",
+        "net_total": "26,60",
+        "vat_rate": "23%",
+        "vat_amount": "6,09",
+        "gross_total": "32,69"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 1,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "16,26",
+        "vat_rate": "23%",
+        "vat_amount": "3,74",
+        "gross_total": "20,00"
+      }
+    ],
+    "buyer_address": "Idzików 78, 57-500 Idzików",
+    "buyer_nip": "8811502018",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-048/09/2025",
+    "client": "Emilia Piłat",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "170,73",
+    "gross": "210,00",
+    "filename": "Faktura_ST-048_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 50 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "170,73",
+        "gross_price": "210,00",
+        "net_total": "170,73",
+        "vat_rate": "23%",
+        "vat_amount": "39,27",
+        "gross_total": "210,00"
+      }
+    ],
+    "buyer_address": "os. Dywizjonu 303 14/128a\n31-872 Kraków",
+    "buyer_nip": "",
+    "buyer_pesel": "99051701985",
+    "status": "paid"
+  },
+  {
+    "number": "ST-047/09/2025",
+    "client": "Studio Urody,, Carpe Diem '' Beata Kuc-Rojek",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "195,12",
+    "gross": "240,00",
+    "filename": "Faktura_ST-047_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 50 za mies. 09/2025",
+        "quantity": 1,
+        "gross_price": "210.00",
+        "net_price": "170.73",
+        "net_total": "170.73",
+        "vat_rate": "23.00%",
+        "vat_amount": "39.27",
+        "gross_total": "210.00"
+      },
+      {
+        "name": "Dojazd kuriera",
+        "quantity": 2,
+        "gross_price": "15.00",
+        "net_price": "12.20",
+        "net_total": "24.39",
+        "vat_rate": "23.00%",
+        "vat_amount": "5.61",
+        "gross_total": "30.00"
+      }
+    ],
+    "buyer_address": "Brzozowa 16/0, 32-091 Michałowice",
+    "buyer_nip": "9541110928",
+    "buyer_pesel": "",
+    "status": "paid",
+    "buyer_street": "Brzozowa 16/0",
+    "buyer_postal": "32-091",
+    "buyer_city": "Michałowice",
+    "updatedAt": "2025-10-02T14:00:23.609Z"
+  },
+  {
+    "number": "ST-046/09/2025",
+    "client": "UNIESTETICA QUALITY CENTRUM CHIRURGII PLASTYCZNEJ, REKONSTRUKCYJNEJ I MEDYCYNY ESTETYCZNEJ SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "466,66",
+    "gross": "574,00",
+    "filename": "Faktura_ST-046_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 300 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "447,15",
+        "gross_price": "550,00",
+        "net_total": "447,15",
+        "vat_rate": "23%",
+        "vat_amount": "102,85",
+        "gross_total": "550,00"
+      },
+      {
+        "name": "Dojazd kuriera",
+        "quantity": 2,
+        "net_price": "9,76",
+        "gross_price": "12,00",
+        "net_total": "19,51",
+        "vat_rate": "23%",
+        "vat_amount": "4,49",
+        "gross_total": "24,00"
+      }
+    ],
+    "buyer_address": "ul. Kluczborska 17/6, 31-271 Kraków",
+    "buyer_nip": "9452059031",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-045/09/2025",
+    "client": "FRYZJERSTWO I KOSMETYKA Magdalena Grzywa",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "273,17",
+    "gross": "336,00",
+    "filename": "Faktura_ST-045_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 100 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "243,90",
+        "gross_price": "300,00",
+        "net_total": "243,90",
+        "vat_rate": "23%",
+        "vat_amount": "56,10",
+        "gross_total": "300,00"
+      },
+      {
+        "name": "Dojazd kuriera",
+        "quantity": 3,
+        "net_price": "9,76",
+        "gross_price": "12,00",
+        "net_total": "29,27",
+        "vat_rate": "23%",
+        "vat_amount": "6,73",
+        "gross_total": "36,00"
+      }
+    ],
+    "buyer_address": "Tadeusza Kościuszki 17\n30-105 Kraków",
+    "buyer_nip": "9442265728",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-044/09/2025",
+    "client": "RATMEDICA SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "113,82",
+    "gross": "140,00",
+    "filename": "Faktura_ST-044_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      }
+    ],
+    "buyer_address": "Stefana Kisielewskiego 26\n31-708 Kraków",
+    "buyer_nip": "6783125814",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-043/09/2025",
+    "client": "Justyna Witowska",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "133,33",
+    "gross": "164,00",
+    "filename": "Faktura_ST-043_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      },
+      {
+        "name": "Dojazd kuriera",
+        "quantity": 2,
+        "net_price": "9,76",
+        "gross_price": "12,00",
+        "net_total": "19,51",
+        "vat_rate": "23%",
+        "vat_amount": "4,49",
+        "gross_total": "24,00"
+      }
+    ],
+    "buyer_address": "ul. Rakowicka 22D/110, 31-510 Kraków",
+    "buyer_nip": "",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-042/09/2025",
+    "client": "STUDIO URODY YUMIKO KATARZYNA SNOPEK",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "182,11",
+    "gross": "224,00",
+    "filename": "Faktura_ST-042_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 50 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "170,73",
+        "gross_price": "210,00",
+        "net_total": "170,73",
+        "vat_rate": "23%",
+        "vat_amount": "39,27",
+        "gross_total": "210,00"
+      },
+      {
+        "name": "Dojazd kuriera",
+        "quantity": 2,
+        "net_price": "5,69",
+        "gross_price": "7,00",
+        "net_total": "11,38",
+        "vat_rate": "23%",
+        "vat_amount": "2,62",
+        "gross_total": "14,00"
+      }
+    ],
+    "buyer_address": "Osiedle Oświecenia 57/161\n31-636 Kraków",
+    "buyer_nip": "7292410345",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-041/09/2025",
+    "client": "Zakład Fryzjersko- Kosmetyczny \"Joanna\" Joanna Ignaciuk",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "203,25",
+    "gross": "250,00",
+    "filename": "Faktura_ST-041_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 50 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "170,73",
+        "gross_price": "210,00",
+        "net_total": "170,73",
+        "vat_rate": "23%",
+        "vat_amount": "39,27",
+        "gross_total": "210,00"
+      },
+      {
+        "name": "Wysyłka",
+        "quantity": 2,
+        "net_price": "16,26",
+        "gross_price": "20,00",
+        "net_total": "32,52",
+        "vat_rate": "23%",
+        "vat_amount": "7,48",
+        "gross_total": "40,00"
+      }
+    ],
+    "buyer_address": "Jesionowa 15, 83-047 Przywidz",
+    "buyer_nip": "5932259756",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-040/09/2025",
+    "client": "Gabinet Kosmetyczny Agata Kaleta",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "263,41",
+    "gross": "324,00",
+    "filename": "Faktura_ST-040_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 100 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "243,90",
+        "gross_price": "300,00",
+        "net_total": "243,90",
+        "vat_rate": "23%",
+        "vat_amount": "56,10",
+        "gross_total": "300,00"
+      },
+      {
+        "name": "Dojazd kuriera",
+        "quantity": 2,
+        "net_price": "9,76",
+        "gross_price": "12,00",
+        "net_total": "19,51",
+        "vat_rate": "23%",
+        "vat_amount": "4,49",
+        "gross_total": "24,00"
+      }
+    ],
+    "buyer_address": "ul. Palacha 3, 31-325 Kraków",
+    "buyer_nip": "9451916119",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-039/09/2025",
+    "client": "MAGDALENA WACH Manufaktura Paznokcia",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "300,81",
+    "gross": "370,00",
+    "filename": "Faktura_ST-039_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 150 za mies. 09/2025",
+        "quantity": 1,
+        "gross_price": "310.00",
+        "net_price": "252.03",
+        "net_total": "252.03",
+        "vat_rate": "23.00%",
+        "vat_amount": "57.97",
+        "gross_total": "310.00"
+      },
+      {
+        "name": "Dojazd kuriera",
+        "quantity": 5,
+        "gross_price": "12.00",
+        "net_price": "9.76",
+        "net_total": "48.78",
+        "vat_rate": "23.00%",
+        "vat_amount": "11.22",
+        "gross_total": "60.00"
+      }
+    ],
+    "buyer_address": "Powstańców 30E, 31-422 Kraków",
+    "buyer_nip": "9452122692",
+    "buyer_pesel": "",
+    "status": "paid",
+    "buyer_street": "Powstańców 30E",
+    "buyer_postal": "31-422",
+    "buyer_city": "Kraków",
+    "updatedAt": "2025-10-06T13:04:37.468Z"
+  },
+  {
+    "number": "ST-038/09/2025",
+    "client": "BEATA WIELGUS ATELIER ZDROWIA I URODY",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-038_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "gross_price": "110.00",
+        "net_price": "89.43",
+        "net_total": "89.43",
+        "vat_rate": "23.00%",
+        "vat_amount": "20.57",
+        "gross_total": "110.00"
+      }
+    ],
+    "buyer_address": "ul. Jutrzenka 36, 31-863 Kraków",
+    "buyer_nip": "6781648809",
+    "buyer_pesel": "",
+    "status": "paid",
+    "buyer_street": "ul. Jutrzenka 36",
+    "buyer_postal": "31-863",
+    "buyer_city": "Kraków",
+    "updatedAt": "2025-10-02T14:41:17.568Z"
+  },
+  {
+    "number": "ST-037/09/2025",
+    "client": "Glam&Glow Kosmetolog/Trener Beauty Wioletta Szczepanik-Ptaszkowska",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "89,43",
+    "gross": "110,00",
+    "filename": "Faktura_ST-037_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      }
+    ],
+    "buyer_address": "Romualda Traugutta 11, 38-500 Sanok",
+    "buyer_nip": "6871935211",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-036/09/2025",
+    "client": "MS Beauty Code Marlena Stoińska",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "144,22",
+    "gross": "177,36",
+    "filename": "Faktura_ST-036_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 30 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "113,82",
+        "gross_price": "140,00",
+        "net_total": "113,82",
+        "vat_rate": "23%",
+        "vat_amount": "26,18",
+        "gross_total": "140,00"
+      },
+      {
+        "name": "Pakiety poza abonamentem",
+        "quantity": 8,
+        "net_price": "3,80",
+        "gross_price": "4,67",
+        "net_total": "30,40",
+        "vat_rate": "23%",
+        "vat_amount": "6,96",
+        "gross_total": "37,36"
+      }
+    ],
+    "buyer_address": "ul. Krakowska 4, 26-230 Radoszyce",
+    "buyer_nip": "6581872028",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-035/09/2025",
+    "client": "Małgorzata Keller-Skomska Gabinet Chirurgii Plastycznej",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "190,24",
+    "gross": "234,00",
+    "filename": "Faktura_ST-035_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 50 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "170,73",
+        "gross_price": "210,00",
+        "net_total": "170,73",
+        "vat_rate": "23%",
+        "vat_amount": "39,27",
+        "gross_total": "210,00"
+      },
+      {
+        "name": "Dojazd kuriera",
+        "quantity": 2,
+        "net_price": "9,76",
+        "gross_price": "12,00",
+        "net_total": "19,51",
+        "vat_rate": "23%",
+        "vat_amount": "4,49",
+        "gross_total": "24,00"
+      }
+    ],
+    "buyer_address": "ul. Rydła 16/9, 30-130 Kraków",
+    "buyer_nip": "6771476376",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-034/09/2025",
+    "client": "Katarzyna Michalska Indywidualna Specjalistyczna Praktyka Lekarska",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "190,24",
+    "gross": "234,00",
+    "filename": "Faktura_ST-034_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 50 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "170,73",
+        "gross_price": "210,00",
+        "net_total": "170,73",
+        "vat_rate": "23%",
+        "vat_amount": "39,27",
+        "gross_total": "210,00"
+      },
+      {
+        "name": "Dojazd kuriera",
+        "quantity": 2,
+        "net_price": "9,76",
+        "gross_price": "12,00",
+        "net_total": "19,51",
+        "vat_rate": "23%",
+        "vat_amount": "4,49",
+        "gross_total": "24,00"
+      }
+    ],
+    "buyer_address": "ul. Kazimierza Wielkiego 34\n32-100 Proszowice",
+    "buyer_nip": "6821138091",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-033/09/2025",
+    "client": "Gabinet Kosmetyczny Bella Izabela Ryszkiel-Jureczko",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "209,75",
+    "gross": "258,00",
+    "filename": "Faktura_ST-033_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 50 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "170,73",
+        "gross_price": "210,00",
+        "net_total": "170,73",
+        "vat_rate": "23%",
+        "vat_amount": "39,27",
+        "gross_total": "210,00"
+      },
+      {
+        "name": "Dojazd kuriera",
+        "quantity": 4,
+        "net_price": "9,76",
+        "gross_price": "12,00",
+        "net_total": "39,02",
+        "vat_rate": "23%",
+        "vat_amount": "8,98",
+        "gross_total": "48,00"
+      }
+    ],
+    "buyer_address": "Mazowiecka 41/2 30-019 Kraków",
+    "buyer_nip": "9541246119",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
+    "number": "ST-032/09/2025",
+    "client": "Magdalena Cichosz",
+    "issueDate": "2025-09-30",
+    "dueDate": "2025-10-07",
+    "net": "165,42",
+    "gross": "203,50",
+    "filename": "Faktura_ST-032_09_2025.pdf",
+    "folder": "Faktury_wrzesień_2025-10-02",
+    "items": [
+      {
+        "name": "Sterylizacja narzędzi wg abonamentu STERYL 20 za mies. 09/2025",
+        "quantity": 1,
+        "net_price": "89,43",
+        "gross_price": "110,00",
+        "net_total": "89,43",
+        "vat_rate": "23%",
+        "vat_amount": "20,57",
+        "gross_total": "110,00"
+      },
+      {
+        "name": "Pakiety poza abonamentem",
+        "quantity": 17,
+        "net_price": "4,47",
+        "gross_price": "5,50",
+        "net_total": "75,99",
+        "vat_rate": "23%",
+        "vat_amount": "17,51",
+        "gross_total": "93,50"
+      }
+    ],
+    "buyer_address": "Centrum D 6/11, 31-933 Kraków",
+    "buyer_nip": "",
+    "buyer_pesel": "",
+    "status": "paid"
+  },
+  {
     "number": "ST-163/08/2025",
     "client": "Bogumiła Pałczyńska",
     "issueDate": "2025-08-31",
@@ -33,7 +5615,7 @@
     "buyer_address": "ul. Polna 8, 62-330 Zasutowo",
     "buyer_nip": "",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-162/08/2025",
@@ -69,7 +5651,7 @@
     "buyer_address": "Kaszyce Wielkie 27d/2, 55-110 Prusice",
     "buyer_nip": 9151826228,
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-161/08/2025",
@@ -95,7 +5677,7 @@
     "buyer_address": "Nowogrodzka 10, 18-413 Miastkowo",
     "buyer_nip": "",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-160/08/2025",
@@ -121,7 +5703,7 @@
     "buyer_address": "Rakowicka 20L H381, 31-510 Kraków",
     "buyer_nip": 7922308075,
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-159/08/2025",
@@ -183,7 +5765,7 @@
     "buyer_address": "Insurekcji kościuszkowskiej 66/36 43-600 Jaworzno",
     "buyer_nip": "",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-157/08/2025",
@@ -229,7 +5811,7 @@
     "buyer_address": "ul. Grunwaldzka 62a/10, 85-239 Bydgoszcz",
     "buyer_nip": 9671391920,
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-156/08/2025",
@@ -265,7 +5847,7 @@
     "buyer_address": "Zdunowo 8A, 09-142 Załuski",
     "buyer_nip": 5671847186,
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-155/08/2025",
@@ -301,7 +5883,7 @@
     "buyer_address": "Nadbrzeżna 19/2, 59-920 Bogatynia",
     "buyer_nip": 6152050018,
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-154/08/2025",
@@ -337,7 +5919,7 @@
     "buyer_address": "Adama Mickiewicza 32, 28-200 Staszów",
     "buyer_nip": 8661087226,
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-153/08/2025",
@@ -373,7 +5955,7 @@
     "buyer_address": "ul. Krakowska, nr 80B, 26-800 Białobrzegi",
     "buyer_nip": "7981485206",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-152/08/2025",
@@ -409,7 +5991,7 @@
     "buyer_address": "Marynarki Polskiej 59, 80-557 Gdańsk",
     "buyer_nip": "9571151984",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-151/08/2025",
@@ -445,7 +6027,7 @@
     "buyer_address": "Połczyńska 53/3 , 80-174 Gdańsk",
     "buyer_nip": "8911590051",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-150/08/2025",
@@ -481,7 +6063,7 @@
     "buyer_address": "Czostków ul. Wiosenna 5, 29-105 Krasocin",
     "buyer_nip": "6090087219",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-149/08/2025",
@@ -517,7 +6099,7 @@
     "buyer_address": "Warszawska 40/2A, 40-008 Katowice",
     "buyer_nip": "9542873539",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-148/08/2025",
@@ -553,7 +6135,7 @@
     "buyer_address": "Spółdzielcza 9/14, 96-300 Żyrardów",
     "buyer_nip": "",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-147/08/2025",
@@ -589,7 +6171,7 @@
     "buyer_address": "ul. Grunwaldzka 70/3, 50-357 Wrocław",
     "buyer_nip": "6112649915",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-146/08/2025",
@@ -625,7 +6207,7 @@
     "buyer_address": "Topolowa 6\n62-005 Promnice",
     "buyer_nip": "6090087219",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-145/08/2025",
@@ -661,7 +6243,7 @@
     "buyer_address": "ul. Zegadłowicza 1\n34-100 Wadowice",
     "buyer_nip": "5512671556",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-144/08/2025",
@@ -687,7 +6269,7 @@
     "buyer_address": "Osiedle Piastów 65/U 8B, 31-623 Kraków",
     "buyer_nip": "6782629234",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-143/08/2025",
@@ -733,7 +6315,7 @@
     "buyer_address": "2-go Października 7/1, 64-000 Kościan",
     "buyer_nip": "",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-142/08/2025",
@@ -759,7 +6341,7 @@
     "buyer_address": "Ul. Księżnej Mechtyldy 1/18, 67-200 Głogów",
     "buyer_nip": "6932159216",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-141/08/2025",
@@ -805,7 +6387,7 @@
     "buyer_address": "Braciejówka 154, 32-300 Olkusz",
     "buyer_nip": "",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-140/08/2025",
@@ -831,7 +6413,7 @@
     "buyer_address": "płk. Ryszarda Kuklińskiego 7/15, 30-720 Kraków",
     "buyer_nip": "6793276696",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-139/08/2025",
@@ -877,7 +6459,7 @@
     "buyer_address": "22 Stycznia 1863 r. 13, 62-240 Trzemeszno",
     "buyer_nip": "5571096272",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-138/08/2025",
@@ -923,7 +6505,7 @@
     "buyer_address": "Ul. Mieszka I 7/8, 72-010 Police",
     "buyer_nip": "",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-137/08/2025",
@@ -959,7 +6541,7 @@
     "buyer_address": "Turystyczna 2, 38-600 Lesko",
     "buyer_nip": "6871970845",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-136/08/2025",
@@ -995,7 +6577,7 @@
     "buyer_address": "Prezydenta Ryszarda Kaczorowskiego 14B/3, 64-800 Chodzież",
     "buyer_nip": "6070089787",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-135/08/2025",
@@ -1031,7 +6613,7 @@
     "buyer_address": "Zybułtowo 18/1, 14-107 Gierzwałd",
     "buyer_nip": "7412104675",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-134/08/2025",
@@ -1077,7 +6659,7 @@
     "buyer_address": "Karola Kornasa 2/1, 40-667 Katowice",
     "buyer_nip": "9542884477",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-133/08/2025",
@@ -1113,7 +6695,7 @@
     "buyer_address": "ul. Jana Kochanowskiego 6/4 58-371 Boguszów-Gorce",
     "buyer_nip": "8863038107",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-132/08/2025",
@@ -1139,7 +6721,7 @@
     "buyer_address": "Partyzantów 1a, 32-310 Klucze",
     "buyer_nip": " 6372172806",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-131/08/2025",
@@ -1175,7 +6757,7 @@
     "buyer_address": " 47-120 Zawadzkie, ul. Polna 2 ",
     "buyer_nip": "7561953540",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-130/08/2025",
@@ -1201,7 +6783,7 @@
     "buyer_address": "Głowackiego 24/98\n30-085 Kraków",
     "buyer_nip": "8691979053",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-129/08/2025",
@@ -1227,7 +6809,7 @@
     "buyer_address": "Sidzina 1027, 34-236 Sidzina",
     "buyer_nip": "5521737680",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-128/08/2025",
@@ -1253,7 +6835,7 @@
     "buyer_address": "ul.Studzienna 6/33 15-771 Białystok",
     "buyer_nip": "5423496790",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-127/08/2025",
@@ -1279,7 +6861,7 @@
     "buyer_address": "Włosień 223/3, 59-816 Platerówka",
     "buyer_nip": "",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-126/08/2025",
@@ -1325,7 +6907,7 @@
     "buyer_address": "ul. Grunwaldzka 52a/21, 37-700 Przemyśl",
     "buyer_nip": "7952585773",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-125/08/2025",
@@ -1361,7 +6943,7 @@
     "buyer_address": "Alicja Urbaniak Tarce 20a/6 63-200 Jarocin",
     "buyer_nip": "6172232550",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-124/08/2025",
@@ -1397,7 +6979,7 @@
     "buyer_address": "ul. Wojska Polskiego 56, 59-222 Miłkowice",
     "buyer_nip": "6912576023",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-123/08/2025",
@@ -1433,7 +7015,7 @@
     "buyer_address": "Surochów 25A 37-500 Jarosław",
     "buyer_nip": "7922326794 ",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-122/08/2025",
@@ -1479,7 +7061,7 @@
     "buyer_address": "ul. Radomska 65a, 42-221 Częstochowa",
     "buyer_nip": "5771959192",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-121/08/2025",
@@ -1505,7 +7087,7 @@
     "buyer_address": "ul. Zadworze 9, 30-718 Kraków",
     "buyer_nip": "6793295251",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-120/08/2025",
@@ -1531,7 +7113,7 @@
     "buyer_address": "Szczaworyż 96, 28-100 Busko Zdrój",
     "buyer_nip": "6551987554",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-119/08/2025",
@@ -1557,7 +7139,7 @@
     "buyer_address": "Starowiślna 83/4, 31-052 Kraków",
     "buyer_nip": " 9542528050",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-118/08/2025",
@@ -1583,7 +7165,7 @@
     "buyer_address": "Stogniowice 83, 32-100 Proszowice",
     "buyer_nip": "6821806782",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-117/08/2025",
@@ -1609,7 +7191,7 @@
     "buyer_address": "ul. Powstańców 32, 31-422 Kraków ",
     "buyer_nip": "6832143405",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-116/08/2025",
@@ -1655,7 +7237,7 @@
     "buyer_address": "ul. Borkowska 27D/3 30-438 Kraków ",
     "buyer_nip": " 6793274421",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-115/08/2025",
@@ -1701,7 +7283,7 @@
     "buyer_address": "Osiedle Na Skarpie 27/211A, 31-910 Kraków",
     "buyer_nip": "6751243829",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-114/08/2025",
@@ -1727,7 +7309,7 @@
     "buyer_address": "ul. Adama Mickiewicza 3, 62-045 Pniewy",
     "buyer_nip": "7871736647",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-113/08/2025",
@@ -1773,7 +7355,7 @@
     "buyer_address": "Pl. M. Reja 2, 28-363 Oksa",
     "buyer_nip": "6631837383",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-112/08/2025",
@@ -1799,7 +7381,7 @@
     "buyer_address": " św. Anny 24, 32-095 Krasieniec Zakupny",
     "buyer_nip": "6821707531",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-111/08/2025",
@@ -1845,7 +7427,7 @@
     "buyer_address": "ul. Opłotki 9, 98-200 Sieradz",
     "buyer_nip": "",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-110/08/2025",
@@ -1891,7 +7473,7 @@
     "buyer_address": "Trzebunia 384, 32-438 Trzebunia",
     "buyer_nip": "",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-109/08/2025",
@@ -1917,7 +7499,7 @@
     "buyer_address": "Ul. Kołobrzeska 6, 78-120 Gościno",
     "buyer_nip": "",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-108/08/2025",
@@ -1943,7 +7525,7 @@
     "buyer_address": "Mikołaja Kopernika 4/1U, 90-509 Łódź",
     "buyer_nip": "7712933743",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-107/08/2025",
@@ -1969,7 +7551,7 @@
     "buyer_address": "Włodarska 4a, 30-604 Kraków",
     "buyer_nip": "6783222405",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-106/08/2025",
@@ -2005,7 +7587,7 @@
     "buyer_address": "Stefana Dembęgo 5/U1, 02-796 Warszawa",
     "buyer_nip": "7011093078",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-105/08/2025",
@@ -2041,7 +7623,7 @@
     "buyer_address": "Wojska Polskiego 23M/3, 97-400 Bełchatów",
     "buyer_nip": " 7692067158",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-104/08/2025",
@@ -2067,7 +7649,7 @@
     "buyer_address": "Wielmoża ul.szkolna 49, 32-045 Sułoszowa",
     "buyer_nip": " 5130208799",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-103/08/2025",
@@ -2113,7 +7695,7 @@
     "buyer_address": "ul. Księżnej Zofii 1/27, 76-200 Słupsk",
     "buyer_nip": "",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-102/08/2025",
@@ -2139,7 +7721,7 @@
     "buyer_address": "Buszkowice 46, 27-440 Ćmielów",
     "buyer_nip": "",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-101/08/2025",
@@ -2175,7 +7757,7 @@
     "buyer_address": "Parczew 67A, 63-405 Sieroszewice",
     "buyer_nip": "6222859370",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-100/08/2025",
@@ -2211,7 +7793,7 @@
     "buyer_address": "ul. Wodna 8, 98-300 Wieluń",
     "buyer_nip": "",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-099/08/2025",
@@ -2247,7 +7829,7 @@
     "buyer_address": "Stanisława Kadyiego 12, 38-200 Jasło",
     "buyer_nip": "6852202789",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-098/08/2025",
@@ -2283,7 +7865,7 @@
     "buyer_address": "Ostrobramska 101 A/301, 04-041 Warszawa",
     "buyer_nip": "1133081216",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-097/08/2025",
@@ -2319,7 +7901,7 @@
     "buyer_address": "700-lecia 34/12, 88-400 Żnin",
     "buyer_nip": "5621795837",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-096/08/2025",
@@ -2345,7 +7927,7 @@
     "buyer_address": "Bł. Ks. Jerzego Popiełuszki 29, 64-980 Trzcianka",
     "buyer_nip": "7632074249",
     "buyer_pesel": "",
-    "status": "issued",
+    "status": "paid",
     "buyer_street": "Bł. Ks. Jerzego Popiełuszki 29",
     "buyer_postal": "64-980",
     "buyer_city": "Trzcianka",
@@ -2385,7 +7967,7 @@
     "buyer_address": "gen. Andrzeja Galicy 9, 43-300 Bielsko-Biała",
     "buyer_nip": "9372427797",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-094/08/2025",
@@ -2431,7 +8013,7 @@
     "buyer_address": "Rakowice Wielkie 48a/10, 59-600 Rakowice Wielkie",
     "buyer_nip": "",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-093/08/2025",
@@ -2477,7 +8059,7 @@
     "buyer_address": "Wola Zgłobieńska 216a, 36-046 Zgłobień",
     "buyer_nip": "",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-092/08/2025",
@@ -2513,7 +8095,7 @@
     "buyer_address": "Plac 3-go Maja 10/4, 59-800 Lubań",
     "buyer_nip": "6161509723",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-091/08/2025",
@@ -2549,7 +8131,7 @@
     "buyer_address": "Osiedle 2 Pułku Lotniczego 1F/51, 31-867 Kraków",
     "buyer_nip": "6783214469",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-090/08/2025",
@@ -2585,7 +8167,7 @@
     "buyer_address": "Pępice 9, 49-317 Pępice",
     "buyer_nip": "7471741366",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-089/08/2025",
@@ -2631,7 +8213,7 @@
     "buyer_address": "Plac Słoneczny 5, 32-600 Oświęcim",
     "buyer_nip": "5492470109",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-088/08/2025",
@@ -2667,7 +8249,7 @@
     "buyer_address": "Świerkowa 1a, 18-413 Miastkowo",
     "buyer_nip": "",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-087/08/2025",
@@ -2703,7 +8285,7 @@
     "buyer_address": "ul. Grzegórzecka 67F lok.38, 31-559 Kraków",
     "buyer_nip": "6751752672",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-086/08/2025",
@@ -2729,7 +8311,7 @@
     "buyer_address": "ul. Mistrzejowicka 12, 31-651 Kraków",
     "buyer_nip": "",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-085/08/2025",
@@ -2765,7 +8347,7 @@
     "buyer_address": "Wincentego Witosa 1B/1B, 42-202 Częstochowa",
     "buyer_nip": "9492254939",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-084/08/2025",
@@ -2811,7 +8393,7 @@
     "buyer_address": "Konopaty 35, 09-304 Lubowidz",
     "buyer_nip": "",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-083/08/2025",
@@ -2847,7 +8429,7 @@
     "buyer_address": "Szczutków 66a, 37-600 Szczutków",
     "buyer_nip": "",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-082/08/2025",
@@ -2893,7 +8475,7 @@
     "buyer_address": "ul.Główna 35/4, 59-921 Kopaczów",
     "buyer_nip": "",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-081/08/2025",
@@ -2929,7 +8511,7 @@
     "buyer_address": "Józefin ul. Wspólna 11, 05-074 Halinów",
     "buyer_nip": "",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-080/08/2025",
@@ -2965,7 +8547,7 @@
     "buyer_address": "ul. Filipa Kallimacha 15/1, 30-834 Kraków",
     "buyer_nip": "6782459967",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-079/08/2025",
@@ -2991,7 +8573,7 @@
     "buyer_address": "Nądnia, ul. Świerkowa 2, 64-360 Zbąszyń",
     "buyer_nip": "7881856637",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-078/08/2025",
@@ -3017,7 +8599,7 @@
     "buyer_address": "ul. Kręta 6, 65-770 Zielona Góra",
     "buyer_nip": "9731061765",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-077/08/2025",
@@ -3053,7 +8635,7 @@
     "buyer_address": "Poręby 25, 05-311 Dębe Wielkie",
     "buyer_nip": "",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-076/08/2025",
@@ -3099,7 +8681,7 @@
     "buyer_address": "Władysława Żeleńskiego 86, 31-353 Kraków",
     "buyer_nip": "6472186653",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-075/08/2025",
@@ -3135,7 +8717,7 @@
     "buyer_address": "ul. Marcina Radockiego 134/21, 40-645 Katowice,",
     "buyer_nip": "9542693004",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-074/08/2025",
@@ -3171,7 +8753,7 @@
     "buyer_address": "ul. Daszyńskiego 2A/16, 08-110 Siedlce",
     "buyer_nip": "",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-073/08/2025",
@@ -3207,7 +8789,7 @@
     "buyer_address": "Brzegi 163, 32-040 Wrząsowice",
     "buyer_nip": "9441794175",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-072/08/2025",
@@ -3253,7 +8835,7 @@
     "buyer_address": "ul. Aleksandry 21/124, 30-837 Kraków",
     "buyer_nip": "6792917437",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-071/08/2025",
@@ -3289,7 +8871,7 @@
     "buyer_address": "ul. Słoneczna 1, 59-180 GAWORZYCE",
     "buyer_nip": "6932008753",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-070/08/2025",
@@ -3315,7 +8897,7 @@
     "buyer_address": "ul. Długa 26/7, 87-100 Toruń",
     "buyer_nip": "9562382827",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-069/08/2025",
@@ -3351,7 +8933,7 @@
     "buyer_address": "Bibice, ul. Tadeusza Kościuszki 53, 32-087 Zielonki",
     "buyer_nip": "6772327431",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-068/08/2025",
@@ -3377,7 +8959,7 @@
     "buyer_address": "Juliusza Słowackiego 3, 08-500 Ryki",
     "buyer_nip": "5060109737",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-067/08/2025",
@@ -3413,7 +8995,7 @@
     "buyer_address": "ul. Łużycka 3/A, 57-300 Kłodzko",
     "buyer_nip": "8831874556",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-066/08/2025",
@@ -3439,7 +9021,7 @@
     "buyer_address": "ul. Zielińska 20/68, 31-227 Kraków",
     "buyer_nip": "",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-065/08/2025",
@@ -3485,7 +9067,7 @@
     "buyer_address": "ul. Świętokrzyska 57, 26-004 Bieliny",
     "buyer_nip": "",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-064/08/2025",
@@ -3521,7 +9103,7 @@
     "buyer_address": "Drożków 26/3, 68-200 Żary",
     "buyer_nip": "9282052922",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-063/08/2025",
@@ -3557,7 +9139,7 @@
     "buyer_address": "ul. Królewska 57/II PIĘTRO, 30-081 Kraków",
     "buyer_nip": "6772392440",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-062/08/2025",
@@ -3593,7 +9175,7 @@
     "buyer_address": "ul. Żabiniec 66/34, 31-215 Kraków",
     "buyer_nip": "6793158703",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-061/08/2025",
@@ -3629,7 +9211,7 @@
     "buyer_address": "ul. Owsiana 24, 40-780 Katowice",
     "buyer_nip": "6342747449",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-060/08/2025",
@@ -3665,7 +9247,7 @@
     "buyer_address": "Arcybiskupa Zygmunta Szczęsnego Felińskiego 20A/LU3\n31-236 Kraków",
     "buyer_nip": "9452253767",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-059/08/2025",
@@ -3691,7 +9273,7 @@
     "buyer_address": "ul. Pod Fortem 5\\23, 31-102 Kraków",
     "buyer_nip": "6793293306",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-058/08/2025",
@@ -3717,7 +9299,7 @@
     "buyer_address": "ul. Gen. Władysława Sikorskiego 25\n78-550 Czaplinek",
     "buyer_nip": "2530024802",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-057/08/2025",
@@ -3753,7 +9335,7 @@
     "buyer_address": "Rondo Ignacego Daszyńskiego 4\n00-843 Warszawa",
     "buyer_nip": "5272663852",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-056/08/2025",
@@ -3779,7 +9361,7 @@
     "buyer_address": "ul. Skotnicka 30, 44-340 Łaziska",
     "buyer_nip": "",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-055/08/2025",
@@ -3815,7 +9397,7 @@
     "buyer_address": "os. Centrum A 10/45, 31-924 Kraków",
     "buyer_nip": "6783084794",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-054/08/2025",
@@ -3841,7 +9423,7 @@
     "buyer_address": "Bolesława Orlińskiego 1B/33\n31-878 Kraków",
     "buyer_nip": "8172052932",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-053/08/2025",
@@ -3877,7 +9459,7 @@
     "buyer_address": "ul. Polna 56, 78-320 Połczyn Zdrój",
     "buyer_nip": "",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-052/08/2025",
@@ -3903,7 +9485,7 @@
     "buyer_address": "ul. Rakuś 32, 30-864 Kraków",
     "buyer_nip": "6792920623",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-051/08/2025",
@@ -3929,7 +9511,7 @@
     "buyer_address": "Ochmanów 174, 32-003 Ochmanów",
     "buyer_nip": "9451997075",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-050/08/2025",
@@ -3955,7 +9537,7 @@
     "buyer_address": "Osiedle Albertyńskie 1-2/231\n31-872 Kraków",
     "buyer_nip": "9562244108",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-049/08/2025",
@@ -4001,7 +9583,7 @@
     "buyer_address": "Idzików 78, 57-500 Idzików",
     "buyer_nip": "8811502018",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-048/08/2025",
@@ -4027,7 +9609,7 @@
     "buyer_address": "os. Dywizjonu 303 14/128a\n31-872 Kraków",
     "buyer_nip": "",
     "buyer_pesel": "99051701985",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-047/08/2025",
@@ -4063,7 +9645,7 @@
     "buyer_address": "Brzozowa 16/0, 32-091 Michałowice",
     "buyer_nip": "9541110928",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-046/08/2025",
@@ -4089,7 +9671,7 @@
     "buyer_address": "ul. Kluczborska 17/6, 31-271 Kraków",
     "buyer_nip": "9452059031",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-045/08/2025",
@@ -4125,7 +9707,7 @@
     "buyer_address": "Tadeusza Kościuszki 17\n30-105 Kraków",
     "buyer_nip": "9442265728",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-044/08/2025",
@@ -4151,7 +9733,7 @@
     "buyer_address": "Stefana Kisielewskiego 26\n31-708 Kraków",
     "buyer_nip": "6783125814",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-043/08/2025",
@@ -4187,7 +9769,7 @@
     "buyer_address": "ul. Rakowicka 22D/110, 31-510 Kraków",
     "buyer_nip": "",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-042/08/2025",
@@ -4223,7 +9805,7 @@
     "buyer_address": "Osiedle Oświecenia 57/161\n31-636 Kraków",
     "buyer_nip": "7292410345",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-041/08/2025",
@@ -4269,7 +9851,7 @@
     "buyer_address": "Jesionowa 15, 83-047 Przywidz",
     "buyer_nip": "5932259756",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-040/08/2025",
@@ -4315,7 +9897,7 @@
     "buyer_address": "ul. Palacha 3, 31-325 Kraków",
     "buyer_nip": "9451916119",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-039/08/2025",
@@ -4351,7 +9933,7 @@
     "buyer_address": "Powstańców 30E, 31-422 Kraków",
     "buyer_nip": "9452122692",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-038/08/2025",
@@ -4377,7 +9959,7 @@
     "buyer_address": "ul. Jutrzenka 36, 31-863 Kraków",
     "buyer_nip": "6781648809",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-037/08/2025",
@@ -4403,7 +9985,7 @@
     "buyer_address": "Romualda Traugutta 11, 38-500 Sanok",
     "buyer_nip": "6871935211",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-036/08/2025",
@@ -4429,7 +10011,7 @@
     "buyer_address": "ul. Krakowska 4, 26-230 Radoszyce",
     "buyer_nip": "6581872028",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-035/08/2025",
@@ -4465,7 +10047,7 @@
     "buyer_address": "ul. Rydła 16/9, 30-130 Kraków",
     "buyer_nip": "6771476376",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-034/08/2025",
@@ -4501,7 +10083,7 @@
     "buyer_address": "ul. Kazimierza Wielkiego 34\n32-100 Proszowice",
     "buyer_nip": "6821138091",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-033/08/2025",
@@ -4547,7 +10129,7 @@
     "buyer_address": "Mazowiecka 41/2 30-019 Kraków",
     "buyer_nip": "9541246119",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   },
   {
     "number": "ST-032/08/2025",
@@ -4583,6 +10165,6 @@
     "buyer_address": "Centrum D 6/11, 31-933 Kraków",
     "buyer_nip": "",
     "buyer_pesel": "",
-    "status": "issued"
+    "status": "paid"
   }
 ]

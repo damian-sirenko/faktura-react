@@ -3,17 +3,18 @@ import jsPDF from "jspdf";
 
 /* ========= Helpers ========= */
 const MONTHS_PL = [
-  "styczeń",
-  "luty",
-  "marzec",
-  "kwiecień",
-  "maj",
-  "czerwiec",
-  "lipiec",
-  "sierpień",
-  "wrzesień",
-  "październik",
-  "grudzień",
+  "Styczeń",
+  "Luty",
+  "Marzec",
+  "Kwiecień",
+  "Maj",
+  "Czerwiec",
+  "Lipiec",
+  "Sierpień",
+  "Wrzesień",
+  "Październik",
+  "Listopad",
+  "Grudzień",
 ];
 
 const monthLabel = (ym) => {
@@ -40,15 +41,18 @@ const plDate = (iso) => {
 const serviceLabel = (row) => {
   if (!row) return "—";
   if (row.shipping) return "Wysyłka";
-  if (row.delivery === "odbior") return "Kurier x1";
-  if (row.delivery === "odbior+dowoz") return "Kurier x2";
+  if (row.delivery === "odbior") return "Dojazd x1";
+  if (row.delivery === "dowoz") return "Dojazd x1";
+  if (row.delivery === "odbior+dowoz") return "Dojazd x2";
   return "—";
 };
 
+
 /* ========= Unicode font loader (кеш/параметри) ========= */
-// За замовчуванням — NotoSans з /public/fonts; можна перевизначити через registerProtocolPdfFontFromUrl.
-let FONT_URL_REG = "/fonts/NotoSans-Regular.ttf";
-let FONT_URL_BOLD = "/fonts/NotoSans-Bold.ttf";
+
+let FONT_URL_REG = "/fonts/DejaVuSans.ttf";
+let FONT_URL_BOLD = "/fonts/DejaVuSans-Bold.ttf";
+
 
 let FONT_BASE64_REG = null;
 let FONT_BASE64_BOLD = null;

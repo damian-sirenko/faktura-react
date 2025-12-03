@@ -35,7 +35,8 @@ const SignaturePad = React.forwardRef(function SignaturePad(
   const [padEmpty, setPadEmpty] = useState(true); // ✅ додано
 
   // ✅ як і в інших файлах
-  const API = import.meta.env.VITE_API_URL || "http://localhost:3000";
+  const API =
+    import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "" : "/api");
 
   // ————— ініт/ре-ініт полотна з урахуванням DPR —————
   const setupCanvas = () => {

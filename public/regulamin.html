@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="./favicon_1.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Regułamin | STERYL SERWIS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/modern-normalize/2.0.0/modern-normalize.min.css"
+      integrity="sha512-4xo8blKMVCiXpTaLzQSLSw3KFOVPWhm/TRtuPVc4WG6kUgjH6J03IBuG7JZPkcWMxJ5huwaBpOpnwYElP/m6wg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link rel="stylesheet" href="./css/styles.css" />
+
+    <!-- Google Tag Manager -->
+    <script>
+      (function (w, d, s, l, i) {
+        w[l] = w[l] || [];
+        w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+        var f = d.getElementsByTagName(s)[0],
+          j = d.createElement(s),
+          dl = l != 'dataLayer' ? '&l=' + l : '';
+        j.async = true;
+        j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+        f.parentNode.insertBefore(j, f);
+      })(window, document, 'script', 'dataLayer', 'GTM-PNRJD4GN');
+    </script>
+    <!-- End Google Tag Manager -->
+  </head>
+  <body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript
+      ><iframe
+        src="https://www.googletagmanager.com/ns.html?id=GTM-PNRJD4GN"
+        height="0"
+        width="0"
+        style="display: none; visibility: hidden"
+      ></iframe
+    ></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
+    <header class="header">
+      <div class="header-top">
+        <div class="header-address-line">
+          <div class="address-line-content">
+            <div class="header-adress">
+              <svg width="16" height="16" class="top-header-icon">
+                <use href="./img/icons.svg#location_contacts"></use>
+              </svg>
+              <p class="header-address-text">
+                os. Dywizjonu 303 62F/LU2, Kraków
+              </p>
+            </div>
+            <div class="header-shedule">
+              <svg width="16" height="16" class="top-header-icon">
+                <use href="./img/icons.svg#clock"></use>
+              </svg>
+              <p class="header-shedule-text">pn.-pt. 10:00 - 18:00</p>
+            </div>
+          </div>
+        </div>
+        <div class="container header-container">
+          <div class="header-top-content">
+            <a href="index.html">
+              <picture>
+                <source
+                  srcset="
+                    ./img/header/Logo_1x.png 1x,
+                    ./img/header/Logo_1x.png 2x
+                  "
+                  media="(min-width: 1440px)"
+                />
+                <source
+                  srcset="
+                    ./img/header/Logo_1x.png 1x,
+                    ./img/header/Logo_1x.png 2x
+                  "
+                  media="(min-width: 1200px)"
+                />
+                <source
+                  srcset="
+                    ./img/header/Logo_1x.png 1x,
+                    ./img/header/Logo_1x.png 2x
+                  "
+                  media="(min-width: 768px)"
+                />
+                <source
+                  srcset="
+                    ./img/header/Logo_mob_1x.png 1x,
+                    ./img/header/Logo_mob_1x.png 2x
+                  "
+                  media="(min-width: 360px)"
+                />
+                <img
+                  class="header-logo"
+                  src="./img/header/Logo_mob_1x.png"
+                  alt="Logo"
+                />
+              </picture>
+            </a>
+            <nav class="menu">
+              <ul class="header-menu">
+                <li class="header-menu-item">
+                  <a href="./index.html#about">O nas</a>
+                </li>
+                <li class="header-menu-item co-item">
+                  <a href="./index.html#what">Co sterylizujemy</a>
+                </li>
+                <li class="header-menu-item">
+                  <a href="./index.html#offer">Oferta</a>
+                </li>
+                <li class="header-menu-item">
+                  <a href="./index.html#delivery">Dostawa</a>
+                </li>
+                <li class="header-menu-item">
+                  <a href="./index.html#shipping">Wysyłka</a>
+                </li>
+                <li class="header-menu-item">
+                  <a href="./index.html#faq">FAQ</a>
+                </li>
+                <li class="header-menu-item">
+                  <a href="./index.html#contact">Kontakt</a>
+                </li>
+              </ul>
+            </nav>
+            <div class="burger-menu-wrap">
+              <svg width="22" height="22" class="burger-menu">
+                <use href="./img/icons.svg#menu-burger"></use>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+    <load src="./partials/mob_menu.html" />
+    <main>
+      <section class="reg-section">
+        <div class="container container-reg">
+          <h2 class="title title-reg">
+            REGULAMIN PUNKTU STERYLIZACJI NARZĘDZI STERYL SERWIS
+          </h2>
+          <h3 class="paragraph-title-reg">§ 1. Postanowienia ogólne</h3>
+          <ol class="paragraph-list">
+            <li class="paragraph-item">
+              Niniejszy regulamin, zwany dalej "Regulaminem", określa zasady
+              świadczenia usług sterylizacji narzędzi medycznych i kosmetycznych
+              przez Punkt Sterylizacji Narzędzi Steryl Serwis, zwany dalej
+              "Steryl Serwis" prowadzony przez Correct Solution Sp. z o.o.
+              znajdującego się w Krakowie, os. Dywizjonu 303 62F/LU2.
+            </li>
+            <li class="paragraph-item">
+              Steryl Serwis świadczy usługi zarówno dla firm, jak i Klientów
+              indywidualnych.
+            </li>
+            <li class="paragraph-item">
+              Każdy Klient korzystający z usług Steryl Serwis ma obowiązek
+              zapoznania oraz przestrzegania niniejszego Regulaminu.
+            </li>
+            <li class="paragraph-item">
+              Zamówienie usługi w Steryl Serwis jest równoznaczne z
+              zaakceptowaniem postanowień niniejszego Regulaminu.
+            </li>
+            <li class="paragraph-item">
+              Usługi Steryl Serwis są świadczone zgodnie z obowiązującymi
+              przepisami sanitarno-epidemiologicznymi oraz normami dotyczącymi
+              dezynfekcji i sterylizacji narzędzi medycznych i kosmetycznych.
+            </li>
+            <li class="paragraph-item">
+              Godziny pracy: od poniedziałku do piątku do godz. 10.00 do godz.
+              18.00. Godziny otwarcia mogą ulec zmianie. Punkt sterylizacji
+              narzędzi Steryl Serwis jest zamknięty w dni świąteczne oraz
+              ustawowo wolne od pracy.
+            </li>
+            <li class="paragraph-item">
+              Niniejszy Regulamin obowiązuje od dnia 1 kwietnia 2025 r.
+            </li>
+          </ol>
+          <h3 class="paragraph-title-reg">§ 2. Zakres świadczonych usług</h3>
+          <ol class="paragraph-list">
+            <li class="paragraph-item">
+              Steryl Serwis oferuje kompleksowe usługi obejmujące:
+
+              <ol class="paragraph-inner-list">
+                <li class="paragraph-inner-item">
+                  dezynfekcję właściwą w myjce ultradźwiękowej lub metodą
+                  zanurzeniową,
+                </li>
+                <li class="paragraph-inner-item">
+                  konserwację narzędzi odpowiednimi środkami (w przypadku
+                  narzędzi przegubowych),
+                </li>
+                <li class="paragraph-inner-item">
+                  pakowanie narzędzi do rękawów papierowo-foliowych,
+                </li>
+                <li class="paragraph-inner-item">
+                  sterylizację w sterylizatorze metodą ciśnieniowo-parową,
+                </li>
+                <li class="paragraph-inner-item">
+                  przechowywanie wysterylizowanych narzędzi zgodnie z normami
+                  sanitarnymi.
+                </li>
+              </ol>
+            </li>
+            <li class="paragraph-item">
+              Usługi mogą być realizowane na zasadzie:
+              <ol class="paragraph-inner-list-dott">
+                <li class="paragraph-inner-item-dott">
+                  jednorazowej sterylizacji "na sztuki" (bez podpisania umowy),
+                </li>
+                <li class="paragraph-inner-item-dott">
+                  współpracy abonamentowej.
+                </li>
+              </ol>
+            </li>
+          </ol>
+          <h3 class="paragraph-title-reg">
+            § 3. Warunki dezynfekcji i sterylizacji
+          </h3>
+          <ol class="paragraph-list">
+            <li class="paragraph-item">
+              Steryl Serwis przyjmuje wyłącznie czyste oraz wstępnie
+              zdezynfekowane narzędzia.
+            </li>
+            <li class="paragraph-item">
+              Przy przekazaniu narzędzi do Steryl Serwis Klient zobowiązany jest
+              do uzupełnienia i podpisania Protokołu przekazania narzędzi,
+              zawierającego dane Klienta, wykaz narzędzi, ich ilość oraz
+              instrukcję do pakowania. Steryl Serwis przed przyjęciem narzędzi
+              dokonuje weryfikacji ich zgodności ilościowej oraz jakościowej. W
+              przypadku braku Protokołu przekazania narzędzi lub jego
+              dostarczenia w formie nieczytelnej bądź nieprawidłowo wypełnionej,
+              Steryl Serwis zastrzega sobie prawo do spakowania narzędzi według
+              własnego uznania, zapewniając ich odpowiednią ochronę, a
+              jednocześnie nie ponosi odpowiedzialności za ewentualne
+              niezgodności ilościowe przekazanych narzędzi.
+            </li>
+            <li class="paragraph-item">
+              <strong>Proces przygotowania i sterylizacji narzędzi:</strong>
+
+              <ol class="paragraph-list-num">
+                <li>
+                  3.1 Po przyjęciu narzędzi od Klienta są one poddawane
+                  właściwej dezynfekcji przez 15 minut w 1% roztworze preparatu
+                  Viruton Extra. Dezynfekcja odbywa się metodą ultradźwiękową w
+                  myjce lub metodą zanurzeniową w dedykowanej wanience, co
+                  gwarantuje skuteczne usunięcie zanieczyszczeń organicznych i
+                  drobnoustrojów.
+                </li>
+                <li>
+                  3.2 Po zakończeniu dezynfekcji narzędzia są pozostawiane do
+                  całkowitego wyschnięcia przy użyciu wentylacji mechanicznej,
+                  zapewniającej równomierny przepływ powietrza i eliminację
+                  wilgoci.
+                </li>
+                <li>
+                  3.3 Po całkowitym wyschnięciu narzędzia przegubowe są
+                  konserwowane specjalistycznym olejkiem do konserwacji
+                  narzędzi, co zapewnia ich prawidłowe funkcjonowanie oraz
+                  ochronę przed korozją.
+                </li>
+                <li>
+                  3.4 Kolejnym krokiem jest pakowanie narzędzi po ich
+                  dezynfekcji i wysuszeniu. Proces ten odbywa się zgodnie z
+                  ustalonymi normami higienicznymi, aby zapewnić pełną
+                  skuteczność sterylizacji. Narzędzia są pakowane w rękawy
+                  papierowo-foliowe, które umożliwiają właściwe zabezpieczenie
+                  ich sterylności. Do każdego pakietu dodawany jest wskaźnik
+                  chemiczny klasy 4, potwierdzający skuteczność procesu
+                  sterylizacji. Do jednego pakietu można zapakować maksymalnie:
+                  <ol class="paragraph-inner-list-dott">
+                    <li class="paragraph-inner-item-dott">
+                      4 sztuki narzędzi kosmetycznych (w tym tylko jedno
+                      narzędzie z kategorii: cążki, cęgi, nożyczki, obcinacz),
+                    </li>
+                    <li class="paragraph-inner-item-dott">
+                      2 sztuki narzędzi medycznych.
+                    </li>
+                  </ol>
+                  Ostateczny sposób pakowania narzędzi medycznych ustalany jest
+                  indywidualnie po konsultacji z Klientem i zależy od ich
+                  rozmiaru.
+                </li>
+                <li>
+                  3.5 Zapakowane narzędzia są poddawane procesowi sterylizacji
+                  ciśnieniowo-parowej w autoklawie klasy B. Parametry
+                  sterylizacji mogą zostać dostosowane do rodzaju oraz
+                  materiału, z którego wykonane są narzędzia, zgodnie z
+                  obowiązującymi standardami. Sterylizacja odbywa się w
+                  temperaturze 121°C lub 134°C, zapewniając eliminację wszelkich
+                  drobnoustrojów i pełną skuteczność procesu. W przypadku, gdy
+                  przekazywane narzędzia wymagają sterylizacji w innych
+                  warunkach niż standardowy cykl sterylizacji, Klient
+                  zobowiązany jest do przekazania Steryl Serwis instrukcji
+                  użytkowania producenta lub pisemnego oświadczenia
+                  określającego wymagane parametry procesu. Przez standardowy
+                  cykl sterylizacji rozumie się proces prowadzony w autoklawie
+                  klasy B w temperaturze 134 °C, przez 5 minut, pod ciśnieniem 2
+                  barów. W przypadku braku dostarczonej dokumentacji, Steryl
+                  Serwis przeprowadzi sterylizację zgodnie z opisanym wyżej
+                  cyklem standardowym.
+                </li>
+                <li>
+                  3.6 Ostatnim krokiem jest przechowywanie wysterylizowanych
+                  narzędzi w specjalnej szafie przeznaczonej do przechowywania
+                  narzędzi sterylnych, aż do momentu ich odbioru przez Klienta.
+                </li>
+              </ol>
+            </li>
+
+            <li class="paragraph-item">
+              Steryl Serwis nie przyjmuje do sterylizacji narzedzi:
+              <ol class="paragraph-inner-list">
+                <li class="paragraph-inner-item">jednorazowego użytku,</li>
+                <li class="paragraph-inner-item">
+                  które nie spełniają standardów higienicznych,
+                </li>
+                <li class="paragraph-inner-item">
+                  nieodpowiednio przygotowanych,
+                </li>
+                <li class="paragraph-inner-item">
+                  wykonanych z materiałów nieodpowiednich do sterylizacji
+                  paroweje,
+                </li>
+                <li class="paragraph-inner-item">
+                  posiadających śladów korozji,
+                </li>
+                <li class="paragraph-inner-item">
+                  posiadających uszkodzenia mechaniczne.
+                </li>
+              </ol>
+            </li>
+            <li class="paragraph-item">
+              W przypadku narzędzi wykonanych z materiałów innych niż stal
+              nierdzewna, Klient zobowiązany jest dostarczyć wraz z nimi
+              instrukcję użytkowania, zawierającą zalecenia producenta dotyczące
+              odpowiednich parametrów dezynfekcji oraz sterylizacji.
+            </li>
+            <li class="paragraph-item">
+              Sterylizacja jest realizowana w terminie do 24 godzin od momentu
+              dostarczenia narzędzi do Steryl Serwis.
+            </li>
+            <li class="paragraph-item">
+              Steryl Serwis ponosi odpowiedzialność za zawinioną utratę lub
+              uszkodzenie przekazanych do sterylizacji narzędzi od chwili
+              podpisania protokołu ich przyjęcia do momentu zwrotu ich
+              Klientowi.
+            </li>
+            <li class="paragraph-item">
+              Steryl Serwis gwarantuje 3-miesięczny okres sterylności narzędzi,
+              pod warunkiem stosowania zasad przechowywania (m.in. w
+              pomieszczeniach suchych, w zamkniętym pojemniku, z dala od
+              promieni słonecznych, w temperaturze 18-22°C i wilgotności
+              40-55%).
+            </li>
+            <li class="paragraph-item">
+              Steryl Serwis nie ponosi odpowiedzialności za ewentualne
+              zmatowienia, przebarwienia, uszkodzenia lub inne zmiany
+              powierzchni narzędzi, jeżeli przez Klienta nie została przekazana
+              razem z narzędziami instrukcja użytkowania zawierająca wyraźnie
+              określone zalecenia producenta dotyczące warunków dezynfekcji i
+              sterylizacji. W przypadku braku takiej instrukcji, wszystkie
+              narzędzia poddawane są obróbce zgodnie ze standardowymi
+              parametrami opisanymi w obecnym Regulaminie: dezynfekcja w 1%
+              roztworze preparatu Viruton Extra w myjce ultradźwiękowej przez 15
+              minut oraz sterylizacja w autoklawie klasy B w temperaturze 134 °C
+              przez 5 minut pod ciśnieniem 2 barów. Jeśli proces zostanie
+              przeprowadzony zgodnie z tymi parametrami, a raport z autoklawu
+              potwierdzi jego prawidłowe zakończenie, Steryl Serwis nie ponosi
+              odpowiedzialności za ewentualne zmiany stanu narzędzi wynikające z
+              ich specyfiki, niewłaściwego przygotowania do procesu lub
+              naturalnego zużycia.
+            </li>
+          </ol>
+          <h3 class="paragraph-title-reg">
+            § 4. Zasady dostarczania i odbioru narzędzi
+          </h3>
+          <ol class="paragraph-list">
+            <li class="paragraph-item">
+              Narzędzia mogą być dostarczane:
+              <ol class="paragraph-inner-list-dott">
+                <li class="paragraph-inner-item-dott">osobiście,</li>
+                <li class="paragraph-inner-item-dott">
+                  przez kuriera Steryl Serwis,
+                </li>
+                <li class="paragraph-inner-item">
+                  poprzez wysyłkę do Paczkomatu InPost.
+                </li>
+              </ol>
+            </li>
+            <li class="paragraph-item">
+              Odbiór narzędzi przez kuriera Steryl Serwis możliwy jest wyłącznie
+              po wcześniejszym zgłoszeniu przez Klienta, dokonanym najpóźniej
+              dzień przed planowaną datą odbioru. Usługa dostępna jest w dni
+              robocze (poniedziałek–piątek) w godzinach 9:00–14:00.
+            </li>
+            <li class="paragraph-item">
+              W wyżej wskazanych godzinach Klient zobowiązany jest do
+              zapewnienia swojej dostępności pod wskazanym adresem. Nie ma
+              możliwości umawiania odbioru na konkretną godzinę – trasę i
+              kolejność wizyt ustala kurier na podstawie ilości zgłoszeń i
+              lokalizacji Klientów w danym dniu.
+            </li>
+            <li class="paragraph-item">
+              Podczas odbioru sterylnych narzędzi, Klient ma obowiązek ich
+              weryfikacji pod względem ilościowym i jakościowym. Steryl Serwis
+              nie ponosi odpowiedzialności za ewentualne braki lub uszkodzenia,
+              które nie zostały zgłoszone w momencie odbioru.
+            </li>
+            <li class="paragraph-item">
+              Dane do nadania przesyłek do Paczkomatu: Paczkomat InPost KRA16M,
+              e-mail: sterylserwis@gmail.com, tel.: +48 739 015 287.
+            </li>
+            <li class="paragraph-item">
+              Czyste i wstępnie zdezynfekowane narzędzia powinny być dostarczone
+              w zamykanym plastikowym pudełku oznaczonym jako "Narzędzia
+              niesterylne". Dodatkowo należy dostarczyć drugi pojemnik oznaczony
+              jako "Narzędzia sterylne", dostosowany do rodzaju i ilości
+              narzędzi już zapakowanych w rękawy papierowo-foliowe. Pojemnik ten
+              powinien zapewniać odpowiednią ochronę narzędzi oraz minimalizować
+              ryzyko ich uszkodzenia podczas transportu.
+            </li>
+            <li class="paragraph-item">
+              W przypadku wysyłki do Paczkomatu narzędzia należy umieścić w
+              zamykanym plastikowym pojemniku i zabezpieczyć je odpowiednimi
+              materiałami przed uszkodzeniem w trakcie transportu. Pojemnik
+              powinien mieć odpowiednie wymiary – nie może być zbyt mały ani
+              zbyt ciasny. Musi być dostosowany do rozmiaru zapakowanych
+              pakietów w taki sposób, aby nie było konieczności ich zginania ani
+              ściskania. Do przesyłki należy również dołączyć materiały
+              zabezpieczające, które zostaną wykorzystane do wypełnienia wolnych
+              przestrzeni w pojemniku oraz zabezpieczenia wysterylizowanych
+              pakietów na etapie odesłania. W przypadku przesłania przez Klienta
+              narzędzi w pojemniku, który uniemożliwia bezpieczne zapakowanie i
+              odesłanie wysterylizowanych pakietów, Steryl Serwis wymieni go na
+              własny. W takim przypadku koszt nowego pojemnika zostanie
+              doliczony do kwoty za usługę sterylizacji. Dodatkowa opłata może
+              zostać również naliczona w sytuacji, gdy konieczne będzie użycie
+              dodatkowych materiałów zabezpieczających, mających na celu
+              zmniejszenie ryzyka uszkodzenia wysterylizowanych pakietów podczas
+              transportu. Wszystkie takie działania Steryl Serwis może
+              podejmować wyłącznie po wcześniejszej konsultacji z Klientem.
+            </li>
+            <li class="paragraph-item">
+              Klienci z Krakowa odbierają wysterylizowane narzędzia osobiście w
+              Punkcie sterylizacji narzędzi Steryl Serwis. Klienci spoza Krakowa
+              otrzymują narzędzia przesyłką zwrotną do wskazanego Paczkomatu
+              InPost organizowaną przez Steryl Serwis.
+            </li>
+            <li class="paragraph-item">
+              Maksymalna częstotliwość dostarczania narzędzi w ramach abonamentu
+              wynosi dwa razy w tygodniu.
+            </li>
+            <li class="paragraph-item">
+              W przypadku dostarczenia do sterylizacji narzędzi już
+              zapakowanych, Steryl Serwis nie ponosi odpowiedzialności za
+              dezynfekcję, konserwację i pakowanie przeprowadzone samodzielnie
+              przez Klienta.
+            </li>
+            <li class="paragraph-item">
+              Steryl Serwis nie odpowiada za ewentualne opóźnienia wynikające z
+              problemów logistycznych firm kurierskich.
+            </li>
+            <li class="paragraph-item">
+              Przesyłki dostarczone do Paczkomatu po godzinie 16:00 zostaną
+              odebrane w następnym dniu roboczym. Czas realizacji usługi
+              sterylizacji (24 godziny) liczony jest od momentu odebrania paczki
+              przez Steryl Serwis.
+            </li>
+          </ol>
+          <h3 class="paragraph-title-reg">§ 5. Prowadzona dokumentacja</h3>
+          <ol class="paragraph-list">
+            <li class="paragraph-item">
+              W Steryl Serwis na bieżąco są prowadzone księgi rejestracji cyklów
+              sterylizacji oraz księgi rejestracji cyklów dezynfekcji narzędzi.
+              Dokumentacja ta jest prowadzona zgodnie z obowiązującymi normami
+              sanitarnymi i przechowywana w siedzibie Steryl Serwis. Każdy cykl
+              sterylizacji jest dokumentowany w rejestrze, który zawiera dane
+              dotyczące daty sterylizacji, numeru cyklu, parametrów procesu oraz
+              nazw Klientów, których narzędzia były sterylizowane w danym cyklu.
+              Klienci mogą uzyskać dostęp do dokumentacji na życzenie.
+            </li>
+            <li class="paragraph-item">
+              W Steryl Serwis co miesiąc wykonywany jest test biologiczny
+              skuteczności procesu sterylizacji parą wodną Sporal A. Wyniki tego
+              testu są przechowywane w siedzibie Steryl Serwis i są dostępne do
+              wglądu dla Klientów na ich życzenie
+            </li>
+          </ol>
+          <h3 class="paragraph-title-reg">§ 6. Ceny i płatności</h3>
+          <ol class="paragraph-list">
+            <li class="paragraph-item">
+              Aktualne ceny wszystkich usług świadczonych przez Steryl Serwis są
+              dostępne na stronie internetowej www.sterylserwis.pl w
+              obowiązującym cenniku.
+            </li>
+            <li class="paragraph-item">
+              Steryl Serwis jest płatnikiem VAT i wystawia faktury VAT za
+              świadczone usługi.
+            </li>
+            <li class="paragraph-item">
+              W przypadku sterylizacji "na sztuki", płatność za wykonaną usługę
+              następuje przy odbiorze sterylnych narzędzi.
+            </li>
+            <li class="paragraph-item">
+              Współpraca na zasadzie abonamentu odbywa się na podstawie faktury
+              VAT, która jest wysyłana na adres e-mail klienta.
+            </li>
+            <li class="paragraph-item">
+              Przy odbiorze narzędzi bezpośrednio w punkcie Steryl Serwis
+              możliwa jest płatność gotówką, kartą płatniczą lub przelewem
+              bankowym. W przypadku przelewu bankowego obowiązuje zasada
+              przedpłaty.
+            </li>
+          </ol>
+          <h3 class="paragraph-title-reg">§ 7. Reklamacje</h3>
+          <ol class="paragraph-list">
+            <li class="paragraph-item">
+              Przy odbiorze narzędzi Klient zobowiązany jest do sprawdzenia ich
+              pod kątem ilościowym oraz jakościowym.
+            </li>
+            <li class="paragraph-item">
+              Wszelkie uszkodzenia narzędzi, uszkodzenia opakowania,
+              nieprawidłowe oznaczenie daty sterylizacji lub inne niezgodności
+              powinny zostać zgłoszone natychmiast przy odbiorze.
+            </li>
+            <li class="paragraph-item">
+              Po odbiorze narzędzi Steryl Serwis nie przyjmuje reklamacji
+              dotyczących ilości, jakości narzędzi ani ewentualnych uszkodzeń
+              opakowania.
+            </li>
+            <li class="paragraph-item">
+              W przypadku stwierdzenia niezgodności przed odbiorem, Klient
+              powinien niezwłocznie poinformować obsługę Steryl Serwis w celu
+              wyjaśnienia sprawy.
+            </li>
+          </ol>
+          <h3 class="paragraph-title-reg">§ 8. Postanowienia końcowe</h3>
+          <ol class="paragraph-list">
+            <li class="paragraph-item">
+              Steryl Serwis zastrzega sobie prawo do zmiany Regulaminu. Zmiany
+              wchodzą w życie w terminie 14 dni od ich opublikowania.
+            </li>
+            <li class="paragraph-item">
+              W sprawach nieuregulowanych niniejszym Regulaminem obowiązują
+              przepisy Kodeksu Cywilnego.
+            </li>
+            <li class="paragraph-item">
+              Spory wynikające z realizacji usług będą rozstrzygane przez sąd
+              właściwy dla siedziby Steryl Serwis.
+            </li>
+          </ol>
+        </div>
+      </section>
+    </main>
+
+    <load src="./partials/footer.html" />
+
+    <script type="module" src="./js/main.js"></script>
+    <script type="module" src="./js/mob_menu.js"></script>
+    <script type="module" src="./js/go_to_top.js"></script>
+    <div id="goToTop" class="go-to-top" title="Wróć do góry">
+      <svg width="20" height="20" class="go-to-top-icon">
+        <use href="./img/icons.svg#backtotop"></use>
+      </svg>
+    </div>
+  </body>
+</html>

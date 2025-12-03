@@ -1,10 +1,6 @@
-// src/pages/ProtocolView.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, Link, useLocation } from "react-router-dom";
-
-/* ===== API base (prod/dev) — УНІФІКОВАНО з іншими сторінками ===== */
-const API = import.meta.env.VITE_API_URL || "http://localhost:3000";
-const api = (p) => `${API}${p.startsWith("/") ? p : `/${p}`}`;
+import { api, apiFetch, apiJson } from "../utils/api";
 
 /* ===== Helpers ===== */
 const getClientName = (c) => String(c?.name || c?.Klient || "").trim() || "—";
@@ -41,9 +37,35 @@ const toClientId = (c) =>
 const absSig = (src) =>
   typeof src === "string" && src.startsWith("/signatures/") ? api(src) : src;
 
+function iso10(v) {
+  if (!v) return "";
+  const s = String(v);
+  return s.length >= 10 ? s.slice(0, 10) : s;
+}
+function iso10Local(v) {
+  if (!v) return "";
+  if (v instanceof Date && !isNaN(v)) {
+    const Y = v.getFullYear();
+    const M = String(v.getMonth() + 1).padStart(2, "0");
+    const D = String(v.getDate()).padStart(2, "0");
+    return `${Y}-${M}-${D}`;
+  }
+  const s = String(v);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const d = new Date(s);
+  if (!Number.isNaN(d.getTime())) {
+    const Y = d.getFullYear();
+    const M = String(d.getMonth() + 1).padStart(2, "0");
+    const D = String(d.getDate()).padStart(2, "0");
+    return `${Y}-${M}-${D}`;
+  }
+  const s10 = s.slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(s10) ? s10 : "";
+}
 const plDate = (iso) => {
-  if (!iso) return "";
-  const [y, m, d] = iso.split("-");
+  const s = iso10Local(iso);
+  if (!s) return "";
+  const [y, m, d] = s.split("-");
   return `${d}.${m}.${y}`;
 };
 
@@ -57,7 +79,7 @@ const parseISO = (iso) => {
 const fmtISO = (d) => d.toISOString().slice(0, 10);
 
 function isWeekendISO(iso) {
-  const wd = parseISO(iso).getUTCDay(); // 0=Sun..6=Sat
+  const wd = parseISO(iso).getUTCDay();
   return wd === 0 || wd === 6;
 }
 function addDaysISO(iso, days) {
@@ -128,7 +150,7 @@ function countsEqual(a = [], b = []) {
   return true;
 }
 
-/* ==== ДОДАНО: нормалізація місяця і жорсткі запобіжники ==== */
+/* ==== нормалізація місяця ==== */
 const MONTH_RE = /^\d{4}-(0[1-9]|1[0-2])$/;
 function normalizeYm(m) {
   const s = String(m || "").trim();
@@ -139,14 +161,77 @@ function normalizeYm(m) {
     const mo = String(mm[2]).padStart(2, "0");
     if (/^(0[1-9]|1[0-2])$/.test(mo)) return `${y}-${mo}`;
   }
-  return ""; // невалідно
+  return "";
+}
+
+/* ==== інвентар рядків ==== */
+function normalizeTools(raw) {
+  return (Array.isArray(raw) ? raw : [])
+    .filter((t) => t && String(t.name || "").trim())
+    .map((t) => ({
+      name: String(t.name).trim(),
+      count: Number(t.count || 0) || 0,
+    }));
+}
+
+function buildToolLines(row) {
+  const norm = (raw) =>
+    (Array.isArray(raw) ? raw : [])
+      .filter((t) => t && String(t.name || "").trim())
+      .map((t) => ({
+        name: String(t.name).trim(),
+        count: Number(t.count || 0) || 0,
+      }));
+
+  const tTools = norm(row.tools);
+  const rTools = norm(row.returnTools);
+
+  const rMap = new Map(
+    rTools.map((t) => [t.name.toLowerCase(), Number(t.count || 0) || 0])
+  );
+
+  const same =
+    !rTools.length ||
+    (tTools.length === rTools.length &&
+      tTools.every(
+        (t, i) =>
+          t.name.toLowerCase() === rTools[i].name.toLowerCase() &&
+          t.count === rTools[i].count
+      ));
+
+  const items = tTools.map((t, idx) => {
+    const key = t.name.toLowerCase();
+    const tQty = t.count;
+    let rQty = tQty;
+    if (!same) {
+      if (rMap.has(key)) rQty = rMap.get(key);
+      else if (rTools[idx]) rQty = Number(rTools[idx].count || 0) || 0;
+    } else if (rTools[idx]) {
+      rQty = Number(rTools[idx].count || tQty) || 0;
+    }
+    return { name: t.name, tQty, rQty, isSum: false };
+  });
+
+  const tPackages = Number(row.packages || 0) || 0;
+  const rawRP = row.returnPackages;
+  const rPackages =
+    rawRP == null || rawRP === "" || Number(rawRP) <= 0
+      ? tPackages
+      : Number(rawRP) || tPackages;
+
+  items.push({
+    name: "Pakiety",
+    tQty: tPackages,
+    rQty: rPackages,
+    isSum: true,
+  });
+  return items;
 }
 
 export default function ProtocolView() {
   const params = useParams();
   const location = useLocation();
 
-  // підтримка різних назв параметрів + читання з query string
   const clientIdParam =
     params.clientId ??
     params.client ??
@@ -171,20 +256,18 @@ export default function ProtocolView() {
   }
 
   const clientId = clientIdParam;
-  const safeMonth = useMemo(() => normalizeYm(monthParam), [monthParam]); // ✅ 'YYYY-MM' або ''
+  const safeMonth = useMemo(() => normalizeYm(monthParam), [monthParam]);
 
   const [loading, setLoading] = useState(true);
   const [protocol, setProtocol] = useState(null);
   const [client, setClient] = useState(null);
   const [error, setError] = useState("");
 
-  // редактор звороту (індекс рядка -> state)
   const [edit, setEdit] = useState({});
-  // вибрані для видалення/редагування рядки (чекбокси)
   const [selected, setSelected] = useState(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
 
-  // Fetch protocol + client
+  // Fetch protocol + client (через apiJson/apiFetch)
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -193,7 +276,6 @@ export default function ProtocolView() {
       setEdit({});
       setSelected(new Set());
 
-      // 🔒 Захист від неправильного маршруту / відсутніх параметрів
       if (!clientId || !safeMonth) {
         if (!alive) return;
         setError(
@@ -206,15 +288,20 @@ export default function ProtocolView() {
       }
 
       try {
-        const r = await fetch(
+        const data = await apiJson(
           api(`/protocols/${encodeURIComponent(clientId)}/${safeMonth}`)
         );
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        const data = await r.json();
 
         if (!alive) return;
 
-        const entries = Array.isArray(data?.entries) ? data.entries : [];
+        const entries = Array.isArray(data?.entries)
+          ? data.entries.map((e) => ({
+              ...e,
+              date: iso10Local(e?.date),
+              returnDate: iso10Local(e?.returnDate),
+            }))
+          : [];
+
         setProtocol({
           id: data?.id || clientId,
           month: data?.month || safeMonth,
@@ -225,17 +312,21 @@ export default function ProtocolView() {
               0
             ),
           },
+          summarized: !!data?.summarized,
         });
       } catch (e) {
         if (!alive) return;
-        setError("Nie udało się załadować protokołu.");
+        setError(
+          e?.message?.includes("Unauthorized")
+            ? "Sesja wygasła. Zaloguj się ponownie."
+            : "Nie udało się załadować protokołu."
+        );
         setLoading(false);
         return;
       }
 
       try {
-        const rc = await fetch(api("/clients"));
-        const list = (await rc.json()) || [];
+        const list = (await apiJson(api("/clients"))) || [];
         const found = list.find((c) => toClientId(c) === clientId) || null;
         if (alive) setClient(found);
       } catch {
@@ -271,9 +362,22 @@ export default function ProtocolView() {
     [protocol]
   );
 
-  function startEditRow(i) {
-    if (!protocol || !protocol.entries || !protocol.entries[i]) return;
-    const row = protocol.entries[i];
+  const sortedEntries = useMemo(() => {
+    const ymd = (s) => {
+      const [Y, M, D] = String(s || "")
+        .split("-")
+        .map((n) => parseInt(n, 10) || 0);
+      return Y * 10000 + M * 100 + D;
+    };
+    return (protocol?.entries || [])
+      .map((row, i) => ({ row, origIndex: i }))
+      .filter((x) => x.row && x.row.date)
+      .sort((a, b) => ymd(a.row.date) - ymd(b.row.date));
+  }, [protocol]);
+
+  function startEditRow(origIdx) {
+    if (!protocol || !protocol.entries || !protocol.entries[origIdx]) return;
+    const row = protocol.entries[origIdx];
     const tTools = (row.tools || []).filter((t) => t?.name);
     const rTools = (row.returnTools || []).filter((t) => t?.name);
     const same =
@@ -287,7 +391,7 @@ export default function ProtocolView() {
 
     setEdit((prev) => ({
       ...prev,
-      [i]: {
+      [origIdx]: {
         sameAsTransfer: same,
         counts: baseCounts,
         date: row.returnDate || defaultReturn,
@@ -301,7 +405,7 @@ export default function ProtocolView() {
     }));
 
     setTimeout(() => {
-      const el = document.getElementById(`row-${i}`);
+      const el = document.getElementById(`row-${origIdx}-0`);
       if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 0);
   }
@@ -356,19 +460,13 @@ export default function ProtocolView() {
 
     setEdit((prev) => ({ ...prev, [i]: { ...st, saving: true, error: "" } }));
     try {
-      const res = await fetch(
+      const res = await apiFetch(
         api(`/protocols/${encodeURIComponent(clientId)}/${safeMonth}/${i}`),
         {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
+          json: body,
         }
       );
-
-      if (!res.ok) {
-        const err = await res.text();
-        throw new Error(err || "Request failed");
-      }
 
       let updated = null;
       try {
@@ -389,10 +487,11 @@ export default function ProtocolView() {
             ...(prev || {}),
             entries: json.protocol.entries || prev.entries,
             totals: json.protocol.totals || prev.totals,
+            summarized: prev?.summarized ?? false,
           }));
         }
       } catch {
-        // без тіла відповіді — локальне оновлення нижче
+        // без JSON тіла — локальне оновлення
       }
 
       setProtocol((prev) => {
@@ -422,7 +521,6 @@ export default function ProtocolView() {
     }
   }
 
-  // Вибір/зняття чекбоксів
   function toggleSelect(i) {
     setSelected((prev) => {
       const next = new Set(prev);
@@ -442,15 +540,14 @@ export default function ProtocolView() {
     setBulkBusy(true);
     try {
       for (const idx of idxs) {
-        await fetch(
+        await apiFetch(
           api(`/protocols/${encodeURIComponent(clientId)}/${safeMonth}/${idx}`),
           { method: "DELETE" }
         );
       }
-      const r = await fetch(
+      const data = await apiJson(
         api(`/protocols/${encodeURIComponent(clientId)}/${safeMonth}`)
       );
-      const data = await r.json();
       const entries = Array.isArray(data?.entries) ? data.entries : [];
       setProtocol({
         id: data?.id || clientId,
@@ -462,6 +559,7 @@ export default function ProtocolView() {
             0
           ),
         },
+        summarized: !!data?.summarized,
       });
       clearSelection();
       setEdit({});
@@ -470,18 +568,35 @@ export default function ProtocolView() {
     }
   }
 
-  function openPdf() {
-    if (!clientId || !safeMonth) return; // 🔒 запобіжник
-    const url = api(
+  function openPdf(e) {
+    e?.preventDefault();
+    if (!clientId || !safeMonth) return;
+
+    const base = api(
       `/protocols/${encodeURIComponent(
         clientId
       )}/${safeMonth}/pdf?ts=${Date.now()}`
     );
-    const w = window.open(url, "_blank", "noopener,noreferrer");
-    // Фолбек, якщо попап заблоковано/порожня вкладка
-    if (!w || w.closed || typeof w.closed === "undefined") {
-      window.location.href = url;
-    }
+
+    const token =
+      localStorage.getItem("authToken") ||
+      localStorage.getItem("token") ||
+      localStorage.getItem("jwt") ||
+      sessionStorage.getItem("authToken") ||
+      sessionStorage.getItem("token") ||
+      "";
+
+    // додаємо токен у query (або спрацює сесійний cookie)
+    const href = token ? `${base}&bearer=${encodeURIComponent(token)}` : base;
+
+    // штучне посилання — не блокується попап-блокером
+    const a = document.createElement("a");
+    a.href = href;
+    a.target = "_blank";
+    a.rel = "noopener";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
   }
 
   if (loading) {
@@ -491,11 +606,14 @@ export default function ProtocolView() {
     return <div className="card p-8 text-center text-red-600">{error}</div>;
   }
   if (!protocol || !(protocol.entries || []).length) {
+    const backHref = location.state?.backTo || "/documents/protocols";
+    const backLabel =
+      location.state?.backLabel || "← Powrót do listy protokołów";
     return (
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <Link to="/documents/protocols" className="btn-secondary">
-            ← Powrót do listy protokołów
+          <Link to={backHref} className="btn-secondary">
+            {backLabel}
           </Link>
           <div className="flex-1" />
           <button className="btn-secondary no-print" onClick={openPdf}>
@@ -509,9 +627,11 @@ export default function ProtocolView() {
     );
   }
 
+  const backHref = location.state?.backTo || "/documents/protocols";
+  const backLabel = location.state?.backLabel || "← Powrót do listy protokołów";
+
   return (
     <div className="space-y-4">
-      {/* PRINT CSS */}
       <style>{`
         @media print {
           @page { size: A4 landscape; margin: 10mm; }
@@ -528,8 +648,8 @@ export default function ProtocolView() {
         .sig-img { height: 30px; max-width: 100%; object-fit: contain; }
         .cell-center { text-align: center; white-space: nowrap; }
         .cell-left { text-align: left; }
-        .qty-right { text-align: right; }
-        .pakiety { margin-top: 2px; padding: 2px 4px; background: #e5e7eb; color: #111827; border-radius: 4px; display: inline-block; }
+        .qty-right { text-align: right; white-space: nowrap; }
+        .pakiety-chip { margin-top: 2px; padding: 2px 4px; background: #e5e7eb; color: #111827; border-radius: 4px; display: inline-block; }
         .head-strip { font-size: 11px; }
         .cell-notes { word-break: break-word; }
         .sig-cell { text-align: center; vertical-align: middle; padding: 8px 6px; }
@@ -537,7 +657,7 @@ export default function ProtocolView() {
         .editor { background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 8px; margin-top: 6px; }
         .editor h4 { font-size: 11px; margin: 0 0 6px 0; }
         .editor .counts { display: grid; grid-template-columns: 1fr 80px; gap: 6px; }
-        .editor .counts label { font-size: 10px; color: #374151; }
+        .editor .counts label { font-size: 10px; }
         .editor .counts input { width: 100%; font-size: 12px; padding: 4px 6px; border: 1px solid #d1d5db; border-radius: 6px; text-align: right; }
         .editor .row { display:flex; gap:8px; flex-wrap: wrap; align-items: center; margin-top: 6px; }
         .editor .row input[type="date"] { font-size: 12px; padding: 4px 6px; border: 1px solid #d1d5db; border-radius: 6px; }
@@ -550,18 +670,21 @@ export default function ProtocolView() {
         .total-row td { font-size: 12px !important; font-weight: 700 !important; }
       `}</style>
 
-      {/* Верхня панель (не друкувати) */}
       <div className="flex items-center gap-2 no-print">
-        <Link to="/documents/protocols" className="btn-secondary">
-          ← Powrót
+        <Link to={backHref} className="btn-secondary">
+          {backLabel}
         </Link>
         <div className="flex-1" />
-        <button className="btn-secondary" onClick={openPdf} aria-label="PDF">
+        <button
+          type="button"
+          className="btn-secondary"
+          onClick={openPdf}
+          aria-label="PDF"
+        >
           🖨️ PDF
         </button>
       </div>
 
-      {/* Аркуш */}
       <div className="sheet card p-4">
         <div className="text-base font-semibold text-center mb-2">
           Protokół przekazania narzędzi
@@ -570,6 +693,27 @@ export default function ProtocolView() {
         <div className="head-strip w-full grid grid-cols-1 md:grid-cols-3 gap-3 mb-3 rounded-lg border p-3 bg-slate-50">
           <div className="min-w-0">
             <div className="font-semibold truncate">{clientName}</div>
+            {protocol?.summarized ? (
+              <div
+                className="mt-1 inline-flex items-center gap-1 text-green-700 text-xs border border-green-300 bg-green-50 px-2 py-0.5 rounded-full"
+                title="Protokół oznaczony jako podsumowany — pieczęć będzie w PDF"
+              >
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M20 6L9 17l-5-5" />
+                </svg>
+                Podsumowany
+              </div>
+            ) : null}
+
             <div className="text-[11px] text-gray-700 break-words">
               {clientAddr}
             </div>
@@ -630,6 +774,7 @@ export default function ProtocolView() {
               <col style={{ width: "12ch" }} />
               <col style={{ width: "18ch" }} />
             </colgroup>
+
             <thead>
               <tr>
                 <th className="cell-center" scope="col">
@@ -668,88 +813,71 @@ export default function ProtocolView() {
               </tr>
             </thead>
             <tbody>
-              {(protocol.entries || []).map((row, i) => {
-                const tTools = (row.tools || []).filter((t) => t?.name);
-                const tCounts = tTools.map((t) => Number(t.count || 0));
+              {sortedEntries.map(({ row, origIndex }, displayIndex) => {
                 const tClientSig = absSig(row?.signatures?.transfer?.client);
                 const tStaffSig = absSig(row?.signatures?.transfer?.staff);
-
-                const rTools = (row.returnTools || row.tools || []).filter(
-                  (t) => t?.name
-                );
-                const rCounts = rTools.map((t) => Number(t.count || 0));
                 const rClientSig = absSig(row?.signatures?.return?.client);
                 const rStaffSig = absSig(row?.signatures?.return?.staff);
 
-                const st = edit[i];
+                const st = edit[origIndex];
+                const transferISO = iso10Local(row?.date);
                 const rDateISO =
-                  (st ? st.date : row.returnDate) || nextBusinessDay(row.date);
-
-                const tPackages = Number(row.packages || 0) || 0;
-                const rPackages =
-                  Number(
-                    row.returnPackages != null
-                      ? row.returnPackages
-                      : row.packages
-                  ) || 0;
+                  iso10Local(st ? st.date : row?.returnDate) ||
+                  (transferISO ? nextBusinessDay(transferISO) : "");
 
                 const tService = serviceLabel(row);
                 const rService = serviceLabel({
                   shipping: row.returnShipping,
                   delivery: row.returnDelivery,
                 });
-
                 const onlyService =
                   (tService && tService !== "—" && tService) ||
                   (rService && rService !== "—" && rService) ||
                   "";
 
+                const lines = buildToolLines(row);
+                const rs = lines.length;
+
                 return (
-                  <React.Fragment key={`${row.date}-${i}`}>
-                    <tr id={`row-${i}`} className="align-top">
-                      <td className="cell-center">
+                  <React.Fragment key={`${row.date}-${origIndex}`}>
+                    <tr id={`row-${origIndex}-0`} className="align-top">
+                      <td className="cell-center" rowSpan={rs}>
                         <div className="no-print" style={{ marginBottom: 2 }}>
                           <input
                             type="checkbox"
-                            checked={selected.has(i)}
-                            onChange={() => toggleSelect(i)}
-                            aria-label={`Zaznacz wiersz ${i + 1}`}
+                            checked={selected.has(origIndex)}
+                            onChange={() => toggleSelect(origIndex)}
+                            aria-label={`Zaznacz wiersz ${displayIndex + 1}`}
                           />
                         </div>
-                        <div>{i + 1}</div>
+                        <div>{displayIndex + 1}</div>
                       </td>
-                      <td className="cell-center">
-                        <div className="rowline">{plDate(row.date)}</div>
+
+                      <td className="cell-center" rowSpan={rs}>
+                        <div className="rowline">{plDate(iso10(row.date))}</div>
                       </td>
+
                       <td className="cell-left">
-                        {tTools.length ? (
-                          tTools.map((t, k) => (
-                            <div key={k} className="rowline">
-                              {t.name}
-                            </div>
-                          ))
-                        ) : (
-                          <div className="rowline muted">—</div>
-                        )}
-                        <div className="rowline pakiety">
-                          <b>Pakiety</b>
+                        <div
+                          className={
+                            lines[0].isSum ? "rowline pakiety-chip" : "rowline"
+                          }
+                        >
+                          {lines[0].isSum ? <b>Pakiety</b> : lines[0].name}
                         </div>
                       </td>
+
                       <td className="qty-right">
-                        {tTools.length ? (
-                          tCounts.map((c, k) => (
-                            <div key={k} className="rowline">
-                              {c}
-                            </div>
-                          ))
-                        ) : (
-                          <div className="rowline muted">—</div>
-                        )}
-                        <div className="rowline pakiety">
-                          <b>{tPackages}</b>
+                        <div className="rowline">
+                          {lines[0].isSum ? (
+                            <b>{lines[0].tQty}</b>
+                          ) : (
+                            lines[0].tQty
+                          )}
                         </div>
                       </td>
-                      <td className="sig-cell">
+
+                      <td className="sig-cell" rowSpan={rs}>
                         <div className="sig-box">
                           {tClientSig ? (
                             <img
@@ -762,37 +890,35 @@ export default function ProtocolView() {
                           )}
                         </div>
                       </td>
-                      <td className="sig-cell">
+                      <td className="sig-cell" rowSpan={rs}>
                         <div className="sig-box">
                           {tStaffSig ? (
                             <img
                               className="sig-img"
                               src={tStaffSig}
-                              alt="Podpis Usługodawcy (прzekazanie)"
+                              alt="Podpis Usługodawcy (przekazanie)"
                             />
                           ) : (
                             <span className="text-xs muted">—</span>
                           )}
                         </div>
                       </td>
-                      <td className="cell-center">
+
+                      <td className="cell-center" rowSpan={rs}>
                         <div className="rowline">{plDate(rDateISO)}</div>
                       </td>
+
                       <td className="qty-right">
-                        {rCounts.length ? (
-                          rCounts.map((c, k) => (
-                            <div key={k} className="rowline">
-                              {c}
-                            </div>
-                          ))
-                        ) : (
-                          <div className="rowline muted">—</div>
-                        )}
-                        <div className="rowline pakiety">
-                          <b>{rPackages}</b>
+                        <div className="rowline">
+                          {lines[0].isSum ? (
+                            <b>{lines[0].rQty}</b>
+                          ) : (
+                            lines[0].rQty
+                          )}
                         </div>
                       </td>
-                      <td className="sig-cell">
+
+                      <td className="sig-cell" rowSpan={rs}>
                         <div className="sig-box">
                           {rClientSig ? (
                             <img
@@ -805,7 +931,7 @@ export default function ProtocolView() {
                           )}
                         </div>
                       </td>
-                      <td className="sig-cell">
+                      <td className="sig-cell" rowSpan={rs}>
                         <div className="sig-box">
                           {rStaffSig ? (
                             <img
@@ -818,7 +944,8 @@ export default function ProtocolView() {
                           )}
                         </div>
                       </td>
-                      <td className="cell-left cell-notes">
+
+                      <td className="cell-left cell-notes" rowSpan={rs}>
                         {onlyService ? (
                           <div className="rowline">{onlyService}</div>
                         ) : (
@@ -827,7 +954,34 @@ export default function ProtocolView() {
                       </td>
                     </tr>
 
-                    {edit[i] && (
+                    {lines.slice(1).map((ln, k) => (
+                      <tr
+                        key={`sub-${origIndex}-${k + 1}`}
+                        className="align-top"
+                      >
+                        <td className="cell-left">
+                          <div
+                            className={
+                              ln.isSum ? "rowline pakiety-chip" : "rowline"
+                            }
+                          >
+                            {ln.isSum ? <b>Pakiety</b> : ln.name}
+                          </div>
+                        </td>
+                        <td className="qty-right">
+                          <div className="rowline">
+                            {ln.isSum ? <b>{ln.tQty}</b> : ln.tQty}
+                          </div>
+                        </td>
+                        <td className="qty-right">
+                          <div className="rowline">
+                            {ln.isSum ? <b>{ln.rQty}</b> : ln.rQty}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+
+                    {edit[origIndex] && (
                       <tr className="no-print">
                         <td colSpan={11}>
                           <div className="editor">
@@ -837,40 +991,42 @@ export default function ProtocolView() {
                               <label className="flex items-center gap-2">
                                 <input
                                   type="checkbox"
-                                  checked={edit[i].sameAsTransfer}
+                                  checked={edit[origIndex].sameAsTransfer}
                                   onChange={(e) => {
                                     const checked = e.target.checked;
                                     setEdit((prev) => ({
                                       ...prev,
-                                      [i]: {
-                                        ...prev[i],
+                                      [origIndex]: {
+                                        ...prev[origIndex],
                                         sameAsTransfer: checked,
                                       },
                                     }));
-                                    if (checked) applySameAsTransfer(i);
+                                    if (checked) applySameAsTransfer(origIndex);
                                   }}
                                 />
-                                <span>Zwrot = ilości при przekazaniu</span>
+                                <span>Zwrot = ilości przy przekazaniu</span>
                               </label>
-                              {!edit[i].sameAsTransfer && (
+                              {!edit[origIndex].sameAsTransfer && (
                                 <button
                                   className="btn-secondary btn-xs"
-                                  onClick={() => applySameAsTransfer(i)}
+                                  onClick={() => applySameAsTransfer(origIndex)}
                                 >
-                                  Skopiuj ilości з przekazania
+                                  Skopiuj ilości z przekazania
                                 </button>
                               )}
                             </div>
 
-                            {!edit[i].sameAsTransfer && (
+                            {!edit[origIndex].sameAsTransfer && (
                               <div className="counts mt-3">
-                                {tTools.map((t, k) => (
+                                {normalizeTools(row.tools).map((t, k) => (
                                   <React.Fragment key={k}>
                                     <label>{t.name}</label>
                                     <input
                                       type="number"
                                       min="0"
-                                      value={Number(edit[i].counts?.[k] ?? 0)}
+                                      value={Number(
+                                        edit[origIndex].counts?.[k] ?? 0
+                                      )}
                                       onChange={(e) => {
                                         const v = Math.max(
                                           0,
@@ -878,12 +1034,15 @@ export default function ProtocolView() {
                                         );
                                         setEdit((prev) => {
                                           const arr = [
-                                            ...(prev[i].counts || []),
+                                            ...(prev[origIndex].counts || []),
                                           ];
                                           arr[k] = v;
                                           return {
                                             ...prev,
-                                            [i]: { ...prev[i], counts: arr },
+                                            [origIndex]: {
+                                              ...prev[origIndex],
+                                              counts: arr,
+                                            },
                                           };
                                         });
                                       }}
@@ -898,12 +1057,15 @@ export default function ProtocolView() {
                                 Data zwrotu:&nbsp;
                                 <input
                                   type="date"
-                                  value={edit[i].date}
+                                  value={edit[origIndex].date}
                                   onChange={(e) => {
                                     const raw = e.target.value;
                                     setEdit((prev) => ({
                                       ...prev,
-                                      [i]: { ...prev[i], date: raw },
+                                      [origIndex]: {
+                                        ...prev[origIndex],
+                                        date: raw,
+                                      },
                                     }));
                                   }}
                                   onBlur={(e) => {
@@ -913,7 +1075,10 @@ export default function ProtocolView() {
                                     if (fixed !== e.target.value) {
                                       setEdit((prev) => ({
                                         ...prev,
-                                        [i]: { ...prev[i], date: fixed },
+                                        [origIndex]: {
+                                          ...prev[origIndex],
+                                          date: fixed,
+                                        },
                                       }));
                                     }
                                   }}
@@ -925,12 +1090,12 @@ export default function ProtocolView() {
                                 <input
                                   type="number"
                                   min="0"
-                                  value={edit[i].packages}
+                                  value={edit[origIndex].packages}
                                   onChange={(e) =>
                                     setEdit((prev) => ({
                                       ...prev,
-                                      [i]: {
-                                        ...prev[i],
+                                      [origIndex]: {
+                                        ...prev[origIndex],
                                         packages: Math.max(
                                           0,
                                           parseInt(e.target.value || "0", 10)
@@ -948,26 +1113,26 @@ export default function ProtocolView() {
                               </label>
                             </div>
 
-                            {edit[i].error ? (
+                            {edit[origIndex].error ? (
                               <div className="text-red-600 text-xs mt-2">
-                                {edit[i].error}
+                                {edit[origIndex].error}
                               </div>
                             ) : null}
 
                             <div className="actions">
                               <button
                                 className="btn-primary btn-sm"
-                                onClick={() => saveReturn(i)}
-                                disabled={edit[i].saving}
+                                onClick={() => saveReturn(origIndex)}
+                                disabled={edit[origIndex].saving}
                               >
-                                {edit[i].saving
+                                {edit[origIndex].saving
                                   ? "Zapisywanie..."
                                   : "Zapisz zwrot"}
                               </button>
                               <button
                                 className="btn-secondary btn-sm"
-                                onClick={() => cancelEditRow(i)}
-                                disabled={edit[i].saving}
+                                onClick={() => cancelEditRow(origIndex)}
+                                disabled={edit[origIndex].saving}
                               >
                                 Anuluj
                               </button>

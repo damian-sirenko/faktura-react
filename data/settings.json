@@ -1,7 +1,12 @@
 {
   "perPiecePriceGross": 6,
   "defaultVat": 23,
-  "currentIssueMonth": "2025-09",
   "courierPriceGross": 12,
-  "shippingPriceGross": 22
+  "shippingPriceGross": 20,
+  "currentIssueMonth": "2025-12",
+  "dueMode": "days",
+  "dueDays": 0,
+  "dueFixedDate": null,
+  "counters": {},
+  "invoiceSeqOverrides": {}
 }

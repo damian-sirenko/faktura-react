@@ -1,59 +1,74 @@
+// vite.config.js
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
-  const API = env.VITE_API_URL || "http://localhost:3000";
+  const devTarget = env.VITE_API_URL || "http://localhost:3000";
 
-  // однакові параметри для всіх цілей проксі
+  // спільні опції проксі
   const tgt = {
-    target: API,
-    changeOrigin: true, // важливо для дев-проксі: підміняє Origin на бекенд
-    secure: false, // дозволяє самопідписані сертифікати (на випадок HTTPS)
+    target: devTarget,
+    changeOrigin: true,
+    secure: false,
+    // проброс preflight (OPTIONS) — важливо для POST /analytics/query
+    // Vite робить це сам, але лишаю наочно
+    // onProxyReq: (_proxyReq, req) => {},
+    // onProxyRes: (_proxyRes, req) => {},
   };
 
   return {
     plugins: [react()],
+
     server: {
-      host: true, // дозволяє відкривати з LAN (192.168.x.x), не тільки localhost
+      host: true,
       port: 5173,
+      cors: true,
+      historyApiFallback: true,
       proxy: {
         // базові JSON-API
         "/clients": tgt,
-        "/clients/save": tgt, // ⬅️ залишаю як у вас
+        "/clients/save": tgt,
         "/save-clients": tgt,
         "/settings": tgt,
         "/invoices": tgt,
         "/save-invoices": tgt,
         "/saved-invoices": tgt,
 
-        // сервіси (для підказок інструментів)
+        // сервіси
         "/services": tgt,
         "/services.json": tgt,
         "/save-services": tgt,
 
-        // протоколи + PDF
-        "/protocols": tgt, // охоплює /:clientId/:month і /:clientId/:month/pdf
+        // протоколи + підписи/черга
+        "/protocols": tgt,
         "/sign-queue": tgt,
+
+        // PSL (na sztuki) — потрібен для StatsPage
+        "/psl": tgt,
 
         // файли та завантаження
         "/generated": tgt,
         "/download-invoice": tgt,
+        "/download-multiple": tgt,
         "/signatures": tgt,
-        "/download-multiple": tgt, // ⬅️ додав, щоб архів теж ішов через проксі
 
         // інші роутери
         "/analytics": tgt,
         "/upload": tgt,
         "/gen": tgt,
         "/export-epp": tgt,
+        "/export-invoice-list-pdf": tgt,
+        "/api": tgt,
+        "/auth": tgt,
+        "/tools": tgt,
+        "/tools/save": tgt,
       },
-      cors: true, // CORS для дев-асетів Vite (не впливає на бек, але не завадить)
     },
 
-    // гарантуємо наявність змінної в рантаймі фронта
+    // щоб фронт знав фактичний бекенд (напр., у проді)
     define: {
-      "import.meta.env.VITE_API_URL": JSON.stringify(API),
+      "import.meta.env.VITE_API_URL": JSON.stringify(env.VITE_API_URL || ""),
     },
   };
 });

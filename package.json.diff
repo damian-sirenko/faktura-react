@@ -1,0 +1,81 @@
+--- package.remote.json	2025-11-08 10:35:12
++++ package.json	2025-11-05 13:39:01
+@@ -1,25 +1,55 @@
+ {
+- "name": "steryl-api",
+- "version": "1.0.0",
+- "main": "server.cjs",
+- "type": "commonjs",
+- "scripts": {
+-  "start": "node server.cjs",
+-  "pm2": "pm2 start server.cjs --name steryl-api"
+- },
+- "dependencies": {
+-  "archiver": "^7.0.1",
+-  "bcryptjs": "^3.0.3",
+-  "cookie-parser": "^1.4.7",
+-  "cors": "^2.8.5",
+-  "dayjs": "^1.11.19",
+-  "dotenv": "^17.2.3",
+-  "express": "^5.1.0",
+-  "jsonwebtoken": "^9.0.2",
+-  "multer": "^2.0.2",
+-  "mysql2": "^3.15.3",
+-  "pdfkit": "^0.17.2",
+-  "pm2": "^6.0.13",
+-  "xlsx": "^0.18.5"
+- }
++  "name": "faktura-react",
++  "private": true,
++  "version": "0.0.0",
++  "type": "commonjs",
++  "scripts": {
++    "dev": "vite",
++    "build": "vite build",
++    "lint": "eslint .",
++    "preview": "vite preview",
++    "server": "node server.cjs",
++    "start": "node server.cjs",
++    "migrate:psl": "node scripts/migratePslToDb.cjs",
++    "invoice:preview": "node scripts/preview-invoice.cjs"
++  },
++  "engines": {
++    "node": ">=20 <23"
++  },
++  "dependencies": {
++    "archiver": "^7.0.1",
++    "bcryptjs": "^3.0.3",
++    "cookie-parser": "^1.4.7",
++    "cors": "^2.8.5",
++    "dayjs": "^1.11.18",
++    "dotenv": "^17.2.3",
++    "express": "^5.1.0",
++    "iconv-lite": "^0.6.3",
++    "jsonwebtoken": "^9.0.2",
++    "jspdf": "^3.0.3",
++    "jspdf-autotable": "^5.0.2",
++    "multer": "^2.0.2",
++    "mysql2": "^3.15.3",
++    "pdfkit": "^0.17.2",
++    "react": "^19.1.1",
++    "react-dom": "^19.1.1",
++    "react-router-dom": "^7.8.2",
++    "recharts": "^3.1.2",
++    "xlsx": "^0.18.5"
++  },
++  "devDependencies": {
++    "@eslint/js": "^9.33.0",
++    "@tailwindcss/postcss": "^4.1.12",
++    "@types/react": "^19.1.10",
++    "@types/react-dom": "^19.1.7",
++    "@vitejs/plugin-react": "^5.0.0",
++    "autoprefixer": "^10.4.20",
++    "eslint": "^9.33.0",
++    "eslint-plugin-react-hooks": "^5.2.0",
++    "eslint-plugin-react-refresh": "^0.4.20",
++    "globals": "^16.3.0",
++    "postcss": "^8.4.47",
++    "tailwindcss": "^3.4.14",
++    "vite": "^7.1.2"
++  }
+ }

@@ -1,0 +1,48 @@
+/* templates/invoice.tokens.css */
+
+:root {
+    /* базові */
+    --body-margin-px: 20;
+    --body-font-px: 12;
+    --color-text: #333;
+  
+    /* заголовки */
+    --inv-title-font-px: 14;
+    --inv-number-font-px: 24;
+  
+    /* метадані (місто/дати) */
+    --meta-font-px: 10;
+    --meta-line-mult: 0.6; /* line-height як у твоєму CSS */
+  
+    /* блоки Sprzedawca / Nabywca */
+    --sides-gap-px: 20;
+    --side-box-min-h-px: 80;
+    --side-gray-bg: rgb(224,224,224);
+    --side-border-color: rgb(224,224,224);
+  
+    /* таблиця позицій */
+    --table-th-font-px: 10;
+    --table-td-font-px: 12;
+    --table-cell-pad-y-px: 4;  /* padding-top/bottom для td */
+    --table-cell-pad-x-px: 6;  /* padding-left/right для td */
+    --table-border-color: rgb(224,224,224);
+  
+    /* ширини колонок таблиці в px (як хочеш) */
+    --col-lp-px: 400;
+    --col-name-px: 320;
+    --col-qty-px: 60;
+    --col-net-unit-px: 90;
+    --col-gross-unit-px: 90;
+    --col-net-sum-px: 110;
+    --col-vat-rate-px: 70;
+    --col-vat-amt-px: 110;
+    --col-gross-sum-px: 120;
+  
+    /* totals / płatność */
+    --big-total-font-px: 24;
+  
+    /* блок підпису */
+    --issuer-box-w-px: 200;
+    --issuer-box-ml-px: 120;
+  }
+  

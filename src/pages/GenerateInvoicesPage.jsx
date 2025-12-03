@@ -1,12 +1,11 @@
-// src/pages/GenerateInvoicesPage.jsx
 import React, { useState, useEffect, useRef } from "react";
 import * as XLSX from "xlsx";
+import { apiFetch, api } from "../utils/api"; // додано
 
 export default function GenerateInvoicesPage() {
   const [file, setFile] = useState(null);
   const [status, setStatus] = useState("");
   const [issueDate, setIssueDate] = useState(() => {
-    // спробуємо відновити з пам’яті, інакше сьогодні
     const saved = localStorage.getItem("gen:issueDate");
     if (saved) return saved;
     const d = new Date();
@@ -23,16 +22,13 @@ export default function GenerateInvoicesPage() {
   const [progress, setProgress] = useState({ total: 0, done: 0, status: "" });
   const pollRef = useRef(null);
 
-  // ▼ вибір формату виводу з пам’яттю
   const [format, setFormat] = useState(() => {
     const saved = localStorage.getItem("gen:format");
     return saved === "epp" ? "epp" : "pdf";
   });
 
-  // локальна “відміна” лише зупиняє опитування
   const cancelRef = useRef(false);
 
-  // оцінка кількості інвойсів із Excel
   const handleFileChange = async (e) => {
     const f = e.target.files?.[0] || null;
     setFile(f);
@@ -58,7 +54,6 @@ export default function GenerateInvoicesPage() {
     setStatus("");
   };
 
-  // пам’ять: формат / дата / старт
   useEffect(() => {
     localStorage.setItem("gen:format", format);
   }, [format]);
@@ -69,28 +64,21 @@ export default function GenerateInvoicesPage() {
     localStorage.setItem("gen:numberStart", String(numberStart || 1));
   }, [numberStart]);
 
-  // ініціалізація лічильника під обраний місяць
+  // ініціалізація лічильника
   const initCounter = async () => {
     const d = new Date(issueDate);
     if (Number.isNaN(d.getTime())) throw new Error("Nieprawidłowa data");
     const year = d.getFullYear();
     const month = d.getMonth() + 1; // 1..12
 
-    const resp = await fetch("/upload/counters/init", {
+    await apiFetch("/upload/counters/init", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+      json: {
         year,
         month,
         seed: Number(numberStart || 1),
-      }),
+      },
     });
-
-    // 200 — ок; 400 — коли seed ≤ уже використаного макс — покажемо текст помилки
-    if (!resp.ok) {
-      const data = await resp.json().catch(() => ({}));
-      throw new Error(data?.error || "Nie udało się ustawić licznika");
-    }
   };
 
   // старт джоби (PDF ZIP з прогресом)
@@ -99,22 +87,11 @@ export default function GenerateInvoicesPage() {
     fd.append("excelFile", file);
     fd.append("issueDate", issueDate);
 
-    const resp = await fetch("/upload/start", {
+    // apiFetch кине помилку, якщо !ok
+    const { jobId } = await apiFetch("/upload/start", {
       method: "POST",
       body: fd,
     });
-
-    if (!resp.ok) {
-      // fallback на синхронний маршрут, якщо /start недоступний
-      if (resp.status === 404) {
-        await startSyncFallback();
-        return null;
-      }
-      const data = await resp.json().catch(() => ({}));
-      throw new Error(data?.error || "Błąd uruchamiania zadania");
-    }
-
-    const { jobId } = await resp.json();
     setJobId(jobId);
     return jobId;
   };
@@ -134,9 +111,7 @@ export default function GenerateInvoicesPage() {
         return;
       }
       try {
-        const r = await fetch(`/upload/progress/${id}`);
-        if (!r.ok) throw new Error();
-        const p = await r.json();
+        const p = await apiFetch(`/upload/progress/${id}`);
         setProgress({
           total: p.total || 0,
           done: p.done || 0,
@@ -151,8 +126,10 @@ export default function GenerateInvoicesPage() {
             setStatus(`❌ ${p.error}`);
             return;
           }
-          // качаємо ZIP
-          const zipResp = await fetch(`/upload/download/${id}`);
+          // качаємо ZIP через fetch(api(...)) для Blob
+          const zipResp = await fetch(api(`/upload/download/${id}`), {
+            credentials: "include",
+          });
           if (!zipResp.ok) {
             setIsGenerating(false);
             setStatus("❌ Błąd pobierania archiwum");
@@ -166,7 +143,6 @@ export default function GenerateInvoicesPage() {
           document.body.appendChild(a);
           a.click();
           a.remove();
-          // важливо: прибираємо URL
           setTimeout(() => URL.revokeObjectURL(url), 0);
 
           setIsGenerating(false);
@@ -177,7 +153,7 @@ export default function GenerateInvoicesPage() {
           );
         }
       } catch {
-        // по-тихому спробуємо ще
+        // тихо
       }
     }, 1000);
   };
@@ -188,7 +164,11 @@ export default function GenerateInvoicesPage() {
     fd.append("excelFile", file);
     fd.append("issueDate", issueDate);
 
-    const r = await fetch("/upload", { method: "POST", body: fd });
+    const r = await fetch(api("/upload"), {
+      method: "POST",
+      body: fd,
+      credentials: "include",
+    });
     if (!r.ok) throw new Error("Błąd generowania faktur.");
 
     const blob = await r.blob();
@@ -209,13 +189,17 @@ export default function GenerateInvoicesPage() {
     );
   };
 
-  // Експорт InsERT (.epp) з Excel — бекенд /upload/export-epp (FormData)
+  // Експорт InsERT (.epp)
   const startExportEpp = async () => {
     const fd = new FormData();
     fd.append("excelFile", file);
     fd.append("issueDate", issueDate);
 
-    const r = await fetch("/upload/export-epp", { method: "POST", body: fd });
+    const r = await fetch(api("/upload/export-epp"), {
+      method: "POST",
+      body: fd,
+      credentials: "include",
+    });
     if (!r.ok) {
       const data = await r.json().catch(() => ({}));
       throw new Error(data?.error || "Błąd generowania pliku EPP.");
@@ -225,7 +209,6 @@ export default function GenerateInvoicesPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    // назва може приїхати з nagłówka; якщо ні — fallback:
     a.download = "export.epp";
     document.body.appendChild(a);
     a.click();
@@ -240,7 +223,6 @@ export default function GenerateInvoicesPage() {
     );
   };
 
-  // заміни тіло handleGenerate на це
   const handleGenerate = async () => {
     if (!file) return setStatus("⚠️ Wybierz plik.");
     if (!issueDate) return setStatus("⚠️ Wybierz datę wystawienia.");
@@ -254,16 +236,14 @@ export default function GenerateInvoicesPage() {
         : "⏳ Generowanie…"
     );
 
-    // 1) Обов’язково й окремо ініціюємо лічильник
     try {
       await initCounter();
     } catch (e) {
       setIsGenerating(false);
       setStatus(`❌ ${e.message}`);
-      return; // ← ключове: не генеруємо без валідного лічильника
+      return;
     }
 
-    // 2) Далі — гілка формату + обробка падіння лише startJob
     try {
       if (format === "epp") {
         await startExportEpp();
@@ -271,7 +251,7 @@ export default function GenerateInvoicesPage() {
       }
       const id = await startJob();
       if (id) beginPolling(id);
-      else setIsGenerating(false); // коли спрацював sync fallback у startJob
+      else setIsGenerating(false);
     } catch (e) {
       if (pollRef.current) {
         clearInterval(pollRef.current);
@@ -279,7 +259,7 @@ export default function GenerateInvoicesPage() {
       }
       if (format === "pdf") {
         try {
-          await startSyncFallback(); // fallback тільки якщо завалився startJob, а НЕ initCounter
+          await startSyncFallback();
         } catch {
           setIsGenerating(false);
           setStatus("❌ Wystąpił błąd podczas generowania faktur.");
@@ -292,10 +272,9 @@ export default function GenerateInvoicesPage() {
   };
 
   const handleCancel = () => {
-    cancelRef.current = true; // зупиняємо лише опитування
+    cancelRef.current = true;
   };
 
-  // при розмонтуванні — прибираємо опитування
   useEffect(() => {
     return () => {
       pollRef.current && clearInterval(pollRef.current);
@@ -377,7 +356,6 @@ export default function GenerateInvoicesPage() {
             </div>
           </div>
 
-          {/* ВИБІР ФОРМАТУ */}
           <div className="md:col-span-2">
             <label className="block text-sm mb-1">Format wyjściowy</label>
             <div className="flex items-center gap-4">
@@ -429,7 +407,6 @@ export default function GenerateInvoicesPage() {
           )}
         </div>
 
-        {/* Прогрес показуємо ТІЛЬКИ для PDF (для EPP — синхронно, миттєво файл) */}
         {isGenerating && format === "pdf" && (
           <div className="space-y-2">
             <div className="progress-wrap">

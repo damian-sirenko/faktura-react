@@ -1,1 +1,73 @@
-[]
+[
+  {
+    "name": "Sterylizacja narzędzi wg abonamentu STERYL 20",
+    "price_gross": 110.0,
+    "vat_rate": 23
+  },
+
+  {
+    "name": "Sterylizacja narzędzi wg abonamentu STERYL 30",
+    "price_gross": 140.0,
+    "vat_rate": 23
+  },
+
+  {
+    "name": "Sterylizacja narzędzi wg abonamentu STERYL 50",
+    "price_gross": 210.0,
+    "vat_rate": 23
+  },
+
+  {
+    "name": "Sterylizacja narzędzi wg abonamentu STERYL 100",
+    "price_gross": 300.0,
+    "vat_rate": 23
+  },
+
+  {
+    "name": "Sterylizacja narzędzi wg abonamentu STERYL 150",
+    "price_gross": 360.0,
+    "vat_rate": 23
+  },
+
+  {
+    "name": "Sterylizacja narzędzi wg abonamentu STERYL 200",
+    "price_gross": 430.0,
+    "vat_rate": 23
+  },
+
+  {
+    "name": "Sterylizacja narzędzi wg abonamentu STERYL 300",
+    "price_gross": 550.0,
+    "vat_rate": 23
+  },
+
+  {
+    "name": "Sterylizacja narzędzi wg abonamentu STERYL 500",
+    "price_gross": 780.0,
+    "vat_rate": 23
+  },
+
+  {
+    "name": "Pakiety poza abonamentem",
+    "price_gross": 5.5,
+    "vat_rate": 23
+  },
+
+  {
+    "name": "Dojazd kuriera",
+    "price_gross": 12.0,
+    "vat_rate": 23
+  },
+
+  {
+    "name": "Wysylka",
+    "price_gross": 22.0,
+    "vat_rate": 23
+  },
+
+  {
+    "name": "Sterylizacja narzędzi",
+    "price_gross": 6.0,
+    "vat_rate": 23
+  }
+]

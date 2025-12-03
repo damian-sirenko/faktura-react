@@ -1,0 +1,439 @@
+{
+  "drafts": {
+    "2025-10": {
+      "ym": "2025-10",
+      "rows": [
+        {
+          "id": "naux5f8j",
+          "clientId": "P002-KI",
+          "clientName": "Kinga Iracka",
+          "qty": 7,
+          "sterilCost": 42,
+          "shipOrCourier": 22,
+          "total": 64
+        },
+        {
+          "id": "iwavirde",
+          "clientId": "jadwiga-cichorz",
+          "clientName": "Jadwiga Cichorz",
+          "qty": 12,
+          "sterilCost": 72,
+          "shipOrCourier": 22,
+          "total": 94
+        },
+        {
+          "id": "nqhucwss",
+          "clientId": "P037-WN",
+          "clientName": "Weronika Nagieć",
+          "qty": 4,
+          "sterilCost": 24,
+          "shipOrCourier": "",
+          "total": 24
+        },
+        {
+          "id": "k7465wks",
+          "clientId": "martyna-kussy",
+          "clientName": "Martyna Kussy",
+          "qty": 18,
+          "sterilCost": 108,
+          "shipOrCourier": 22,
+          "total": 130
+        },
+        {
+          "id": "ii5m9gj7",
+          "clientId": "P032-PK",
+          "clientName": "Paulina Kuryło",
+          "qty": 11,
+          "sterilCost": 66,
+          "shipOrCourier": "",
+          "total": 66
+        },
+        {
+          "id": "rw4lh6ls",
+          "clientId": "P047-AP",
+          "clientName": "Aleksandra Podsiadło",
+          "qty": 6,
+          "sterilCost": 36,
+          "shipOrCourier": "",
+          "total": 36
+        },
+        {
+          "id": "jfpfccjv",
+          "clientId": "P023-PK",
+          "clientName": "Paulina Kosiba",
+          "qty": 17,
+          "sterilCost": 102,
+          "shipOrCourier": 22,
+          "total": 124
+        },
+        {
+          "id": "gemzeaws",
+          "clientId": "P046-YT",
+          "clientName": "Yanina Tereszczuk",
+          "qty": 4,
+          "sterilCost": 24,
+          "shipOrCourier": "",
+          "total": 24
+        },
+        {
+          "id": "bm0ay67b",
+          "clientId": "P012-MO",
+          "clientName": "Monika Orszewska",
+          "qty": 7,
+          "sterilCost": 42,
+          "shipOrCourier": "",
+          "total": 42
+        },
+        {
+          "id": "bh42jw55",
+          "clientId": "K013-YU",
+          "clientName": "STUDIO URODY YUMIKO KATARZYNA SNOPEK",
+          "qty": 13,
+          "sterilCost": 78,
+          "shipOrCourier": 24,
+          "total": 102
+        },
+        {
+          "id": "gfzq0x7k",
+          "clientId": "Magdalena Szychowska",
+          "clientName": "Magdalena Szychowska",
+          "qty": 14,
+          "sterilCost": 84,
+          "shipOrCourier": 22,
+          "total": 106
+        },
+        {
+          "id": "gdsido2i",
+          "clientId": "Berenika Kosińska",
+          "clientName": "Berenika Kosińska",
+          "qty": 16,
+          "sterilCost": 96,
+          "shipOrCourier": 22,
+          "total": 118
+        },
+        {
+          "id": "65l8xsqr",
+          "clientId": "anita-tomasik",
+          "clientName": "Anita Tomasik",
+          "qty": 13,
+          "sterilCost": 78,
+          "shipOrCourier": 22,
+          "total": 100
+        },
+        {
+          "id": "uhe3e6vc",
+          "clientId": "P018-AG",
+          "clientName": "Anna Golonka",
+          "qty": 6,
+          "sterilCost": 36,
+          "shipOrCourier": 22,
+          "total": 58
+        },
+        {
+          "id": "yuqi354f",
+          "clientId": "P045-JO",
+          "clientName": "Julia Osiewacz",
+          "qty": 15,
+          "sterilCost": 90,
+          "shipOrCourier": 22,
+          "total": 112
+        },
+        {
+          "id": "lz944y0a",
+          "clientId": "magdalena-bimkiewicz",
+          "clientName": "Magdalena Bimkiewicz",
+          "qty": 17,
+          "sterilCost": 102,
+          "shipOrCourier": 20,
+          "total": 122
+        },
+        {
+          "id": "tso03an2",
+          "clientId": "ratrycja-kraj",
+          "clientName": "Ratrycja Kraj",
+          "qty": 6,
+          "sterilCost": 36,
+          "shipOrCourier": 24,
+          "total": 60
+        },
+        {
+          "id": "202o054d",
+          "clientId": "klaudia-michalik",
+          "clientName": "Klaudia Michalik",
+          "qty": 19,
+          "sterilCost": 114,
+          "shipOrCourier": 22,
+          "total": 136
+        },
+        {
+          "id": "tv44xlpv",
+          "clientId": "P037-WN",
+          "clientName": "Weronika Nagieć",
+          "qty": 4,
+          "sterilCost": 24,
+          "shipOrCourier": "",
+          "total": 24
+        },
+        {
+          "id": "9bqggzyl",
+          "clientId": "P012-MO",
+          "clientName": "Monika Orszewska",
+          "qty": 9,
+          "sterilCost": 54,
+          "shipOrCourier": "",
+          "total": 54
+        },
+        {
+          "id": "9ied9euc",
+          "clientId": "P014-MD",
+          "clientName": "Małgorzata Dziedzic",
+          "qty": 7,
+          "sterilCost": 42,
+          "shipOrCourier": "",
+          "total": 42
+        },
+        {
+          "id": "l1m4qqt7",
+          "clientId": "P046-YT",
+          "clientName": "Yanina Tereszczuk",
+          "qty": 4,
+          "sterilCost": 24,
+          "shipOrCourier": "",
+          "total": 24
+        },
+        {
+          "id": "5n3w358y",
+          "clientId": "daria-wilczy-ska",
+          "clientName": "Daria Wilczyńska",
+          "qty": 8,
+          "sterilCost": 48,
+          "shipOrCourier": 30,
+          "total": 78
+        },
+        {
+          "id": "kdzqbzpa",
+          "clientId": "P001-WH",
+          "clientName": "Weronika Hoduń",
+          "qty": 9,
+          "sterilCost": 54,
+          "shipOrCourier": "",
+          "total": 54
+        },
+        {
+          "id": "d7u9j1dd",
+          "clientId": "P020-KS",
+          "clientName": "Karolina Szymańska",
+          "qty": 8,
+          "sterilCost": 48,
+          "shipOrCourier": 22,
+          "total": 70
+        },
+        {
+          "id": "q7321h6n",
+          "clientId": "P002-KI",
+          "clientName": "Kinga Iracka",
+          "qty": 8,
+          "sterilCost": 48,
+          "shipOrCourier": 22,
+          "total": 70
+        },
+        {
+          "id": "giftqcw4",
+          "clientId": "P050-KC",
+          "clientName": "Kalina Czerniakiewicz",
+          "qty": 18,
+          "sterilCost": 108,
+          "shipOrCourier": 22,
+          "total": 130
+        },
+        {
+          "id": "2qys8fgt",
+          "clientId": "angela-wr-blewska",
+          "clientName": "Angela Wróblewska",
+          "qty": 11,
+          "sterilCost": 66,
+          "shipOrCourier": 22,
+          "total": 88
+        },
+        {
+          "id": "v6wiq4sb",
+          "clientId": "P033-AI",
+          "clientName": "Aleksandra Ilczuk",
+          "qty": 7,
+          "sterilCost": 42,
+          "shipOrCourier": 22,
+          "total": 64
+        },
+        {
+          "id": "l3x49k81",
+          "clientId": "kosmetyka-adriana-sikorska-mrzewa",
+          "clientName": "Kosmetyka Adriana Sikorska-Mrzewa",
+          "qty": 18,
+          "sterilCost": 108,
+          "shipOrCourier": 22,
+          "total": 130
+        },
+        {
+          "id": "wx7pzkjs",
+          "clientId": "oliwia-machura",
+          "clientName": "Oliwia Machura",
+          "qty": 9,
+          "sterilCost": 54,
+          "shipOrCourier": 22,
+          "total": 76
+        },
+        {
+          "id": "6qlxal3i",
+          "clientId": "P052- JT",
+          "clientName": "INDYWIDUALNA PRAKTYKA LEKARSKA JAKUB TURCZA",
+          "qty": 11,
+          "sterilCost": 66,
+          "shipOrCourier": "",
+          "total": 66
+        },
+        {
+          "id": "fzwoa8om",
+          "clientId": "monika-lenda",
+          "clientName": "Monika Lenda",
+          "qty": 12,
+          "sterilCost": 72,
+          "shipOrCourier": "",
+          "total": 72
+        },
+        {
+          "id": "4xeorp6b",
+          "clientId": "P012-MO",
+          "clientName": "Monika Orszewska",
+          "qty": 5,
+          "sterilCost": 30,
+          "shipOrCourier": "",
+          "total": 30
+        },
+        {
+          "id": "k0r4juip",
+          "clientId": "P015-AK",
+          "clientName": "Anna Kawalska",
+          "qty": 18,
+          "sterilCost": 108,
+          "shipOrCourier": 22,
+          "total": 130
+        },
+        {
+          "id": "nio9eyg0",
+          "clientId": "P053-KM",
+          "clientName": "Klaudia Michalik",
+          "qty": 18,
+          "sterilCost": 108,
+          "shipOrCourier": 22,
+          "total": 130
+        },
+        {
+          "id": "48lmpcm3",
+          "clientId": "alicja-bondaruk",
+          "clientName": "Alicja Bondaruk",
+          "qty": 9,
+          "sterilCost": 54,
+          "shipOrCourier": 22,
+          "total": 76
+        },
+        {
+          "id": "lhzhdss7",
+          "clientId": "P005-IG",
+          "clientName": "Iwona Gil",
+          "qty": 9,
+          "sterilCost": 54,
+          "shipOrCourier": "",
+          "total": 54
+        },
+        {
+          "id": "ppol5jdt",
+          "clientId": "paulina-kollek-klebba",
+          "clientName": "Paulina Kollek-Klebba",
+          "qty": 3,
+          "sterilCost": 18,
+          "shipOrCourier": 22,
+          "total": 40
+        },
+        {
+          "id": "andzf6b3",
+          "clientId": "P039-AB",
+          "clientName": "Aleksandra Blach",
+          "qty": 4,
+          "sterilCost": 24,
+          "shipOrCourier": "",
+          "total": 24
+        },
+        {
+          "id": "kp7d55c7",
+          "clientId": "P037-WN",
+          "clientName": "Weronika Nagieć",
+          "qty": 5,
+          "sterilCost": 30,
+          "shipOrCourier": "",
+          "total": 30
+        },
+        {
+          "id": "mwgod0ua",
+          "clientId": "P027-DD",
+          "clientName": "Dariusz Dusik",
+          "qty": 33,
+          "sterilCost": 198,
+          "shipOrCourier": "",
+          "total": 198
+        },
+        {
+          "id": "yqbpoqnd",
+          "clientId": "P001-WH",
+          "clientName": "Weronika Hoduń",
+          "qty": 12,
+          "sterilCost": 72,
+          "shipOrCourier": "",
+          "total": 72
+        },
+        {
+          "id": "tjuzsqti",
+          "clientId": "monika-lenda",
+          "clientName": "Monika Lenda",
+          "qty": 9,
+          "sterilCost": 54,
+          "shipOrCourier": "",
+          "total": 54
+        },
+        {
+          "id": "anybjmf6",
+          "clientId": "K059-MM",
+          "clientName": "Monika Matusińska",
+          "qty": 14,
+          "sterilCost": 84,
+          "shipOrCourier": "",
+          "total": 84
+        },
+        {
+          "id": "6wmh3xp1",
+          "clientId": "",
+          "clientName": "",
+          "qty": "",
+          "sterilCost": 0,
+          "shipOrCourier": "",
+          "total": 0
+        }
+      ]
+    },
+    "2025-09": {
+      "ym": "2025-09",
+      "rows": [
+        {
+          "id": "kte56qyu",
+          "clientId": "",
+          "clientName": "",
+          "qty": "",
+          "sterilCost": 0,
+          "shipOrCourier": "",
+          "total": 0
+        }
+      ]
+    }
+  },
+  "saved": {},
+  "index": []
+}

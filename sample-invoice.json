@@ -1,0 +1,42 @@
+[
+    {
+      "number": "ST-018/10/2025",
+      "client": "Angela Wróblewska",
+      "buyer_nip": "",
+      "buyer_pesel": "",
+      "buyer_address": "",
+      "buyer_street": "",
+      "buyer_postal": "",
+      "buyer_city": "",
+      "issueDate": "2025-10-16",
+      "dueDate": "2025-10-16",
+      "status": "paid",
+      "items": [
+        {
+          "name": "Sterylizacja narzędzi",
+          "quantity": 11,
+          "gross_price": "6.00",
+          "net_price": "4.88",
+          "net_total": "53.66",
+          "vat_rate": "23.00%",
+          "vat_amount": "12.34",
+          "gross_total": "66.00"
+        },
+        {
+          "name": "Wysylka",
+          "quantity": 1,
+          "gross_price": "22.00",
+          "net_price": "17.89",
+          "net_total": "17.89",
+          "vat_rate": "23.00%",
+          "vat_amount": "4.11",
+          "gross_total": "22.00"
+        }
+      ],
+      "updatedAt": "2025-10-16T12:56:50.411Z",
+      "net": "71,54",
+      "gross": "88,00",
+      "filename": "Faktura_ST-018_10_2025.pdf",
+      "folder": ""
+    }
+]

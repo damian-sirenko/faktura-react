@@ -1,13 +1,15 @@
 // epp.js
-// Eksport .epp dla InsERT GT/Nexo: format zgodny z plikiem referencyjnym (Fakturownia),
-// poprawione sekcje [INFO] (24 pola), [NAGLOWEK] (62) i [ZAWARTOSC] (18),
-// CRLF, możliwość zwrotu jako Buffer w windows-1250 (jeśli iconv-lite dostępny).
+// Eksport .epp dla InsERT GT/Nexo (zgodny z Fakturownia 1.08):
+// - [INFO] dokładnie 24 pól, z [15] = 1 oraz zakresem dat miesiąca
+// - [NAGLOWEK] 62 pól, uzupełnione 40..45 i waluta jako "PLN"
+// - [ZAWARTOSC] 18 pól/pozycję (TERAZ: 1 wiersz na stawkę VAT – agregacja jak w Fakturowni)
+// - Sekcje końcowe: KONTRAHENCI, DATYZAKONCZENIA, PRZYCZYNYKOREKT, DOKUMENTYZNACZNIKIJPKVAT
+// - CRLF + encoding CP1250
 
 let iconv = null;
 try {
-  // jeśli masz iconv-lite w deps – użyjemy do CP1250
   iconv = require("iconv-lite");
-} catch (_) {}
+} catch {}
 
 const CRLF = "\r\n";
 
@@ -59,7 +61,7 @@ function parseVatPercent(v) {
   return Number.isFinite(num) ? num : 23;
 }
 
-/** Normalizacja nazwy: prostujemy cudzysłowy, pauzy, wywalamy kontrolne znaki */
+/** Normalizacja nazwy: prostujemy cudzysłowy, pauzy, NBSP, wywalamy kontrolne */
 function normalizeName(name = "") {
   const map = {
     "„": '"',
@@ -76,7 +78,6 @@ function normalizeName(name = "") {
     .trim()
     .replace(/[\u0000-\u001F]/g, "");
   s = s.replace(/[„”«»‚’–—\u00A0]/g, (ch) => map[ch] || ch);
-  // pojedyncze spacje
   s = s.replace(/\s+/g, " ").trim();
   return s;
 }
@@ -85,10 +86,7 @@ function normalizeName(name = "") {
 function splitNameTo3(name, maxLen = 50) {
   const s = normalizeName(name);
   if (!s) return ["", "", ""];
-  if (s.length <= maxLen) {
-    // zgodnie z plikiem referencyjnym Fakturownia: powielamy tę samą nazwę w 11/12/13
-    return [s, s, s];
-  }
+  if (s.length <= maxLen) return [s, s, s]; // jak w Fakturowni – powielone
   const out = [];
   let rest = s;
   for (let i = 0; i < 3 && rest.length > 0; i++) {
@@ -97,9 +95,8 @@ function splitNameTo3(name, maxLen = 50) {
       rest = "";
       break;
     }
-    // szukamy granicy słowa
     let cut = rest.lastIndexOf(" ", maxLen);
-    if (cut < 0 || cut < maxLen * 0.6) cut = maxLen; // w razie bardzo długiego tokenu – tniemy brutalnie
+    if (cut < 0 || cut < maxLen * 0.6) cut = maxLen;
     out.push(rest.slice(0, cut).trim());
     rest = rest.slice(cut).trim();
   }
@@ -113,7 +110,6 @@ function splitAddress(addr) {
   const s = String(addr || "").trim();
   if (!s) return out;
 
-  // Jeśli mamy przecinek – zwykle po nim jest "kod miasto"
   const parts = s
     .split(",")
     .map((x) => x.trim())
@@ -123,26 +119,22 @@ function splitAddress(addr) {
   if (parts.length >= 2) {
     out.street = parts[0];
     const tail = joinTail(parts.slice(1));
-    // Poszukaj "dd-ddd Miasto"
     const m = tail.match(/(\d{2}-\d{3})\s+(.+)$/);
     if (m) {
       out.postal = m[1];
       out.city = m[2].trim();
     } else {
-      // może na końcu jest kod, na początku miasto
       const m2 = tail.match(/^(.+)\s+(\d{2}-\d{3})$/);
       if (m2) {
         out.city = m2[1].trim();
         out.postal = m2[2];
       } else {
-        // brak kodu – wszystko to miasto
         out.city = tail;
       }
     }
     return out;
   }
 
-  // Bez przecinka: spróbuj wyłuskać kod+miasto z końca
   const m3 = s.match(/(.+?)\s*,?\s*(\d{2}-\d{3})\s+(.+)$/);
   if (m3) {
     out.street = m3[1].trim();
@@ -151,12 +143,11 @@ function splitAddress(addr) {
     return out;
   }
 
-  // Ostatecznie – wpisz wszystko jako ulicę
   out.street = s;
   return out;
 }
 
-/** Pobierz min i max datę YYYYMMDD z tablicy faktur */
+/** YYYYMMDD zakres z tablicy faktur */
 function rangeDateYYYYMMDD(invoices, getter) {
   const ys = [];
   for (const inv of invoices) {
@@ -172,16 +163,32 @@ function rangeDateYYYYMMDD(invoices, getter) {
   return { start: ys[0], end: ys[ys.length - 1] };
 }
 
-/* ===== Stabilny source-id do [NAGLOWEK][3] ===== */
+/** Pierwszy i ostatni dzień miesięcy obejmujących zakres */
+function monthStartEnd(ymdStart, ymdEnd) {
+  const y1 = Number(ymdStart.slice(0, 4));
+  const m1 = Number(ymdStart.slice(4, 6));
+  const y2 = Number(ymdEnd.slice(0, 4));
+  const m2 = Number(ymdEnd.slice(4, 6));
 
-// CRC32 tabela + funkcja
+  const d1 = new Date(Date.UTC(y1, m1 - 1, 1));
+  const d2 = new Date(Date.UTC(y2, m2, 0)); // ostatni dzień m2
+
+  const pad = (x, n = 2) => String(x).padStart(n, "0");
+  const S = `${d1.getUTCFullYear()}${pad(d1.getUTCMonth() + 1)}${pad(
+    d1.getUTCDate()
+  )}`;
+  const E = `${d2.getUTCFullYear()}${pad(d2.getUTCMonth() + 1)}${pad(
+    d2.getUTCDate()
+  )}`;
+  return { startMonth: S, endMonth: E };
+}
+
+/* ===== Stabilny source-id dla [NAGLOWEK][3] ===== */
 const CRC32_TABLE = (() => {
   const t = new Array(256);
   for (let n = 0; n < 256; n++) {
     let c = n;
-    for (let k = 0; k < 8; k++) {
-      c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
-    }
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
     t[n] = c >>> 0;
   }
   return t;
@@ -191,19 +198,11 @@ function crc32(str) {
   for (let i = 0; i < str.length; i++) {
     crc = (crc >>> 8) ^ CRC32_TABLE[(crc ^ str.charCodeAt(i)) & 0xff];
   }
-  return (crc ^ -1) >>> 0; // bez znaku
+  return (crc ^ -1) >>> 0;
 }
-
-/**
- * Buduje stabilny numeryczny identyfikator źródłowy dokumentu
- * – najpierw używa inv.source_id/id, jeżeli to liczba
- * – w przeciwnym razie deterministyczny CRC32 po kluczowych polach + offset,
- *   aby nie kolidować z historycznymi ID z Fakturowni.
- */
 function buildEppSourceId(inv) {
   const explicit = inv.source_id || inv.sourceId || inv.id || inv._id;
   if (explicit && /^\d+$/.test(String(explicit))) return String(explicit);
-
   const base = [
     inv.number || "",
     inv.issueDate || inv.issue_date || "",
@@ -211,36 +210,11 @@ function buildEppSourceId(inv) {
     inv.client || "",
   ].join("|");
   const h = crc32(base);
-  const OFFSET = 2000000000; // 10-cyfrowy start
-  return String(OFFSET + (h % 800000000)); // 2,000,000,000..2,799,999,999
+  const OFFSET = 2000000000;
+  return String(OFFSET + (h % 800000000));
 }
 
 /* ===== GŁÓWNA FUNKCJA ===== */
-
-/**
- * generateEPPContent(invoices, options)
- * @param {Array} invoices - lista faktur:
- *   {
- *     number, issueDate, saleDate, dueDate, place,
- *     client|buyer_name, buyer_address | (buyer_street, buyer_postal, buyer_city), buyer_nip,
- *     items: [{ name?, quantity, net_price, gross_price?, net_total?, gross_total?, vat_amount?, vat_rate }],
- *     net, gross, vat_rate, defaultVat, payment_method
- *   }
- * @param {Object} options:
- *   {
- *     seller: {
- *       name, // pełna nazwa
- *       shortName?, // opcjonalny krótki wariant (INFO[5]); jeśli brak, użyje name
- *       nip,
- *       address, // "Ulica 1, 31-000 Miasto"
- *       countryName?: "Polska",
- *       countryCode?: "PL",
- *       contactName?: "Imię Nazwisko", // INFO[18]
- *     },
- *     exporterName?: "faktura-react", // INFO[3][4]
- *     encoding?: "cp1250"|"utf8" // jeżeli planujesz użyć generateEPPBuffer
- *   }
- */
 function generateEPPContent(invoices = [], options = {}) {
   const seller = Object.assign(
     {
@@ -258,18 +232,19 @@ function generateEPPContent(invoices = [], options = {}) {
   const addr = splitAddress(seller.address);
   const exporterName = options.exporterName || "faktura-react";
 
-  // okres eksportu wg dat wystawienia
+  // zakres wg dat wystawienia (pierwszy i ostatni dzień miesiąca)
   const range = rangeDateYYYYMMDD(
     invoices,
     (inv) => inv.issueDate || inv.issue_date
   );
+  const monthRange = monthStartEnd(range.start, range.end);
 
-  // ===== [INFO] – 24 pól, jak w pliku referencyjnym
-  const codepage = 1250; // InsERT oczekuje CP1250
+  // [INFO] – 24 pola, zgodnie z Fakturownia: [15] = 1
+  const codepage = 1250;
   const info = [
-    csvq("1.08"), // [0] wersja
+    csvq("1.08"), // [0]
     0, // [1]
-    codepage, // [2] strona kodowa
+    codepage, // [2]
     csvq(exporterName), // [3]
     csvq(exporterName), // [4]
     csvq(seller.shortName || seller.name), // [5]
@@ -278,14 +253,14 @@ function generateEPPContent(invoices = [], options = {}) {
     csvq(addr.postal || ""), // [8]
     csvq(addr.street || ""), // [9]
     csvq(String(seller.nip || "")), // [10]
-    "", // [11] magazyn ID (opcjonalny)
-    "", // [12] magazyn nazwa (opcjonalny)
+    "", // [11] magazyn id (opcjonalnie)
+    "", // [12] magazyn nazwa (opcjonalnie)
     "", // [13]
     "", // [14]
-    Number(invoices.length || 0), // [15] liczba dokumentów
-    `${range.start}000000`, // [16] data od
-    `${range.end}000000`, // [17] data do
-    csvq(seller.contactName || seller.name), // [18] operator/eksporter
+    1, // [15] (zgodnie z plikiem referencyjnym)
+    `${monthRange.startMonth}000000`, // [16] data od
+    `${monthRange.endMonth}000000`, // [17] data do
+    csvq(seller.contactName || seller.name), // [18]
     eppDate14(new Date()), // [19] data eksportu
     csvq(seller.countryName || "Polska"), // [20]
     csvq(seller.countryCode || "PL"), // [21]
@@ -297,7 +272,10 @@ function generateEPPContent(invoices = [], options = {}) {
   out += "[INFO]" + CRLF;
   out += info.join(",") + CRLF + CRLF;
 
-  // ===== każda faktura
+  // Zbiór kontrahentów do sekcji końcowej
+  const contractors = new Map();
+
+  // ===== Każda faktura
   for (const inv of invoices) {
     const buyerNameRaw =
       (inv.client && String(inv.client)) || inv.buyer_name || "";
@@ -307,41 +285,59 @@ function generateEPPContent(invoices = [], options = {}) {
     const issue = inv.issueDate || inv.issue_date || "";
     const sale = inv.saleDate || inv.sale_date || issue;
     const due = inv.dueDate || inv.due_date || issue;
-    const place =
-      inv.place ||
-      addr.city || // domyślnie miasto sprzedawcy
-      "Kraków";
 
-    // dane nabywcy do pól 11..17 w [NAGLOWEK]
-    const fromFields = {
-      street: inv.buyer_street || "",
-      postal: inv.buyer_postal || "",
-      city: inv.buyer_city || "",
-    };
-    // jeśli nie mamy rozbicia, spróbuj sparsować buyer_address
-    let bStreet = fromFields.street;
-    let bPostal = fromFields.postal;
-    let bCity = fromFields.city;
+    const place = inv.place || addr.city || "Kraków";
 
+    // adres nabywcy
+    let bStreet = inv.buyer_street || "";
+    let bPostal = inv.buyer_postal || "";
+    let bCity = inv.buyer_city || "";
     if (!bStreet && !bPostal && !bCity) {
       const parsed = splitAddress(inv.buyer_address || inv.address || "");
       bStreet = parsed.street;
       bPostal = parsed.postal;
       bCity = parsed.city;
     }
-
     const bNip = (inv.buyer_nip || "").toString().trim();
 
+    // do sekcji KONTRAHENCI (unikalny klucz)
+    const cKey = [
+      buyerName1,
+      buyerName2,
+      buyerName3,
+      bCity,
+      bPostal,
+      bStreet,
+      bNip,
+    ].join("|");
+    if (!contractors.has(cKey)) {
+      contractors.set(cKey, {
+        name1: buyerName1,
+        name2: buyerName2,
+        name3: buyerName3,
+        city: bCity,
+        postal: bPostal,
+        street: bStreet,
+        nip: bNip,
+      });
+    }
+
+    // ===== Agregacja pozycji po stawce VAT (jak w Fakturowni)
     const items = Array.isArray(inv.items) ? inv.items : [];
 
+    // Najpierw policz sumy globalne (nagłówek)
     let netSum = 0,
       vatSum = 0,
       grossSum = 0;
+
+    // Mapa: stawkaVAT -> { net, vat, gross }
+    const byVat = new Map();
 
     if (items.length) {
       for (const it of items) {
         const qty = Number(it.quantity ?? it.qty ?? 1);
         const vatP = parseVatPercent(it.vat_rate);
+
         const netUnit = Number(
           String(it.net_price ?? it.price_net ?? 0).replace(",", ".")
         );
@@ -368,37 +364,52 @@ function generateEPPContent(invoices = [], options = {}) {
         netSum += netTotal;
         vatSum += vatTotal;
         grossSum += grossTotal;
+
+        const k = String(vatP);
+        const acc = byVat.get(k) || { net: 0, vat: 0, gross: 0, vatP };
+        acc.net += netTotal;
+        acc.vat += vatTotal;
+        acc.gross += grossTotal;
+        byVat.set(k, acc);
       }
     } else {
-      // fallback: sumy z nagłówka, jeśli pozycji brak
+      // Brak pozycji – tworzymy jedną agregację na domyślnej stawce
+      const vatP =
+        inv.vat_rate ?? (inv.defaultVat != null ? inv.defaultVat : 23);
       netSum = Number(String(inv.net || 0).replace(",", "."));
       grossSum = Number(String(inv.gross || 0).replace(",", "."));
       vatSum = Math.max(0, grossSum - netSum);
+      byVat.set(String(parseVatPercent(vatP)), {
+        net: netSum,
+        vat: vatSum,
+        gross: grossSum,
+        vatP: parseVatPercent(vatP),
+      });
     }
 
-    // ===== [NAGLOWEK] – 62 pola
+    // ===== [NAGLOWEK] – 62 pól
     const H = new Array(62).fill("");
 
-    const sourceId = buildEppSourceId(inv); // stabilny ID do pola [3]
+    const sourceId = buildEppSourceId(inv);
 
-    H[0] = csvq("FS"); // typ
+    H[0] = csvq("FS");
     H[1] = 1;
     H[2] = 0;
-    H[3] = sourceId; // numer wewnętrzny/źródłowy – BEZ cudzysłowów (jak w Fakturownia)
-    H[4] = csvq(number); // numer zewnętrzny
+    H[3] = sourceId; // bez cudzysłowów
+    H[4] = csvq(number);
     H[5] = "";
     H[6] = csvq(`FS ${number}`);
 
-    // Kontrahent — wg wzorca: 11..17
-    H[11] = csvq(buyerName1); // nazwa wiersz 1
-    H[12] = csvq(buyerName2); // wiersz 2 (kontynuacja)
-    H[13] = csvq(buyerName3); // wiersz 3 (kontynuacja)
-    H[14] = csvq(bCity); // miasto
-    H[15] = csvq(bPostal); // kod
-    H[16] = csvq(bStreet); // ulica
-    H[17] = csvq(bNip); // NIP
+    // 11..17 kontrahent
+    H[11] = csvq(buyerName1);
+    H[12] = csvq(buyerName2);
+    H[13] = csvq(buyerName3);
+    H[14] = csvq(bCity);
+    H[15] = csvq(bPostal);
+    H[16] = csvq(bStreet);
+    H[17] = csvq(bNip);
 
-    // Miejsce i daty: [20] miejsce, [21] wystawienia, [22] sprzedaży, [23] wystawienia
+    // 20..23 miejsce i daty
     H[20] = csvq(place);
     H[21] = eppDate14(issue);
     H[22] = eppDate14(sale);
@@ -407,12 +418,12 @@ function generateEPPContent(invoices = [], options = {}) {
     H[24] = 2;
     H[25] = 1;
 
-    // Sums
+    // sumy
     H[27] = to4(netSum);
     H[28] = to4(vatSum);
     H[29] = to4(grossSum);
     H[30] = to4(0);
-    H[31] = ""; // w referencji puste
+    H[31] = "";
     H[32] = to4(0);
 
     H[33] = csvq(inv.payment_method || "Przelew");
@@ -424,18 +435,28 @@ function generateEPPContent(invoices = [], options = {}) {
     H[38] = 0;
     H[39] = 1;
 
-    H[46] = "PLN";
+    // 40..45 uzupełnienia jak w Fakturowni
+    H[40] = 0;
+    H[41] = csvq("Pracownik");
+    H[42] = "";
+    H[43] = "";
+    H[44] = to4(0);
+    H[45] = to4(0);
+
+    // waluta i kurs
+    H[46] = csvq("PLN");
     H[47] = to4(1);
 
     H[52] = 0;
     H[53] = 0;
     H[54] = 0;
-    H[55] = ""; // w referencji puste
+    H[55] = "";
     H[56] = to4(0);
-    H[57] = ""; // puste
+    H[57] = "";
     H[58] = to4(0);
-    H[59] = csvq("Polska"); // kraj nabywcy (jak w pliku z Fakturowni)
-    H[60] = csvq("PL"); // kod kraju nabywcy
+
+    H[59] = csvq("Polska");
+    H[60] = csvq("PL");
     H[61] = 0;
 
     out += "[NAGLOWEK]" + CRLF;
@@ -443,69 +464,97 @@ function generateEPPContent(invoices = [], options = {}) {
       H.map((v) => (typeof v === "number" ? String(v) : String(v))).join(",") +
       CRLF;
 
-    // ===== [ZAWARTOSC] – 18 pól na pozycję
-    out += "[ZAWARTOSC]" + CRLF;
+    // ===== [ZAWARTOSC] – 18 pól/wiersz; 1 wiersz na stawkę VAT (agregacja)
+    out += CRLF + "[ZAWARTOSC]" + CRLF;
 
-    const lines =
-      items.length > 0
-        ? items
-        : [
-            {
-              quantity: 1,
-              vat_rate:
-                inv.vat_rate ?? (inv.defaultVat != null ? inv.defaultVat : 23),
-              net_price: netSum,
-              gross_price: grossSum,
-              net_total: netSum,
-              gross_total: grossSum,
-              vat_amount: vatSum,
-            },
-          ];
+    // Stabilna kolejność po stawce (np. 0, 5, 8, 23 itd.)
+    const vatKeys = Array.from(byVat.keys()).sort(
+      (a, b) => Number(a) - Number(b)
+    );
 
-    for (const it of lines) {
-      const qty = Number(it.quantity ?? it.qty ?? 1);
-      const vatP = parseVatPercent(it.vat_rate);
-      const netUnit = Number(String(it.net_price ?? 0).replace(",", "."));
-      const grossUnit =
-        String(it.gross_price ?? "") !== ""
-          ? Number(String(it.gross_price).replace(",", "."))
-          : netUnit * (1 + vatP / 100);
-      const netTotal =
-        String(it.net_total ?? "") !== ""
-          ? Number(String(it.net_total).replace(",", "."))
-          : netUnit * qty;
-      const grossTotal =
-        String(it.gross_total ?? "") !== ""
-          ? Number(String(it.gross_total).replace(",", "."))
-          : grossUnit * qty;
-      const vatTotal =
-        String(it.vat_amount ?? "") !== ""
-          ? Number(String(it.vat_amount).replace(",", "."))
-          : grossTotal - netTotal;
+    for (const k of vatKeys) {
+      const g = byVat.get(k);
+      const vatP = g.vatP;
+
+      // Jak w Fakturowni: pola "jednostkowe" zawierają sumy (qty=1)
+      const net = g.net;
+      const vat = g.vat;
+      const gross = g.gross;
 
       const Z = new Array(18).fill("0.0000");
       Z[0] = csvq(String(vatP)); // "23"
       Z[1] = to4(vatP); // 23.0000
-      Z[2] = to4(netUnit); // cena netto / szt.
-      Z[3] = to4(qty ? vatTotal / qty : 0); // VAT / szt.
-      Z[4] = to4(grossUnit); // cena brutto / szt.
-      Z[5] = to4(netTotal); // wartość netto
-      Z[6] = to4(vatTotal); // VAT
-      Z[7] = to4(grossTotal); // wartość brutto
-      // Z[8]..Z[17] – "0.0000"
+      Z[2] = to4(net); // cena netto / szt. (tu: suma)
+      Z[3] = to4(vat); // VAT / szt. (tu: suma)
+      Z[4] = to4(gross); // cena brutto / szt. (tu: suma)
+      Z[5] = to4(net); // wartość netto
+      Z[6] = to4(vat); // VAT
+      Z[7] = to4(gross); // wartość brutto
+
       out += Z.join(",") + CRLF;
     }
 
-    out += CRLF; // pusta linia między dokumentami (jak w referencji)
+    out += CRLF; // pusta linia między dokumentami
+  }
+
+  // ===== Sekcja KONTRAHENCI
+  out += "[NAGLOWEK]" + CRLF + csvq("KONTRAHENCI") + CRLF + CRLF;
+  out += "[ZAWARTOSC]" + CRLF;
+
+  for (const c of contractors.values()) {
+    const row = new Array(32).fill("");
+    row[0] = 0;
+    row[1] = csvq(c.name1);
+    row[2] = csvq(c.name2);
+    row[3] = csvq(c.name3);
+    row[4] = csvq(c.city);
+    row[5] = csvq(c.postal);
+    row[6] = csvq(c.street);
+    row[7] = csvq(c.nip || "");
+    // ogon zgodny z przykładem (kraj/kod/0/"PL")
+    row[28] = csvq("Polska");
+    row[29] = csvq("PL");
+    row[30] = 0;
+    row[31] = csvq("PL");
+    out +=
+      row
+        .map((v) => (typeof v === "number" ? String(v) : String(v)))
+        .join(",") + CRLF;
+  }
+  out += CRLF;
+
+  // ===== Sekcja DATYZAKONCZENIA
+  out += "[NAGLOWEK]" + CRLF + csvq("DATYZAKONCZENIA") + CRLF + CRLF;
+  out += "[ZAWARTOSC]" + CRLF;
+  for (const inv of invoices) {
+    const number = inv.number || "";
+    const sale =
+      inv.saleDate ||
+      inv.sale_date ||
+      inv.issueDate ||
+      inv.issue_date ||
+      new Date();
+    out += `${csvq(`FS ${number}`)},${eppDate14(sale)}${CRLF}`;
+  }
+  out += CRLF;
+
+  // ===== Sekcja PRZYCZYNYKOREKT (pusta, jak w przykładzie)
+  out += "[NAGLOWEK]" + CRLF + csvq("PRZYCZYNYKOREKT") + CRLF + CRLF;
+  out += "[ZAWARTOSC]" + CRLF + CRLF;
+
+  // ===== Sekcja DOKUMENTYZNACZNIKIJPKVAT (wszystko 0)
+  out += "[NAGLOWEK]" + CRLF + csvq("DOKUMENTYZNACZNIKIJPKVAT") + CRLF + CRLF;
+  out += "[ZAWARTOSC]" + CRLF;
+  for (const inv of invoices) {
+    const number = inv.number || "";
+    const zeros = Array(28).fill("0").join(",");
+    out += `${csvq(`FS ${number}`)},${zeros}${CRLF}`;
   }
 
   return out;
 }
 
-/**
- * Opcjonalnie: zwróć Buffer w zadanym kodowaniu (domyślnie CP1250),
- * w przeciwnym razie UTF-8.
- */
+/** Buffer w CP1250 (jeśli iconv-lite dostępny), inaczej UTF-8 */
 function generateEPPBuffer(invoices = [], options = {}) {
   const content = generateEPPContent(invoices, options);
   const encoding = (options && options.encoding) || "cp1250";

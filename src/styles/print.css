@@ -1,0 +1,54 @@
+/* src/styles/print.css */
+
+/* Поля сторінки та формат */
+@page {
+    size: A4;         /* можеш змінити на 'auto' або 'Letter' за потреби */
+    margin: 10mm;     /* рівні поля; підженеш як подобається */
+  }
+  
+  /* Базові правки під час друку */
+  @media print {
+    html, body {
+      margin: 0 !important;
+      padding: 0 !important;
+      color: #000 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+  
+    /* Контейнер, який друкуємо на всю ширину аркуша */
+    .print-full-width {
+      max-width: none !important;
+      width: 100% !important;
+      margin: 0 !important;
+    }
+  
+    /* Прибрати внутрішні відступи (коли треба в нуль) */
+    .print-reset-pad {
+      padding: 0 !important;
+    }
+  
+    /* Чіткі таблиці: суцільні чорні межі, без “сірого крапкового” фону */
+    .print-table {
+      width: 100% !important;
+      border-collapse: collapse !important;
+    }
+    .print-table,
+    .print-table thead,
+    .print-table tbody,
+    .print-table tfoot,
+    .print-table tr,
+    .print-table th,
+    .print-table td {
+      border: 1px solid #000 !important;
+      background: transparent !important; /* прибираємо сірі фони, щоб не було крапок */
+      box-shadow: none !important;
+      text-shadow: none !important;
+    }
+  
+    /* За потреби можеш приховати елементи, що не треба друкувати */
+    .no-print {
+      display: none !important;
+    }
+  }
+  

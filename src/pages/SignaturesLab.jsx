@@ -252,6 +252,18 @@ export default function SignaturesLab() {
       return;
     }
     setSaving(true);
+
+    const token =
+      localStorage.getItem("authToken") ||
+      localStorage.getItem("token") ||
+      localStorage.getItem("jwt") ||
+      sessionStorage.getItem("authToken") ||
+      sessionStorage.getItem("token") ||
+      "";
+
+    const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+    const commonFetchOpts = { credentials: "include" };
+
     setStatusMsg("");
     try {
       // 1) створюємо ПУСТИЙ запис у протоколі (мінімально)
@@ -259,7 +271,8 @@ export default function SignaturesLab() {
         api(`/protocols/${encodeURIComponent(clientId)}/${month}`),
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          credentials: commonFetchOpts.credentials,
+          headers: { "Content-Type": "application/json", ...authHeaders },
           body: JSON.stringify({
             date,
             tools: [],
@@ -291,10 +304,12 @@ export default function SignaturesLab() {
           ),
           {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            credentials: commonFetchOpts.credentials,
+            headers: { "Content-Type": "application/json", ...authHeaders },
             body: JSON.stringify({ leg: "transfer", ...transferBody }),
           }
         );
+        
         if (!r.ok) throw new Error("Błąd zapisu podpisu (przekazanie).");
       }
 
@@ -308,10 +323,12 @@ export default function SignaturesLab() {
           ),
           {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            credentials: commonFetchOpts.credentials,
+            headers: { "Content-Type": "application/json", ...authHeaders },
             body: JSON.stringify({ leg: "return", ...returnBody }),
           }
         );
+        
         if (!r.ok) throw new Error("Błąd zapisu podpisu (zwrot).");
       }
 

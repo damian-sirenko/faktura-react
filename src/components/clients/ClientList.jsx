@@ -1,4 +1,5 @@
-import React from "react";
+// src/components/clients/ClientList.jsx
+import React, { useState, useEffect } from "react";
 
 // узгоджено з бекендом: стабільний slug без діакритиків
 function stripDiacritics(s) {
@@ -39,22 +40,24 @@ const IconEdit = ({ className = "" }) => (
   </svg>
 );
 
-const IconTrash = ({ className = "" }) => (
+/* 🆕 Іконка архіву замість смітника */
+const IconArchive = ({ className = "" }) => (
   <svg
     className={className}
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    strokeWidth="2.25"
+    strokeWidth="2.0"
     strokeLinecap="round"
     strokeLinejoin="round"
     aria-hidden="true"
   >
-    <polyline points="3 6 5 6 21 6" />
-    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-    <path d="M10 11v6" />
-    <path d="M14 11v6" />
-    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+    {/* кришка коробки */}
+    <rect x="3" y="4" width="18" height="4" rx="1" />
+    {/* корпус коробки */}
+    <path d="M5 8h14v9a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V8z" />
+    {/* маленька ручка */}
+    <path d="M10 12h4" />
   </svg>
 );
 
@@ -69,7 +72,18 @@ export default function ClientList({
   onToggleCheck,
   onToggleCheckAll,
   showAbonFields = true,
+
+  /* 🆕 керування відображенням ID у вкладці "na sztuki" */
+  showIdBeforeName = false,
+  idCellMaxChars = 10,
 }) {
+  const [toastMsg, setToastMsg] = useState("");
+  useEffect(() => {
+    if (!toastMsg) return;
+    const t = setTimeout(() => setToastMsg(""), 2000);
+    return () => clearTimeout(t);
+  }, [toastMsg]);
+
   if (!Array.isArray(clients) || clients.length === 0) {
     return <div className="card">Brak klientów w bazie.</div>;
   }
@@ -82,7 +96,7 @@ export default function ClientList({
     checkedIds.length > 0;
 
   return (
-    <div className="overflow-x-hidden">
+    <div className="overflow-x-hidden relative">
       <table className="table w-full">
         <thead>
           <tr>
@@ -100,6 +114,12 @@ export default function ClientList({
               </th>
             )}
             <th className="text-center whitespace-nowrap">#</th>
+
+            {/* 🆕 Колонка ID — тільки коли потрібно показувати перед назвою */}
+            {showIdBeforeName && (
+              <th className="whitespace-normal text-left">ID</th>
+            )}
+
             <th className="whitespace-normal">Nazwa</th>
             <th className="whitespace-nowrap">Email</th>
             <th className="whitespace-nowrap">Telefon</th>
@@ -166,6 +186,17 @@ export default function ClientList({
 
                 <td className="text-center whitespace-nowrap">{i + 1}</td>
 
+                {/* 🆕 Комірка з ID перед назвою */}
+                {showIdBeforeName && (
+                  <td
+                    className="whitespace-normal break-words leading-tight text-xs font-medium text-gray-700"
+                    style={{ maxWidth: `${idCellMaxChars}ch` }}
+                    title={id || "-"}
+                  >
+                    {id || "—"}
+                  </td>
+                )}
+
                 <td className="whitespace-normal">
                   <div className="flex items-start gap-2">
                     <span>{name}</span>
@@ -177,12 +208,18 @@ export default function ClientList({
                   </div>
                 </td>
 
-                {/* Email — ТІЛЬКИ ТЕКСТ (без mailto:) */}
+                {/* 🆕 Email — клікабельний, копіює у буфер */}
                 <td
-                  className="max-w-[240px] whitespace-nowrap overflow-hidden text-ellipsis"
-                  title={email}
+                  className="max-w-[240px] whitespace-nowrap overflow-hidden text-ellipsis cursor-pointer text-blue-700 hover:underline"
+                  title="Kliknij, aby skopiować e-mail"
+                  onClick={() => {
+                    if (email && email !== "-") {
+                      navigator.clipboard.writeText(email);
+                      setToastMsg("Skopiowano e-mail: " + email);
+                    }
+                  }}
                 >
-                  <span>{email || "-"}</span>
+                  {email || "-"}
                 </td>
 
                 {/* Telefon — КЛІКАБЕЛЬНИЙ tel: */}
@@ -215,7 +252,7 @@ export default function ClientList({
                 )}
 
                 <td className="text-center whitespace-nowrap">
-                  {/* Zielona “Szczegóły” — без змін */}
+                  {/* Zielona “Szczegóły” */}
                   <button
                     type="button"
                     onClick={() => onSelect(c)}
@@ -225,7 +262,6 @@ export default function ClientList({
                     Szczegóły
                   </button>
 
-                  {/* Іконки дій — однаковий стиль; приховані на < md */}
                   <span className="hidden md:inline-flex items-center gap-2 align-middle">
                     <button
                       type="button"
@@ -237,14 +273,15 @@ export default function ClientList({
                       <IconEdit className="w-5 h-5" />
                     </button>
 
+                    {/* Архівація */}
                     <button
                       type="button"
                       onClick={() => onDeleteRequest && onDeleteRequest(c)}
-                      title="Usuń"
-                      aria-label="Usuń"
-                      className="inline-flex items-center justify-center rounded-lg p-2 border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 focus:ring-2 focus:ring-rose-300 shadow-soft transition"
+                      title="Archiwizuj"
+                      aria-label="Archiwizuj"
+                      className="inline-flex items-center justify-center rounded-lg p-2 border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 focus:ring-2 focus:ring-amber-300 shadow-soft transition"
                     >
-                      <IconTrash className="w-5 h-5" />
+                      <IconArchive className="w-5 h-5" />
                     </button>
                   </span>
                 </td>
@@ -253,6 +290,13 @@ export default function ClientList({
           })}
         </tbody>
       </table>
+
+      {/* 🆕 Toast повідомлення */}
+      {toastMsg && (
+        <div className="fixed bottom-5 right-5 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg text-sm animate-fadeIn">
+          {toastMsg}
+        </div>
+      )}
     </div>
   );
 }

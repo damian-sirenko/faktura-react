@@ -1,5 +1,8 @@
-import React from "react";
+// src/pages/HomePage.jsx
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { apiFetch } from "../utils/api"; // перевірка сесії (401 → /login)
+import ProtocolEntryModal from "../components/ProtocolEntryModal.jsx";
 
 /* === Inline white vector icons (no deps) === */
 const IconInvoice = ({ className = "" }) => (
@@ -55,7 +58,6 @@ const IconArchive = ({ className = "" }) => (
   </svg>
 );
 
-/* Новий значок “підпис/перо” */
 const IconSignature = ({ className = "" }) => (
   <svg
     className={className}
@@ -73,54 +75,191 @@ const IconSignature = ({ className = "" }) => (
   </svg>
 );
 
+/* Нові іконки під задачі */
+
+const IconDocsStack = ({ className = "" }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.1"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <rect x="6" y="4" width="11" height="14" rx="1.5" />
+    <path d="M9 8h5" />
+    <path d="M9 11h5" />
+    <path d="M9 14h3" />
+    <path d="M9 2h8a2 2 0 0 1 2 2v11" />
+  </svg>
+);
+
+const IconPackages = ({ className = "" }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.1"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <rect x="3" y="3" width="8" height="8" rx="1.5" />
+    <rect x="13" y="3" width="8" height="8" rx="1.5" />
+    <rect x="8" y="13" width="8" height="8" rx="1.5" />
+  </svg>
+);
+
+const IconTable = ({ className = "" }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.1"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <rect x="3" y="5" width="18" height="14" rx="2" />
+    <line x1="3" y1="10" x2="21" y2="10" />
+    <line x1="9" y1="5" x2="9" y2="19" />
+    <line x1="15" y1="5" x2="15" y2="19" />
+  </svg>
+);
+
 export default function HomePage() {
+  const [addOpen, setAddOpen] = useState(false);
+  const [clients, setClients] = useState([]);
+
+  // м'яка перевірка авторизації при вході на головну:
+  // легкий запит до захищеного /settings (мінімальні дані).
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        await apiFetch("/settings", { method: "GET" });
+      } catch (err) {
+        const msg = String(err?.message || "");
+        const is401 =
+          err?.status === 401 || /401/.test(msg) || /unauthorized/i.test(msg);
+        if (mounted && is401) {
+          window.location.replace("/login");
+        }
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // підвантаження клієнтів для модального вікна протоколу
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const r = await apiFetch("/clients");
+        if (!r.ok) return;
+        const arr = await r.json().catch(() => []);
+        if (alive && Array.isArray(arr)) {
+          setClients(arr);
+        }
+      } catch {}
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   return (
     <div className="min-h-[70vh] flex items-center">
-      <div className="max-w-6xl mx-auto w-full px-[20mm] py-6 md:px-6">
-        {/* мобільно: 1 колонка; md: 2; xl: 4 — плитки завжди квадратні */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 place-items-center">
+      <div className="max-w-6xl mx-auto w-full px-3 sm:px-4 md:px-6 py-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6 place-items-center">
           <Link
-            to="/generate"
-            className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl shadow-soft w-full aspect-square md:w-56 md:h-56 flex items-center justify-center text-center transition"
+            to="/clients"
+            className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl shadow-soft w-full max-w-[260px] aspect-square flex items-center justify-center text-center px-2 py-2 sm:px-4 sm:py-4 transition"
           >
             <div>
-              <IconInvoice className="w-20 h-20 text-white mx-auto mb-3" />
-              <div className="text-lg font-semibold">Generuj faktury</div>
+              <IconUsers className="w-14 h-14 md:w-20 md:h-20 text-white mx-auto mb-3" />
+              <div className="text-sm sm:text-base md:text-lg font-semibold break-words">
+                Baza klientów
+              </div>
             </div>
           </Link>
 
           <Link
-            to="/clients"
-            className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl shadow-soft w-full aspect-square md:w-56 md:h-56 flex items-center justify-center text-center transition"
+            to="/clients/prywatni/ewidencja"
+            className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl shadow-soft w-full max-w-[260px] aspect-square flex items-center justify-center text-center px-2 py-2 sm:px-4 sm:py-4 transition"
           >
             <div>
-              <IconUsers className="w-20 h-20 text-white mx-auto mb-3" />
-              <div className="text-lg font-semibold">Baza klientów</div>
+              <IconPackages className="w-14 h-14 md:w-20 md:h-20 text-white mx-auto mb-3" />
+              <div className="text-sm sm:text-base md:text-lg font-semibold break-words">
+                "Na sztuki"
+              </div>
             </div>
           </Link>
 
           <Link
             to="/saved"
-            className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl shadow-soft w-full aspect-square md:w-56 md:h-56 flex items-center justify-center text-center transition"
+            className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl shadow-soft w-full max-w-[260px] aspect-square flex items-center justify-center text-center px-2 py-2 sm:px-4 sm:py-4 transition"
           >
             <div>
-              <IconArchive className="w-20 h-20 text-white mx-auto mb-3" />
-              <div className="text-lg font-semibold">Zapisane faktury</div>
+              <IconArchive className="w-14 h-14 md:w-20 md:h-20 text-white mx-auto mb-3" />
+              <div className="text-sm sm:text-base md:text-lg font-semibold break-words">
+                Faktury
+              </div>
             </div>
           </Link>
 
-          {/* 4-та плитка — той самий стиль/колір */}
           <Link
-            to="/sign-queue?type=courier"
-            className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl shadow-soft w-full aspect-square md:w-56 md:h-56 flex items-center justify-center text-center transition"
-            title="Protokoły oczekujące na podpis"
+            to="/documents/protocols"
+            className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl shadow-soft w-full max-w-[260px] aspect-square flex items-center justify-center text-center px-2 py-2 sm:px-4 sm:py-4 transition"
+            title="Lista zapisanych protokołów"
           >
             <div>
-              <IconSignature className="w-20 h-20 text-white mx-auto mb-3" />
-              <div className="text-lg font-semibold">Protokoły do podpisu</div>
+              <IconDocsStack className="w-14 h-14 md:w-20 md:h-20 text-white mx-auto mb-3" />
+              <div className="text-sm sm:text-base md:text-lg font-semibold break-words">
+                Protokoły
+              </div>
+            </div>
+          </Link>
+
+          <button
+            type="button"
+            onClick={() => setAddOpen(true)}
+            className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl shadow-soft w-full max-w-[260px] aspect-square flex items-center justify-center text-center px-2 py-2 sm:px-4 sm:py-4 transition"
+          >
+            <div>
+              <IconTable className="w-14 h-14 md:w-20 md:h-20 text-white mx-auto mb-3" />
+              <div className="text-sm sm:text-base md:text-lg font-semibold break-words">
+                Dodaj wpis do protokołu
+              </div>
+            </div>
+          </button>
+
+          <Link
+            to="/sign-queue?type=courier"
+            className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl shadow-soft w-full max-w-[260px] aspect-square flex items-center justify-center text-center px-2 py-2 sm:px-4 sm:py-4 transition"
+            title="Protokoły oczekujące на podpis"
+          >
+            <div>
+              <IconSignature className="w-14 h-14 md:w-20 md:h-20 text-white mx-auto mb-3" />
+              <div className="text-sm sm:text-base md:text-lg font-semibold break-words">
+                Protokoły do podpisu
+              </div>
             </div>
           </Link>
         </div>
+
+        <ProtocolEntryModal
+          isOpen={addOpen}
+          onClose={() => setAddOpen(false)}
+          clients={clients}
+          preselect={null}
+        />
       </div>
     </div>
   );

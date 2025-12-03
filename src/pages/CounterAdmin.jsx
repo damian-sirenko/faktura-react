@@ -1,9 +1,28 @@
 // src/pages/CounterAdmin.jsx
 import React, { useEffect, useState, useMemo } from "react";
+import { Link } from "react-router-dom";
 
-function prevMonthOfToday() {
+// лише відносні шляхи — Vite проксить на бекенд
+const api = (p) => (p.startsWith("/") ? p : `/${p}`);
+
+const authHeaders = (() => {
+  const token =
+    localStorage.getItem("authToken") ||
+    localStorage.getItem("token") ||
+    localStorage.getItem("jwt") ||
+    sessionStorage.getItem("authToken") ||
+    sessionStorage.getItem("token") ||
+    "";
+  return token ? { Authorization: `Bearer ${token}` } : {};
+})();
+
+const commonFetchOpts = { credentials: "include" };
+
+function todayYm() {
   const d = new Date();
-  return { year: d.getFullYear(), month: d.getMonth() + 1 };
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  return `${y}-${m}`;
 }
 
 export default function CounterAdmin() {
@@ -11,33 +30,27 @@ export default function CounterAdmin() {
   const [settings, setSettings] = useState({
     perPiecePriceGross: 6,
     defaultVat: 23,
-    currentIssueMonth: new Date().toISOString().slice(0, 7),
+    currentIssueMonth: todayYm(),
     courierPriceGross: 0,
     shippingPriceGross: 0,
+    dueMode: "days", // "days" | "fixed"
+    dueDays: 7,
+    dueFixedDate: "",
+    counters: {}, // ← тут зберігаємо лічильники { "YYYY-MM": nextNumber }
   });
   const [settingsMsg, setSettingsMsg] = useState("");
 
   // ---- COUNTERS ----
-  const [counters, setCounters] = useState({});
-  const [year, setYear] = useState(prevMonthOfToday().year);
-  const [month, setMonth] = useState(prevMonthOfToday().month);
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [seed, setSeed] = useState(1);
-  const [msg, setMsg] = useState("");
+  const [countersMsg, setCountersMsg] = useState("");
 
-  // ceny / przełączniki (залишаю, як у тебе було — НЕ видаляю)
-  const [perPiecePriceGross, setPerPiecePriceGross] = useState(6);
-  const [defaultVat, setDefaultVat] = useState(23);
-  const [currentIssueMonth, setCurrentIssueMonth] = useState(
-    new Date().toISOString().slice(0, 7)
-  );
-
+  // дублікати під існуючу логіку UI
   const [courierEnabled, setCourierEnabled] = useState(false);
   const [courierPriceGross, setCourierPriceGross] = useState(0);
-
   const [shippingEnabled, setShippingEnabled] = useState(false);
   const [shippingPriceGross, setShippingPriceGross] = useState(0);
-
-  const [saving, setSaving] = useState(false); // не видаляю
 
   // ---- PER-CLIENT OVERRIDES (indywidualne ceny kuriera) ----
   const [clients, setClients] = useState([]);
@@ -46,149 +59,221 @@ export default function CounterAdmin() {
   const [clientCourierEnabled, setClientCourierEnabled] = useState(false);
   const [clientCourierPrice, setClientCourierPrice] = useState("");
 
-  // load both on mount
   useEffect(() => {
-    loadCounters();
     loadSettings();
     loadClients();
   }, []);
 
-  const loadCounters = async () => {
-    try {
-      const res = await fetch("/upload/counters");
-      setCounters(await res.json());
-    } catch (e) {
-      console.error(e);
-    }
+  const buildSettingsPayload = (s) => {
+    // нормалізуємо і зберігаємо все одним пострілом
+    const cPrice = courierEnabled ? Number(courierPriceGross) || 0 : 0;
+    const shPrice = shippingEnabled ? Number(shippingPriceGross) || 0 : 0;
+
+    const safeCurrentYm =
+      typeof s.currentIssueMonth === "string" &&
+      /^\d{4}-(0[1-9]|1[0-2])$/.test(s.currentIssueMonth)
+        ? s.currentIssueMonth
+        : todayYm();
+
+    return {
+      perPiecePriceGross: Number(s.perPiecePriceGross) || 0,
+      defaultVat: Number(s.defaultVat) || 0,
+      currentIssueMonth: safeCurrentYm,
+      courierPriceGross: cPrice,
+      shippingPriceGross: shPrice,
+      dueMode: s.dueMode === "fixed" ? "fixed" : "days",
+      dueDays: Number(s.dueDays) || 0,
+      dueFixedDate:
+        s.dueMode === "fixed" &&
+        typeof s.dueFixedDate === "string" &&
+        /^\d{4}-\d{2}-\d{2}$/.test(s.dueFixedDate)
+          ? s.dueFixedDate
+          : "",
+      // ВАЖЛИВО: зберігаємо лічильники разом із налаштуваннями
+      counters: s.counters && typeof s.counters === "object" ? s.counters : {},
+    };
   };
 
   const loadSettings = async () => {
     try {
-      const r = await fetch("/settings");
+      const r = await fetch(api("/settings"), {
+        ...commonFetchOpts,
+        headers: { ...authHeaders },
+        cache: "no-store",
+      });
       if (!r.ok) throw new Error("Nie udało się pobrać ustawień");
       const s = await r.json();
-      // оновлюємо головний об'єкт
-      setSettings({
-        perPiecePriceGross: Number(s.perPiecePriceGross ?? 6),
-        defaultVat: Number(s.defaultVat ?? 23),
-        currentIssueMonth:
-          typeof s.currentIssueMonth === "string" &&
-          /^\d{4}-\d{2}$/.test(s.currentIssueMonth)
-            ? s.currentIssueMonth
-            : new Date().toISOString().slice(0, 7),
-        courierPriceGross: Number(s.courierPriceGross ?? 0),
-        shippingPriceGross: Number(s.shippingPriceGross ?? 0),
-      });
 
-      // синхронізуємо дублікати станів (як ти вже мав)
-      setPerPiecePriceGross(Number(s.perPiecePriceGross ?? 6));
-      setDefaultVat(Number(s.defaultVat ?? 23));
-      setCurrentIssueMonth(
+      // підняти у стани
+      const currYm =
         typeof s.currentIssueMonth === "string" &&
-          /^\d{4}-\d{2}$/.test(s.currentIssueMonth)
+        /^\d{4}-(0[1-9]|1[0-2])$/.test(s.currentIssueMonth)
           ? s.currentIssueMonth
-          : new Date().toISOString().slice(0, 7)
-      );
+          : todayYm();
 
       const cPrice = Number(s.courierPriceGross ?? 0);
       const shPrice = Number(s.shippingPriceGross ?? 0);
-      setCourierPriceGross(cPrice);
-      setShippingPriceGross(shPrice);
+
+      setSettings({
+        perPiecePriceGross: Number(s.perPiecePriceGross ?? 6),
+        defaultVat: Number(s.defaultVat ?? 23),
+        currentIssueMonth: currYm,
+        courierPriceGross: cPrice,
+        shippingPriceGross: shPrice,
+        dueMode: s.dueMode === "fixed" ? "fixed" : "days",
+        dueDays: Number(s.dueDays ?? 7),
+        dueFixedDate:
+          typeof s.dueFixedDate === "string" &&
+          /^\d{4}-\d{2}-\d{2}$/.test(s.dueFixedDate)
+            ? s.dueFixedDate
+            : "",
+        counters:
+          s.counters && typeof s.counters === "object" ? s.counters : {},
+      });
+
       setCourierEnabled(cPrice > 0);
       setShippingEnabled(shPrice > 0);
     } catch (e) {
       console.error(e);
-    }
-  };
-
-  const loadClients = async () => {
-    try {
-      const r = await fetch("/clients");
-      const data = await r.json();
-      setClients(Array.isArray(data) ? data : []);
-    } catch (e) {
-      // нічого
+      // fallback мінімальний
+      setSettings((prev) => ({ ...prev, counters: {} }));
     }
   };
 
   const saveSettings = async () => {
     setSettingsMsg("");
     try {
-      // формуємо тіло з урахуванням чекбоксів
-      const payload = {
-        ...settings,
-        // якщо вимкнено — записуємо 0, щоб генератор НЕ додавав позицію
-        courierPriceGross: courierEnabled ? Number(courierPriceGross) || 0 : 0,
-        shippingPriceGross: shippingEnabled
-          ? Number(shippingPriceGross) || 0
-          : 0,
-        perPiecePriceGross: Number(settings.perPiecePriceGross) || 0,
-        defaultVat: Number(settings.defaultVat) || 0,
-        currentIssueMonth:
-          typeof settings.currentIssueMonth === "string" &&
-          /^\d{4}-\d{2}$/.test(settings.currentIssueMonth)
-            ? settings.currentIssueMonth
-            : new Date().toISOString().slice(0, 7),
-      };
-
-      const r = await fetch("/settings", {
+      const payload = buildSettingsPayload(settings);
+      const r = await fetch(api("/settings"), {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        ...commonFetchOpts,
+        headers: { "Content-Type": "application/json", ...authHeaders },
         body: JSON.stringify(payload),
       });
-      const data = await r.json();
-      if (!r.ok) throw new Error(data?.error || "Błąd zapisu ustawień");
+
+      const ct = (r.headers.get("content-type") || "").toLowerCase();
+      const data = ct.includes("application/json")
+        ? await r.json()
+        : await r.text();
+
+      if (!r.ok)
+        throw new Error(
+          typeof data === "string"
+            ? data
+            : data?.error || "Błąd zapisu ustawień"
+        );
+
+      // оновлюємо локальний стан тим, що повернув бек (або payload, якщо бек не віддає echo)
+      const s =
+        (data && data.settings && typeof data.settings === "object"
+          ? data.settings
+          : payload) || payload;
+
+      setSettings({
+        perPiecePriceGross: Number(
+          s.perPiecePriceGross ?? payload.perPiecePriceGross
+        ),
+        defaultVat: Number(s.defaultVat ?? payload.defaultVat),
+        currentIssueMonth: s.currentIssueMonth || payload.currentIssueMonth,
+        courierPriceGross: Number(
+          s.courierPriceGross ?? payload.courierPriceGross
+        ),
+        shippingPriceGross: Number(
+          s.shippingPriceGross ?? payload.shippingPriceGross
+        ),
+        dueMode: s.dueMode === "fixed" ? "fixed" : "days",
+        dueDays: Number(s.dueDays ?? payload.dueDays),
+        dueFixedDate:
+          typeof s.dueFixedDate === "string" &&
+          /^\d{4}-\d{2}-\d{2}$/.test(s.dueFixedDate)
+            ? s.dueFixedDate
+            : "",
+        counters:
+          s.counters && typeof s.counters === "object"
+            ? s.counters
+            : payload.counters,
+      });
+
+      setCourierEnabled((s.courierPriceGross ?? payload.courierPriceGross) > 0);
+      setShippingEnabled(
+        (s.shippingPriceGross ?? payload.shippingPriceGross) > 0
+      );
+
       setSettingsMsg("✅ Zapisano ustawienia");
-
-      // оновимо локальні стани з відповіді (щоб точно збігались)
-      if (data?.settings) {
-        const s = data.settings;
-        const cPrice = Number(s.courierPriceGross ?? 0);
-        const shPrice = Number(s.shippingPriceGross ?? 0);
-
-        setSettings((prev) => ({
-          ...prev,
-          perPiecePriceGross: Number(s.perPiecePriceGross ?? 0),
-          defaultVat: Number(s.defaultVat ?? 0),
-          currentIssueMonth:
-            typeof s.currentIssueMonth === "string"
-              ? s.currentIssueMonth
-              : prev.currentIssueMonth,
-          courierPriceGross: cPrice,
-          shippingPriceGross: shPrice,
-        }));
-
-        // 🔄 одразу синхронізуємо тумблери, щоб UI не «відставав»
-        setCourierEnabled(cPrice > 0);
-        setShippingEnabled(shPrice > 0);
-      }
     } catch (e) {
       setSettingsMsg(`❌ ${e.message}`);
     }
   };
 
+  // Замість /upload/counters — працюємо з settings.counters
   const initCounter = async () => {
-    setMsg("");
+    setCountersMsg("");
     try {
       const y = Number(year) || new Date().getFullYear();
       let m = Number(month) || new Date().getMonth() + 1;
       m = Math.min(12, Math.max(1, m));
+      const ym = `${y}-${String(m).padStart(2, "0")}`;
 
-      const res = await fetch("/upload/counters/init", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          year: y,
-          month: m,
-          seed: Number(seed) || 1,
-        }),
+      const nextVal = Number(seed) || 1;
+
+      const newCounters = {
+        ...(settings.counters || {}),
+        [ym]: nextVal,
+      };
+
+      const payload = buildSettingsPayload({
+        ...settings,
+        counters: newCounters,
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || "Błąd");
-      setMsg(`OK: ${data.counter.key} = ${data.counter.value}`);
-      await loadCounters();
+
+      const r = await fetch(api("/settings"), {
+        method: "POST",
+        ...commonFetchOpts,
+        headers: { "Content-Type": "application/json", ...authHeaders },
+        body: JSON.stringify(payload),
+      });
+
+      const ct = (r.headers.get("content-type") || "").toLowerCase();
+      const data = ct.includes("application/json")
+        ? await r.json()
+        : await r.text();
+
+      if (!r.ok) {
+        const msg =
+          typeof data === "string" ? data : data?.error || `HTTP ${r.status}`;
+        throw new Error(msg);
+      }
+
+      // оновити локально
+      const saved =
+        (data && data.settings && typeof data.settings === "object"
+          ? data.settings
+          : payload) || payload;
+
+      setSettings((prev) => ({
+        ...prev,
+        counters:
+          saved.counters && typeof saved.counters === "object"
+            ? saved.counters
+            : newCounters,
+      }));
+
+      setCountersMsg(`OK: ${ym} → ${nextVal}`);
     } catch (e) {
-      setMsg(`Błąd: ${e.message}`);
+      setCountersMsg(`Błąd: ${e.message}`);
+    }
+  };
+
+  const loadClients = async () => {
+    try {
+      const r = await fetch(api("/clients"), {
+        ...commonFetchOpts,
+        headers: { ...authHeaders },
+      });
+      const data = await r.json();
+      setClients(Array.isArray(data) ? data : []);
+    } catch {
+      // no-op
     }
   };
 
@@ -237,45 +322,47 @@ export default function CounterAdmin() {
 
     const updatedClient = {
       ...list[idx],
-      // записуємо у запис клієнта (поля NIE usuwam)
       courierPriceGross: price,
     };
     list[idx] = updatedClient;
 
     try {
-      let r = await fetch("/save-clients", {
+      const r = await fetch(api("/save-clients"), {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        ...commonFetchOpts,
+        headers: { "Content-Type": "application/json", ...authHeaders },
         body: JSON.stringify(list),
       });
       if (!r.ok) throw new Error("Nie udało się zapisać klienta");
       setClients(list);
       setSelectedClient(updatedClient);
-      alert("✅ Zapisano cenę indywidualną kuriera dla klienta.");
+      alert("✅ Zapisano cenę indywidualną kuriera для клієнта.");
     } catch (e) {
       alert(`❌ ${e.message}`);
     }
   };
 
-  // відсортований список лічильників для охайного відображення
-  const sortedCounters = useMemo(
-    () =>
-      Object.entries(counters).sort(([a], [b]) =>
-        String(a).localeCompare(String(b))
-      ),
-    [counters]
-  );
+  const sortedCounters = useMemo(() => {
+    const map = settings.counters || {};
+    return Object.entries(map).sort(([a], [b]) =>
+      String(a).localeCompare(String(b))
+    );
+  }, [settings.counters]);
 
   return (
     <div className="max-w-2xl mx-auto p-4 space-y-6">
       <h1 className="text-2xl font-bold">⚙️ Ustawienia i licznik</h1>
 
-      {/* SETTINGS CARD */}
       <div className="card-lg space-y-3">
         <div className="font-semibold">Ustawienia globalne</div>
 
+        <div className="flex justify-end">
+          <Link to="/generate" className="btn-primary">
+            🧾 Generuj faktury
+          </Link>
+        </div>
+
         <div className="grid md:grid-cols-2 gap-3">
-          {/* Miesiąc */}
           <div>
             <label className="block text-sm mb-1">
               Aktualny miesiąc rozliczeń (YYYY-MM)
@@ -293,10 +380,9 @@ export default function CounterAdmin() {
             />
           </div>
 
-          {/* Per piece */}
           <div>
             <label className="block text-sm mb-1">
-              Cena 1 pakietu (per&nbsp;piece) — brutto
+              Cena 1 pakietu (per piece) — brutto
             </label>
             <input
               className="input w-full"
@@ -313,7 +399,6 @@ export default function CounterAdmin() {
             />
           </div>
 
-          {/* VAT */}
           <div>
             <label className="block text-sm mb-1">VAT % (globalnie)</label>
             <input
@@ -332,7 +417,59 @@ export default function CounterAdmin() {
           </div>
         </div>
 
-        {/* Kurier / Wysyłka */}
+        <div className="mt-2 space-y-2">
+          <div className="font-medium text-sm">Termin zapłaty</div>
+
+          <label className="flex items-center gap-2">
+            <input
+              type="radio"
+              name="dueMode"
+              checked={settings.dueMode === "days"}
+              onChange={() => setSettings((s) => ({ ...s, dueMode: "days" }))}
+            />
+            <span className="select-none">Liczba dni od daty wystawienia</span>
+          </label>
+          {settings.dueMode === "days" && (
+            <div className="pl-6">
+              <input
+                type="number"
+                min="0"
+                className="input w-40"
+                value={settings.dueDays}
+                onChange={(e) =>
+                  setSettings((s) => ({
+                    ...s,
+                    dueDays: Number(e.target.value) || 0,
+                  }))
+                }
+              />
+              <span className="ml-2 text-sm text-gray-600">dni</span>
+            </div>
+          )}
+
+          <label className="flex items-center gap-2 mt-2">
+            <input
+              type="radio"
+              name="dueMode"
+              checked={settings.dueMode === "fixed"}
+              onChange={() => setSettings((s) => ({ ...s, dueMode: "fixed" }))}
+            />
+            <span className="select-none">Konkretny dzień (YYYY-MM-DD)</span>
+          </label>
+          {settings.dueMode === "fixed" && (
+            <div className="pl-6">
+              <input
+                type="date"
+                className="input w-56"
+                value={settings.dueFixedDate || ""}
+                onChange={(e) =>
+                  setSettings((s) => ({ ...s, dueFixedDate: e.target.value }))
+                }
+              />
+            </div>
+          )}
+        </div>
+
         <div className="mt-2 space-y-3">
           <div className="grid md:grid-cols-[auto,1fr] gap-3 items-end">
             <label className="flex items-center gap-2 select-none cursor-pointer">
@@ -385,9 +522,6 @@ export default function CounterAdmin() {
         </div>
       </div>
 
-      {/* (СЕКЦІЮ "INDYWIDUALNE CENY KURIERA" ВИДАЛЕНО ЗА ПРОХАННЯМ) */}
-
-      {/* COUNTER CARD (jak było) */}
       <div className="card-lg space-y-3">
         <div className="font-semibold">Licznik faktur</div>
         <div className="flex gap-2 items-end flex-wrap">
@@ -432,11 +566,11 @@ export default function CounterAdmin() {
           </button>
         </div>
 
-        {msg && <div className="text-sm">{msg}</div>}
+        {countersMsg && <div className="text-sm">{countersMsg}</div>}
 
         <div>
           <h2 className="font-semibold mb-1">Istniejące liczniki</h2>
-          {Object.keys(counters).length === 0 ? (
+          {!settings.counters || Object.keys(settings.counters).length === 0 ? (
             <div className="text-gray-600 text-sm">Brak</div>
           ) : (
             <table className="text-sm border w-full">
@@ -447,15 +581,67 @@ export default function CounterAdmin() {
                 </tr>
               </thead>
               <tbody>
-                {sortedCounters.map(([k, v]) => (
-                  <tr key={k}>
-                    <td className="border px-2 py-1">{k}</td>
-                    <td className="border px-2 py-1">{v}</td>
+                {sortedCounters.map(([ym, next]) => (
+                  <tr key={ym}>
+                    <td className="border px-2 py-1">{ym}</td>
+                    <td className="border px-2 py-1">{String(next ?? "")}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           )}
+        </div>
+      </div>
+
+      <div className="card-lg space-y-3">
+        <div className="font-semibold">Ceny kuriera dla klientów</div>
+
+        <div>
+          <label className="block text-sm mb-1">Klient</label>
+          <input
+            className="input w-full"
+            list="clients-list"
+            value={clientSearch}
+            onChange={(e) => onPickClient(e.target.value)}
+            placeholder="Zacznij pisać nazwę klientа…"
+          />
+          <datalist id="clients-list">
+            {clientNames.map((n) => (
+              <option key={n} value={n} />
+            ))}
+          </datalist>
+        </div>
+
+        <div className="grid md:grid-cols-[auto,1fr] gap-3 items-end">
+          <label className="flex items-center gap-2 select-none cursor-pointer">
+            <input
+              type="checkbox"
+              checked={clientCourierEnabled}
+              onChange={(e) => setClientCourierEnabled(e.target.checked)}
+              disabled={!selectedClient}
+            />
+            <span>Indywidualna cena kuriera</span>
+          </label>
+          <input
+            type="number"
+            min="0"
+            step="0.01"
+            className="input w-full"
+            value={clientCourierPrice}
+            onChange={(e) => setClientCourierPrice(e.target.value)}
+            placeholder="np. 10.00"
+            disabled={!selectedClient || !clientCourierEnabled}
+          />
+        </div>
+
+        <div className="pt-1">
+          <button
+            className="btn-primary"
+            onClick={saveClientOverride}
+            disabled={!selectedClient}
+          >
+            Zapisz cenę dla klienta
+          </button>
         </div>
       </div>
     </div>

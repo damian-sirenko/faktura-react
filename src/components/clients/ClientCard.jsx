@@ -1,7 +1,9 @@
 // src/components/clients/ClientCard.jsx
-import React, { useEffect, useState } from "react";
-import ClientProtocol from "./ClientProtocol";
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { humanDateTime } from "../../utils/docStore.js";
 
+// ===== helpers =====
 function fmtPL(dateStr) {
   if (!dateStr) return "-";
   const d = new Date(dateStr);
@@ -25,13 +27,6 @@ function normalizeKey(s) {
 function slugFromName(name) {
   return normalizeKey(name).replace(/\s+/g, "-");
 }
-function endOfNextMonthISO(from = new Date()) {
-  const d = new Date(from);
-  d.setUTCDate(1);
-  d.setUTCMonth(d.getUTCMonth() + 2);
-  d.setUTCDate(0);
-  return d.toISOString().split("T")[0];
-}
 function sixMonthsMinusOneDayISO(startISO) {
   if (!startISO) return "";
   const d = new Date(startISO);
@@ -53,14 +48,81 @@ const LOCAL_SETTINGS_FALLBACK = {
   shippingPriceGross: 22,
 };
 
+/* ===== Місяці PL (для назв протоколів) ===== */
+const MONTHS_PL = [
+  "styczeń",
+  "luty",
+  "marzec",
+  "kwiecień",
+  "maj",
+  "czerwiec",
+  "lipiec",
+  "sierpień",
+  "wrzesień",
+  "październik",
+  "listopad",
+  "grudzień",
+];
+const monthParts = (ym) => {
+  const [y, m] = String(ym || "").split("-");
+  const year = y || "";
+  const mi = (Number(m) || 1) - 1;
+  return { year, monthIndex: mi, monthWord: MONTHS_PL[mi] || m || "" };
+};
+
+/* ▼▼▼ ПРАЙС АБОНЕМЕНТІВ — ЯК ПРОСИЛИ ▼▼▼ */
+const PRICE_LIST = [
+  { name: "STERYL 20", price_gross: 110.0 },
+  { name: "STERYL 30", price_gross: 140.0 },
+  { name: "STERYL 50", price_gross: 210.0 },
+  { name: "STERYL 100", price_gross: 300.0 },
+  { name: "STERYL 150", price_gross: 360.0 },
+  { name: "STERYL 200", price_gross: 430.0 },
+  { name: "STERYL 300", price_gross: 550.0 },
+  { name: "STERYL 500", price_gross: 780.0 },
+];
+
+// Швидкий доступ: "STERYL 50" -> 210.00
+const PRICE_BY_SUBSCRIPTION = PRICE_LIST.reduce((acc, item) => {
+  const key = String(item.name || "")
+    .toUpperCase()
+    .trim();
+  if (key) acc[key] = Number(item.price_gross);
+  return acc;
+}, {});
+function getAbonPrice(subName) {
+  if (!subName) return null;
+  const key = String(subName).toUpperCase().trim();
+  return Object.prototype.hasOwnProperty.call(PRICE_BY_SUBSCRIPTION, key)
+    ? PRICE_BY_SUBSCRIPTION[key]
+    : null;
+}
+/* ▲▲▲ КІНЕЦЬ БЛОКУ ПРАЙСУ ▲▲▲ */
+
 export default function ClientCard({
   client,
   onBack,
   onSetNotice,
   onCancelNotice,
   onUpdate,
+  protocols,
+  protocolsLoading,
+  protocolsReadOnly,
+  protocolsTabLabel,
+  onToggleArchive,
+  logisticsLabelMap = {},
 }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [tab, setTab] = useState("details");
+
+  // ✅ якщо прийшли з посиланням ?tab=protocols — одразу відкриваємо вкладку протоколів
+  useEffect(() => {
+    const qs = new URLSearchParams(location.search || "");
+    if (qs.get("tab") === "protocols") setTab("protocols");
+  }, [location.search]);
+
   if (!client) return null;
 
   // завантажуємо дефолти з бекенду → /settings.json → локально
@@ -136,19 +198,130 @@ export default function ClientCard({
   const displayId = id || ID || slugFromName(name || "");
   const todayISO = new Date().toISOString().split("T")[0];
 
-  const isEnded = Boolean(
-    String(agreementEnd || "") && String(agreementEnd) < todayISO
-  );
-  const computedSixMEnd = sixMonthsMinusOneDayISO(agreementStart);
+  /* ===== Protokoły: перетворення у метадані як на DocumentsProtocols ===== */
+  const protoItems = useMemo(() => {
+    const arr = Array.isArray(protocols) ? protocols : [];
+    return arr
+      .filter(
+        (p) =>
+          p &&
+          p.id &&
+          p.month &&
+          Array.isArray(p.entries) &&
+          p.entries.length > 0
+      )
+      .map((p) => {
+        const maxDate =
+          p.entries
+            .map((e) => e?.date)
+            .filter(
+              (d) => typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d)
+            )
+            .sort()
+            .slice(-1)[0] || `${p.month}-01`;
+        const createdAt = new Date(`${maxDate}T00:00:00.000Z`).toISOString();
+        return {
+          id: `${p.id}:${p.month}`,
+          clientId: p.id,
+          clientName: client?.name || client?.Klient || p.clientName || p.id,
+          month: p.month,
+          createdAt,
+        };
+      })
+      .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+  }, [protocols, client]);
 
-  const isDisabled = Boolean(notice);
-  const noticeBtnText = isDisabled
-    ? "Zgłoszono wypowiedzenie umowy"
-    : "Wypowiedzenie umowy";
+  // Для вкладки „Protokoły” — тільки рендер, без додавання
+  const renderProtocols = () => {
+    if (protocolsLoading) {
+      return (
+        <div className="p-3 rounded-lg border bg-gray-50 text-gray-700 text-sm">
+          Ładowanie protokołów…
+        </div>
+      );
+    }
+    if (!protoItems.length) {
+      return (
+        <div className="p-3 rounded-lg border bg-amber-50 text-amber-800 text-sm">
+          Brak protokołów dla tego klienta.
+        </div>
+      );
+    }
 
-  /* ✅ БЕЗПЕЧНІ ДАНІ ДЛЯ вкладки “Protokół” */
-  const safeClientId = String(displayId || "").trim(); // "" якщо немає
-  const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+    return (
+      <div className="card p-0 overflow-hidden">
+        <div className="px-3 py-2 text-sm text-gray-600 bg-blue-50 border-b">
+          Zapisane: {protoItems.length}
+        </div>
+        <table className="table w-full">
+          <thead>
+            <tr className="bg-gray-50">
+              <th className="w-[6ch] text-center">#</th>
+              <th>Nazwa protokołu</th>
+              <th className="w-[16ch] text-center">Miesiąc</th>
+              <th className="w-[10ch] text-center">Rok</th>
+            </tr>
+          </thead>
+          <tbody>
+            {protoItems.map((it, idx) => {
+              const { year, monthWord } = monthParts(it.month);
+              const title = `Protokół_${monthWord}_${year}_${
+                it.clientName || ""
+              }`;
+              return (
+                <tr key={it.id} className="hover:bg-gray-50">
+                  <td className="text-center">{idx + 1}</td>
+                  <td className="truncate">
+                    <button
+                      type="button"
+                      className="text-blue-700 hover:underline"
+                      onClick={() =>
+                        navigate(
+                          `/documents/protocols/${encodeURIComponent(
+                            it.clientId
+                          )}/${it.month}`,
+                          {
+                            state: {
+                              backTo: `/clients/${encodeURIComponent(
+                                displayId
+                              )}?tab=protocols`,
+                              backLabel: "← Powrót do protokołów klienta",
+                            },
+                          }
+                        )
+                      }
+                      title="Otwórz stronę protokołu"
+                    >
+                      {title}
+                    </button>
+                    <div className="text-[11px] text-gray-500">
+                      Utworzono: {humanDateTime(it.createdAt)}
+                    </div>
+                  </td>
+                  <td className="text-center capitalize">{monthWord}</td>
+                  <td className="text-center">{year}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
+  // 🆕 Авто-синхронізація суми з прайсом, якщо вже обрано абонемент, а суми нема/0
+  useEffect(() => {
+    if (
+      subscription &&
+      (!subscriptionAmount || Number(subscriptionAmount) === 0)
+    ) {
+      const p = getAbonPrice(subscription);
+      if (p != null && Number(p) !== Number(subscriptionAmount)) {
+        upd({ subscriptionAmount: Number(p) });
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subscription]);
 
   return (
     <div className="min-w-0">
@@ -181,13 +354,13 @@ export default function ClientCard({
           </button>
           <button
             className={`px-3 py-2 rounded-t-lg ${
-              tab === "protocol"
+              tab === "protocols"
                 ? "bg-white border border-b-white"
                 : "bg-gray-100 border border-transparent"
             }`}
-            onClick={() => setTab("protocol")}
+            onClick={() => setTab("protocols")}
           >
-            Protokół
+            {protocolsTabLabel || "Protokoły"}
           </button>
         </div>
       </div>
@@ -197,43 +370,59 @@ export default function ClientCard({
           <div className="card w-full">
             <div className="font-semibold mb-2">Dane podstawowe</div>
             <div className="text-sm space-y-1">
-              <p>
-                <span className="font-medium">Adres:</span> {address || "-"}
-              </p>
-              <p>
-                <span className="font-medium">Typ:</span>{" "}
-                {type === "firma" ? "Firma" : "Osoba prywatna"}
-              </p>
-              {type === "firma" && nip && (
-                <p>
-                  <span className="font-medium">NIP:</span> {nip}
-                </p>
-              )}
-              {type === "op" && pesel && (
-                <p>
-                  <span className="font-medium">PESEL:</span> {pesel}
-                </p>
-              )}
-              <p>
-                <span className="font-medium">Email:</span>{" "}
+              <div>ID: {client.id}</div>
+              <div>Nazwa: {client.name}</div>
+              <div>Adres: {client.address}</div>
+              <div>
+                Email:
                 {email ? (
-                  <a href={`mailto:${email}`} className="btn-link">
+                  <span
+                    className="text-blue-700 hover:underline cursor-pointer ml-1"
+                    title="Kliknij, aby skopiować e-mail"
+                    onClick={() => {
+                      navigator.clipboard.writeText(email);
+                      alert("Skopiowano adres e-mail: " + email);
+                    }}
+                  >
                     {email}
-                  </a>
+                  </span>
                 ) : (
-                  "-"
+                  " —"
                 )}
-              </p>
-              <p>
-                <span className="font-medium">Telefon:</span>{" "}
+              </div>
+
+              <div>
+                Telefon:
                 {phone ? (
-                  <a href={`tel:${phone}`} className="btn-link">
+                  <a
+                    href={`tel:${phone}`}
+                    className="text-blue-700 hover:underline ml-1"
+                  >
                     {phone}
                   </a>
                 ) : (
-                  "-"
+                  " —"
                 )}
-              </p>
+              </div>
+
+              <div>
+                {client.type === "firma" ? (
+                  <>NIP: {client.nip || "—"}</>
+                ) : (
+                  <>PESEL: {client.pesel || "—"}</>
+                )}
+              </div>
+
+              {/* ▼▼▼ Нове поле — Logistyka ▼▼▼ */}
+              <div className="mt-1">
+                <span className="text-slate-500">Logistyka: </span>
+                <span className="inline-block align-middle px-2 py-0.5 rounded-full border border-slate-200 bg-slate-50 text-slate-800">
+                  {logisticsLabelMap?.[client?.logistics] ||
+                    client?.logistics ||
+                    "—"}
+                </span>
+              </div>
+              {/* ▲▲▲ Кінець блоку логістики ▲▲▲ */}
             </div>
 
             <div className="mt-4">
@@ -256,12 +445,30 @@ export default function ClientCard({
               <div className="text-sm space-y-3">
                 <div>
                   <label className="block text-sm mb-1">Nazwa abonamentu</label>
-                  <input
+                  {/* 🆕 select із фіксованими значеннями + автопрайс */}
+                  <select
                     className="input w-full"
                     value={subscription || ""}
-                    onChange={(e) => upd({ subscription: e.target.value })}
-                    placeholder="np. Steryl 50 / Plan A…"
-                  />
+                    onChange={(e) => {
+                      const nextSub = e.target.value;
+                      const price = getAbonPrice(nextSub);
+                      if (price != null) {
+                        upd({
+                          subscription: nextSub,
+                          subscriptionAmount: Number(price),
+                        });
+                      } else {
+                        upd({ subscription: nextSub });
+                      }
+                    }}
+                  >
+                    <option value="">— brak (na sztuki) —</option>
+                    {PRICE_LIST.map((opt) => (
+                      <option key={opt.name} value={opt.name}>
+                        {opt.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm mb-1">
@@ -277,6 +484,15 @@ export default function ClientCard({
                       upd({ subscriptionAmount: Number(e.target.value) || 0 })
                     }
                   />
+                  <div className="text-xs text-gray-500 mt-1">
+                    {subscription
+                      ? `Sugerowana cena dla „${subscription}”: ${
+                          getAbonPrice(subscription) != null
+                            ? getAbonPrice(subscription).toFixed(2) + " zł"
+                            : "—"
+                        }`
+                      : "Wybierz abonament, by podpowiedzieć cenę"}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -297,26 +513,27 @@ export default function ClientCard({
                   </div>
                   <div>
                     <label className="block text-sm mb-1">Obowiązuje do</label>
-                    {Boolean(
-                      String(agreementEnd || "") &&
-                        String(agreementEnd) < todayISO
-                    ) ? (
-                      <div className="p-2 rounded bg-amber-50 text-amber-800 text-sm">
-                        czas nieokreślony
-                      </div>
-                    ) : notice && agreementEnd ? (
+
+                    {/* 🆕 Якщо wypowiedzenie — даємо редагувати вручну */}
+                    {notice ? (
                       <>
                         <input
                           type="date"
                           className="input w-full"
-                          value={agreementEnd}
-                          readOnly
-                          aria-readonly="true"
+                          value={agreementEnd || ""}
+                          onChange={(e) =>
+                            upd({ agreementEnd: e.target.value })
+                          }
                         />
                         <div className="text-xs text-gray-500 mt-1">
-                          {fmtPL(agreementEnd)}
+                          {agreementEnd ? fmtPL(agreementEnd) : "—"}
                         </div>
                       </>
+                    ) : String(agreementEnd || "") &&
+                      String(agreementEnd) < todayISO ? (
+                      <div className="p-2 rounded bg-amber-50 text-amber-800 text-sm">
+                        czas nieokreślony
+                      </div>
                     ) : (
                       <>
                         <input
@@ -474,19 +691,12 @@ export default function ClientCard({
           </div>
         </div>
       ) : (
-        // ✅ Рендеримо вкладку "Protokół" ТІЛЬКИ якщо є валідний clientId.
-        <div className="mt-4">
-          {safeClientId ? (
-            <ClientProtocol
-              client={client}
-              clientId={safeClientId}
-              currentMonth={currentMonth}
-            />
-          ) : (
-            <div className="p-3 rounded-lg border bg-amber-50 text-amber-800 text-sm">
-              Brak identyfikatora klienta — nie można załadować protokołu.
-            </div>
-          )}
+        // ✅ Вкладка „Protokoły” — тільки список (read-only)
+        <div className="mt-4 card w-full">
+          <div className="font-semibold mb-3">
+            {protocolsTabLabel || "Protokoły"}
+          </div>
+          {renderProtocols()}
         </div>
       )}
     </div>

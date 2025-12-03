@@ -3,6 +3,8 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
 import SignaturePad from "../components/SignaturePad.jsx";
+import { apiUrl } from "../api/base.js";
+const api = apiUrl;
 
 /* ========= Helpers ========= */
 const todayISO = () => new Date().toISOString().slice(0, 10);
@@ -10,20 +12,16 @@ const getQuery = () => new URLSearchParams(window.location.search);
 const legLabelPL = (leg) => (leg === "transfer" ? "Przekazanie" : "Zwrot");
 const legFromSelect = (val) => (val === "Przekazanie" ? "transfer" : "return");
 
-/* Базовий URL бекенду (узгоджено зі сторінкою Dokumenty → Protokoły) */
-const API = import.meta.env.VITE_API_URL || "http://localhost:3000";
-/* Абсолютний URL для підписів */
+/* Абсолютний/відносний шлях для підписів (img src) */
 const absSig = (src) => {
   if (!src || typeof src !== "string") return src;
-  // data: URL або повний http(s) — віддаємо як є
-  if (src.startsWith("data:") || /^https?:\/\//i.test(src)) return src;
-  // вже абсолютний шлях типу /signatures/...
-  if (src.startsWith("/signatures/")) return `${API}${src}`;
-  // голе ім'я файлу (наприклад "169...png") -> /signatures/<name>
-  return `${API}/signatures/${src}`;
+  if (src.startsWith("data:")) return src;
+  if (/^https?:\/\//i.test(src)) return src;
+  if (src.startsWith("/signatures/")) return src;
+  return `/signatures/${src}`;
 };
 
-/* Клієнт */
+/* Клієнт helpers */
 function getClientName(c) {
   return String(c?.name || c?.Klient || "").trim();
 }
@@ -53,16 +51,12 @@ function getClientNip(c) {
   return String(c?.nip || c?.NIP || c?.vat || c?.VAT || c?.taxId || "").trim();
 }
 
-/* PDF / Документи */
-import { buildProtocolPdf } from "../utils/ProtocolPdf";
-import { saveProtocolDocMeta } from "../utils/docStore";
-
-/* ==== Додано: нормалізація місяця і елементів черги ==== */
+/* ==== Нормалізація місяця і елементів черги ==== */
 const MONTH_RE = /^\d{4}-(0[1-9]|1[0-2])$/;
 function normalizeYm(m) {
   const s = String(m ?? "").trim();
   if (MONTH_RE.test(s)) return s;
-  const s2 = s.replace(/[\/_.]/g, "-");
+  const s2 = s.replace(/[\/_\.]/g, "-");
   const mm = s2.match(/^(\d{4})-(\d{1,2})$/);
   if (mm) {
     const y = mm[1];
@@ -71,15 +65,13 @@ function normalizeYm(m) {
   }
   return "";
 }
-
 function toIntMaybe(v) {
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
 }
 
-/** Приводимо будь-який item з /sign-queue або з локального білду до спільного формату */
-function normalizeQueueItem(it = {}) {
-  // clientId з різних можливих ключів
+/** Нормалізація item з /sign-queue-db або протоколів */
+function normalizeQueueItem(it = {}, defaultMonth = "") {
   const clientIdRaw =
     it.clientId ??
     it.client_id ??
@@ -91,11 +83,10 @@ function normalizeQueueItem(it = {}) {
     (it.client && typeof it.client === "object"
       ? getClientId(it.client)
       : null) ??
-    it.id; // інколи сервер кладе id протоколу = clientId
+    (typeof it.id === "string" && !/^\d+$/.test(it.id) ? it.id : null);
 
   const clientId = clientIdRaw ? String(clientIdRaw).trim() : "";
 
-  // month з різних ключів або з дати
   const monthRaw =
     it.month ??
     it.ym ??
@@ -103,21 +94,37 @@ function normalizeQueueItem(it = {}) {
     (typeof it.date === "string" ? it.date.slice(0, 7) : null) ??
     (it.entry && typeof it.entry.date === "string"
       ? it.entry.date.slice(0, 7)
-      : null);
+      : null) ??
+    defaultMonth;
 
   const month = normalizeYm(monthRaw);
 
-  // index
   const idxRaw =
-    it.index ?? it.idx ?? it.entryIndex ?? it.entry_index ?? it.i ?? null;
+    it.index ??
+    it.idx ??
+    it.entryIndex ??
+    it.entry_index ??
+    it.i ??
+    it.entryId ??
+    it.entry_id ??
+    it.rowId ??
+    it.row_id ??
+    (typeof it.id === "number" ? it.id : null);
+
   const index = toIntMaybe(idxRaw);
 
-  // інші поля
   const date =
     it.date ??
     (it.entry ? it.entry.date : null) ??
     (Array.isArray(it.dates) ? it.dates[0] : null) ??
     null;
+
+  const returnDate =
+    it.returnDate ??
+    (it.entry ? it.entry.returnDate : null) ??
+    (Array.isArray(it.returnDates) ? it.returnDates[0] : null) ??
+    null;
+
   const tools = it.tools ?? (it.entry ? it.entry.tools : []) ?? [];
   const packages =
     it.packages ?? it.pakiety ?? (it.entry ? it.entry.packages : 0) ?? 0;
@@ -139,10 +146,14 @@ function normalizeQueueItem(it = {}) {
       it.courierPending ??
       (it.entry && it.entry.courierPending)
     ),
+    courierPlannedDate:
+      (it.queue && it.queue.courierPlannedDate) ||
+      it.courierPlannedDate ||
+      null,
   };
 
-  // валідність
-  if (!clientId || !month || index === null || index < 0) return null;
+  if (!clientId || !month) return null;
+  if (index === null || index < 0) return null;
 
   return {
     clientId,
@@ -150,6 +161,7 @@ function normalizeQueueItem(it = {}) {
     month,
     index,
     date,
+    returnDate,
     tools,
     packages,
     delivery,
@@ -167,24 +179,35 @@ export default function SignQueue() {
 
   const initialType = (query.get("type") || "courier").toLowerCase();
   const [type, setType] = useState(initialType);
-  const [month, setMonth] = useState(() =>
-    new Date().toISOString().slice(0, 7)
-  );
+
+  const [dateFilter, setDateFilter] = useState(todayISO());
+  const month = useMemo(() => dateFilter.slice(0, 7), [dateFilter]);
+
   const [clientsMap, setClientsMap] = useState({});
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const [view, setView] = useState("list"); // "list" | "card"
-  const [active, setActive] = useState(null); // елемент черги
-  const [activeLeg, setActiveLeg] = useState("transfer");
-  const [signDate, setSignDate] = useState(() => todayISO());
+  const [view, setView] = useState("list");
+  const [active, setActive] = useState(null);
 
-  // модалка підпису
-  const [inlineTarget, setInlineTarget] = useState(null); // { leg, role }
+  const [chosenLeg, setChosenLeg] = useState({});
+
+  const [inlineTarget, setInlineTarget] = useState(null);
   const padRef = useRef(null);
   const [padEmpty, setPadEmpty] = useState(true);
 
-  /* Esc → закрити модалку */
+  const [padSize, setPadSize] = useState({ w: 640, h: 220 });
+
+  const token =
+    localStorage.getItem("authToken") ||
+    localStorage.getItem("token") ||
+    localStorage.getItem("jwt") ||
+    sessionStorage.getItem("authToken") ||
+    sessionStorage.getItem("token") ||
+    "";
+  const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+  const commonFetchOpts = { credentials: "include" };
+
   useEffect(() => {
     if (!inlineTarget) return;
     const onKey = (e) => {
@@ -194,11 +217,35 @@ export default function SignQueue() {
     return () => window.removeEventListener("keydown", onKey);
   }, [inlineTarget]);
 
-  /* Клієнти */
+  useEffect(() => {
+    if (!inlineTarget) return;
+    const compute = () => {
+      const vw = Math.max(
+        document.documentElement.clientWidth,
+        window.innerWidth || 0
+      );
+      const vh = Math.max(
+        document.documentElement.clientHeight,
+        window.innerHeight || 0
+      );
+      const maxW = Math.min(Math.floor(vw - 32), 720);
+      const maxH = Math.min(Math.floor(vh - 160), 360);
+      const w = Math.max(320, maxW);
+      const h = Math.max(160, maxH);
+      setPadSize({ w, h });
+    };
+    compute();
+    window.addEventListener("resize", compute);
+    return () => window.removeEventListener("resize", compute);
+  }, [inlineTarget]);
+
   useEffect(() => {
     (async () => {
       try {
-        const r = await fetch(`${API}/clients`);
+        const r = await fetch(api("/clients"), {
+          ...commonFetchOpts,
+          headers: { ...authHeaders },
+        });
         const arr = await r.json();
         const map = {};
         for (const c of arr || []) {
@@ -212,7 +259,6 @@ export default function SignQueue() {
     })();
   }, []);
 
-  /* ==== Fallback: локальне складання черги з /protocols ==== */
   const buildQueueFromProtocols = (allProtocols, monthStr, queueType) => {
     const items = [];
     const isPoint = queueType === "point";
@@ -226,10 +272,11 @@ export default function SignQueue() {
 
         items.push({
           clientId: p.id,
-          clientName: p.clientName, // може бути відсутнє — не критично
+          clientName: p.clientName,
           month: p.month,
           index: idx,
-          date: e.date,
+          date: e.date || null,
+          returnDate: e.returnDate || null,
           tools: e.tools || [],
           packages: e.packages || 0,
           delivery: e.delivery || null,
@@ -243,40 +290,154 @@ export default function SignQueue() {
     return items;
   };
 
-  /* Черга */
   const loadQueue = async () => {
     setLoading(true);
     try {
-      // 1) Перший варіант — серверний /sign-queue (якщо є)
-      const r = await fetch(
-        `${API}/sign-queue?type=${encodeURIComponent(
-          type
-        )}&month=${month}&strict=1`
-      );
+      const params = new URLSearchParams({
+        type,
+        month,
+      });
 
-      if (r.ok) {
-        const data = await r.json().catch(() => ({}));
-        const loaded = Array.isArray(data.items) ? data.items : [];
-        // НОРМАЛІЗАЦІЯ ↓↓↓
-        const normalized = loaded.map(normalizeQueueItem).filter(Boolean);
+      // 1) ПРОБА ЧЕРГИ З БАЗИ: /sign-queue-db
+      let normalized = [];
+      try {
+        const urlDb = `/sign-queue-db?${params.toString()}`;
+        console.log("[SignQueue] try /sign-queue-db:", urlDb);
+
+        const rDb = await fetch(api(urlDb), {
+          ...commonFetchOpts,
+          headers: { ...authHeaders },
+        });
+
+        if (rDb.ok) {
+          const data = await rDb.json().catch(() => ({}));
+          const raw = Array.isArray(data.items)
+            ? data.items
+            : Array.isArray(data)
+            ? data
+            : [];
+
+          normalized = raw
+            .map((it) => normalizeQueueItem(it, month))
+            .filter(Boolean);
+
+          console.log("[SignQueue] /sign-queue-db items:", normalized.length);
+        } else {
+          console.warn("[SignQueue] /sign-queue-db status", rDb.status);
+        }
+      } catch (e) {
+        console.warn("[SignQueue] /sign-queue-db error:", e);
+      }
+
+      if (normalized.length > 0) {
         setItems(normalized);
+
+        const init = {};
+        for (const it of normalized) {
+          const key = `${it.clientId}-${it.index}-${it.month}`;
+          const t = it?.signatures?.transfer || {};
+          const rr = it?.signatures?.return || {};
+          const tDone = !!(t.client && t.staff);
+          const rDone = !!(rr.client && rr.staff);
+          init[key] = !tDone ? "transfer" : !rDone ? "return" : "transfer";
+        }
+        setChosenLeg(init);
+
         return normalized;
       }
 
-      // 2) Fallback — зібрати зі списку /protocols
-      const r2 = await fetch(`${API}/protocols`);
+      // 2) ФОЛБЕК НА СТАРИЙ ФАЙЛОВИЙ /sign-queue
+      let fromFile = [];
+      try {
+        const urlFile = `/sign-queue?${params.toString()}`;
+        console.log("[SignQueue] try /sign-queue:", urlFile);
+
+        const rFile = await fetch(api(urlFile), {
+          ...commonFetchOpts,
+          headers: { ...authHeaders },
+        });
+
+        if (rFile.ok) {
+          const data = await rFile.json().catch(() => ({}));
+          const raw = Array.isArray(data.items)
+            ? data.items
+            : Array.isArray(data)
+            ? data
+            : [];
+
+          fromFile = raw
+            .map((it) => normalizeQueueItem(it, month))
+            .filter(Boolean);
+
+          console.log("[SignQueue] /sign-queue items:", fromFile.length);
+        } else {
+          console.warn("[SignQueue] /sign-queue status", rFile.status);
+        }
+      } catch (e) {
+        console.warn("[SignQueue] /sign-queue error:", e);
+      }
+
+      if (fromFile.length > 0) {
+        setItems(fromFile);
+
+        const init = {};
+        for (const it of fromFile) {
+          const key = `${it.clientId}-${it.index}-${it.month}`;
+          const t = it?.signatures?.transfer || {};
+          const rr = it?.signatures?.return || {};
+          const tDone = !!(t.client && t.staff);
+          const rDone = !!(rr.client && rr.staff);
+          init[key] = !tDone ? "transfer" : !rDone ? "return" : "transfer";
+        }
+        setChosenLeg(init);
+
+        return fromFile;
+      }
+
+      // 3) ОСТАННІЙ ЗАПАСНИЙ ВАРІАНТ — ЗБИРАЄМО ЧЕРГУ З /protocols
+      console.warn(
+        "[SignQueue] both /sign-queue-db and /sign-queue empty — fallback to /protocols"
+      );
+
+      const r2 = await fetch(api("/protocols"), {
+        ...commonFetchOpts,
+        headers: { ...authHeaders },
+      });
+
+      if (!r2.ok) {
+        console.error("[SignQueue] /protocols status", r2.status);
+        setItems([]);
+        setChosenLeg({});
+        return [];
+      }
+
       const all = await r2.json().catch(() => []);
       const local = buildQueueFromProtocols(all, month, type);
+
       setItems(local);
+
+      const init = {};
+      for (const it of local) {
+        const key = `${it.clientId}-${it.index}-${it.month}`;
+        const t = it?.signatures?.transfer || {};
+        const rr = it?.signatures?.return || {};
+        const tDone = !!(t.client && t.staff);
+        const rDone = !!(rr.client && rr.staff);
+        init[key] = !tDone ? "transfer" : !rDone ? "return" : "transfer";
+      }
+      setChosenLeg(init);
+
       return local;
-    } catch {
-      // 3) Якщо взагалі щось пішло не так — показуємо порожній список
+    } catch (e) {
+      console.error("[SignQueue] loadQueue error:", e);
       setItems([]);
+      setChosenLeg({});
       return [];
     } finally {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -287,57 +448,90 @@ export default function SignQueue() {
       });
     }
     loadQueue();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [type, month]);
 
-  const openCard = (item, defaultLeg) => {
+  const getEffectiveDay = (it) => {
+    const key = `${it.clientId}-${it.index}-${it.month}`;
+    const leg = chosenLeg[key] || "transfer";
+    let d = leg === "transfer" ? it.date : it.returnDate;
+    if (!d || !/^\d{4}-\d{2}-\d{2}$/.test(d)) {
+      d = it?.queue?.courierPlannedDate || todayISO();
+    }
+    if (d < dateFilter) return dateFilter;
+    return d;
+  };
+
+  const grouped = useMemo(() => {
+    if (type === "point") {
+      return { [dateFilter]: items };
+    }
+    const map = {};
+    for (const it of items) {
+      const day = getEffectiveDay(it);
+      if (!map[day]) map[day] = [];
+      map[day].push(it);
+    }
+    Object.keys(map).forEach((d) => {
+      map[d].sort((a, b) => {
+        const an =
+          a.clientName ||
+          getClientName(clientsMap[a.clientId]) ||
+          a.clientId ||
+          "";
+        const bn =
+          b.clientName ||
+          getClientName(clientsMap[b.clientId]) ||
+          b.clientId ||
+          "";
+        return an.localeCompare(bn, "pl");
+      });
+    });
+    return map;
+  }, [items, chosenLeg, type, dateFilter, clientsMap]);
+
+  const sortedDays = useMemo(() => {
+    const arr = Object.keys(grouped);
+    arr.sort();
+    return arr;
+  }, [grouped]);
+
+  const openCard = (item) => {
     setActive(item);
-    setActiveLeg(defaultLeg || "transfer");
-    setSignDate(todayISO());
+    const key = `${item.clientId}-${item.index}-${item.month}`;
+    const leg = chosenLeg[key] || "transfer";
     setInlineTarget(null);
     setPadEmpty(true);
     setView("card");
   };
+
   const backToList = () => {
     setActive(null);
     setInlineTarget(null);
     setView("list");
   };
 
-  const suggestLeg = (entry) => {
-    const t = entry?.signatures?.transfer;
-    const r = entry?.signatures?.return;
-    const tDone = !!(t?.client && t?.staff);
-    const rDone = !!(r?.client && r?.staff);
-    if (!tDone) return "transfer";
-    if (!rDone) return "return";
-    return "transfer";
-  };
-
   const saveSignatureSlot = async () => {
-    const target = inlineTarget;
-    if (!active || !target) return;
+    if (!active) return;
+    const key = `${active.clientId}-${active.index}-${active.month}`;
+    const targetLeg = chosenLeg[key] || "transfer";
     if (padEmpty || padRef.current?.isEmpty?.()) {
       return alert("Brak podpisu.");
     }
-
     try {
       const dataURL = padRef.current?.toDataURL?.("image/png");
       if (!dataURL) return;
 
-      const { leg, role } = target; // role: 'client'|'staff'
-      const body = { leg };
-      if (role === "client") body.client = dataURL;
-      if (role === "staff") body.staff = dataURL;
-
       const r = await fetch(
-        `${API}/protocols/${encodeURIComponent(active.clientId)}/${
-          active.month
-        }/${active.index}/sign`,
+        api(
+          `/protocols/${encodeURIComponent(active.clientId)}/${active.month}/${
+            active.index
+          }/sign`
+        ),
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
+          ...commonFetchOpts,
+          headers: { "Content-Type": "application/json", ...authHeaders },
+          body: JSON.stringify({ leg: targetLeg, client: dataURL }),
         }
       );
       if (!r.ok) {
@@ -352,12 +546,8 @@ export default function SignQueue() {
           x.month === active.month &&
           x.index === active.index
       );
-      if (updated) {
-        setActive(updated);
-        setActiveLeg(suggestLeg(updated));
-      } else {
-        backToList();
-      }
+      if (updated) setActive(updated);
+      else backToList();
 
       setInlineTarget(null);
       setPadEmpty(true);
@@ -366,16 +556,18 @@ export default function SignQueue() {
     }
   };
 
-  const removeFromQueue = async () => {
-    if (!active) return;
+  const removeFromQueueApi = async (it) => {
     try {
       await fetch(
-        `${API}/protocols/${encodeURIComponent(active.clientId)}/${
-          active.month
-        }/${active.index}/queue`,
+        api(
+          `/protocols/${encodeURIComponent(it.clientId)}/${it.month}/${
+            it.index
+          }/queue`
+        ),
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          ...commonFetchOpts,
+          headers: { "Content-Type": "application/json", ...authHeaders },
           body: JSON.stringify({
             type: type === "point" ? "point" : "courier",
             pending: false,
@@ -383,119 +575,135 @@ export default function SignQueue() {
         }
       );
       await loadQueue();
-      backToList();
     } catch {
-      alert("Nie udało się usunąć з kolejki.");
+      alert("Nie udało się usunąć z kolejki.");
     }
   };
 
-  const deleteEntry = async () => {
-    if (!active) return;
-    if (!confirm("Usunąć cały wpis з протокоłu?")) return;
+  const moveItemToDay = async (it, newDay) => {
+    if (!newDay || !/^\d{4}-\d{2}-\d{2}$/.test(newDay)) return;
+    const key = `${it.clientId}-${it.index}-${it.month}`;
+    const leg = chosenLeg[key] || "transfer";
+
     try {
-      await fetch(
-        `${API}/protocols/${encodeURIComponent(active.clientId)}/${
-          active.month
-        }/${active.index}`,
-        { method: "DELETE" }
-      );
-      await loadQueue();
-      backToList();
-    } catch {
-      alert("Nie udało się usunąć wpisu.");
-    }
-  };
-
-  // Видалення прямо зі списку
-  const deleteItemFromList = async (it) => {
-    if (!confirm("Usunąć wpis з протокоłu?")) return;
-    try {
-      await fetch(
-        `${API}/protocols/${encodeURIComponent(it.clientId)}/${it.month}/${
-          it.index
-        }`,
-        { method: "DELETE" }
-      );
-      await loadQueue();
-    } catch {
-      alert("Nie udało się usunąć wpisu.");
-    }
-  };
-
-  // Перемикач Kurier/Punkt завжди повертає до списку
-  const switchType = (t) => {
-    setType(t);
-    setView("list");
-  };
-
-  /* ===== Zapis/aktualizacja PDF протоколу для клієнта/місяця ===== */
-  const saveProtocolFor = async (clientId, monthStr) => {
-    const cid = String(clientId || "").trim();
-    const ym = normalizeYm(monthStr || month);
-    if (!cid || !ym) {
-      alert("Brak ID klienta lub nieprawidłowy miesiąc.");
-      return;
-    }
-    try {
-      const r = await fetch(
-        `${API}/protocols/${encodeURIComponent(cid)}/${ym}`
-      );
-      const data = await r.json();
-      const protocol = {
-        id: data.id || cid,
-        month: data.month || ym,
-        entries: Array.isArray(data.entries) ? data.entries : [],
-        totals: data.totals || { totalPackages: 0 },
-      };
-      if (!protocol.entries.length) {
-        return alert("Brak wpisów w tym miesiącu.");
+      const patchBody = {};
+      if (leg === "transfer") {
+        patchBody.date = newDay;
+      } else {
+        patchBody.returnDate = newDay;
+      }
+      if (type === "courier") {
+        patchBody.courierPlannedDate = newDay;
       }
 
-      const clientObj = clientsMap[cid] || {};
-      const { doc, fileName } = buildProtocolPdf({
-        month: protocol.month,
-        client: clientObj,
-        protocol,
-      });
+      const r1 = await fetch(
+        api(
+          `/protocols/${encodeURIComponent(it.clientId)}/${it.month}/${
+            it.index
+          }`
+        ),
+        {
+          method: "PATCH",
+          ...commonFetchOpts,
+          headers: { "Content-Type": "application/json", ...authHeaders },
+          body: JSON.stringify(patchBody),
+        }
+      );
 
-      // lokalnie:
-      doc.save(fileName);
+      if (!r1.ok) {
+        const err = await r1.json().catch(() => ({}));
+        throw new Error(err?.error || "Nie udało się zaktualizować daty");
+      }
 
-      // і в “Документy → Protokoły”
-      const dataUrl = doc.output("datauristring");
-      saveProtocolDocMeta({
-        id: `${cid}:${protocol.month}`,
-        clientId: cid,
-        clientName: getClientName(clientObj) || data.clientName || cid || "—",
-        month: protocol.month,
-        fileName,
-        createdAt: new Date().toISOString(),
-        dataUrl,
-      });
-      alert("Zapisano/odświeżono protokół w Dokumenty → Protokoły.");
-    } catch {
-      alert("Nie udało się zapisać протокоłu.");
+      await loadQueue();
+    } catch (e) {
+      alert(e.message || "Nie udało się przenieść wpisu на inny dzień.");
     }
   };
 
-  /* ==== Рендери ==== */
+  const [qtyDraft, setQtyDraft] = useState({});
+  const [editingKey, setEditingKey] = useState(null);
+
+  useEffect(() => {
+    if (!active || !editingKey) return;
+    const el = document.getElementById(`qty-${editingKey}`);
+    if (el) {
+      el.focus();
+      const pos = el.value.length;
+      try {
+        el.setSelectionRange(pos, pos);
+      } catch {}
+    }
+  }, [qtyDraft, active, editingKey]);
+
+  useEffect(() => {
+    if (!active) return;
+    const init = {};
+    (active.tools || []).forEach((t, i) => {
+      init[`T_${i}`] = String(Number(t.count || 0));
+    });
+    init["P_PACK"] = String(Number(active.packages || 0));
+    setQtyDraft(init);
+  }, [active]);
+
+  const onQtyFocus = (e) => e.target.select();
+
+  const saveQuantities = async () => {
+    if (!active) return;
+    const tools = (active.tools || []).map((t, i) => ({
+      name: t.name,
+      count: Number(qtyDraft[`T_${i}`] || 0) || 0,
+    }));
+    const packages = Number(qtyDraft["P_PACK"] || 0) || 0;
+
+    try {
+      const r = await fetch(
+        api(
+          `/protocols/${encodeURIComponent(active.clientId)}/${active.month}/${
+            active.index
+          }`
+        ),
+        {
+          method: "PATCH",
+          ...commonFetchOpts,
+          headers: { "Content-Type": "application/json", ...authHeaders },
+          body: JSON.stringify({ tools, packages }),
+        }
+      );
+      if (!r.ok) {
+        const err = await r.json().catch(() => ({}));
+        throw new Error(err?.error || "Błąd zapisu ilości");
+      }
+      const fresh = await loadQueue();
+      const updated = fresh.find(
+        (x) =>
+          x.clientId === active.clientId &&
+          x.month === active.month &&
+          x.index === active.index
+      );
+      if (updated) setActive(updated);
+    } catch (e) {
+      alert(e.message || "Nie udało się zapisać ilości.");
+    }
+  };
 
   const TopBar = () => (
     <div className="flex flex-wrap items-center gap-3 mb-3">
       <div className="text-lg font-semibold">Protokoły do podpisu</div>
       <div className="flex-1" />
       <input
-        type="month"
+        type="date"
         className="input w-44"
-        value={month}
-        onChange={(e) => setMonth(e.target.value)}
+        value={dateFilter}
+        onChange={(e) => setDateFilter(e.target.value)}
       />
       <div className="inline-flex rounded-lg overflow-hidden border">
         <button
           className={`px-3 py-1.5 text-sm ${
             type === "courier" ? "bg-blue-600 text-white" : "bg-white"
           }`}
-          onClick={() => switchType("courier")}
+          onClick={() => setType("courier")}
+          title="Kurier"
         >
           Kurier
         </button>
@@ -503,7 +711,8 @@ export default function SignQueue() {
           className={`px-3 py-1.5 text-sm ${
             type === "point" ? "bg-blue-600 text-white" : "bg-white"
           }`}
-          onClick={() => switchType("point")}
+          onClick={() => setType("point")}
+          title="Punkt"
         >
           Punkt
         </button>
@@ -511,10 +720,62 @@ export default function SignQueue() {
     </div>
   );
 
-  const Badge = ({ children }) => (
-    <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-      {children}
-    </span>
+  const DateHeader = ({ day }) => (
+    <div className="px-2">
+      <div
+        className="
+        w-full text-center
+        bg-blue-600 text-white
+        font-extrabold tracking-wide
+        rounded-xl shadow-md
+        px-4 py-2
+      "
+      >
+        {day}
+      </div>
+    </div>
+  );
+
+  const RowControls = ({ it, sel, keyId }) => (
+    <div className="w-full sm:w-auto ml-0 sm:ml-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+      <select
+        className="h-9 sm:h-8 px-2 rounded-md border text-sm font-medium text-white text-center w-full sm:w-auto leading-none"
+        style={{
+          backgroundColor: "#166534",
+          borderColor: "#14532d",
+          textAlignLast: "center",
+        }}
+        value={legLabelPL(sel)}
+        onChange={(e) =>
+          setChosenLeg((m) => ({
+            ...m,
+            [keyId]: legFromSelect(e.target.value),
+          }))
+        }
+        title="Rodzaj wpisu"
+      >
+        <option style={{ color: "#111" }}>Przekazanie</option>
+        <option style={{ color: "#111" }}>Zwrot</option>
+      </select>
+
+      {type === "courier" && (
+        <input
+          type="date"
+          className="h-9 sm:h-8 px-2 rounded-md border text-sm w-full sm:w-auto"
+          value={getEffectiveDay(it)}
+          onChange={(e) => moveItemToDay(it, e.target.value)}
+          title="Przenieś na inny dzień"
+        />
+      )}
+
+      <button
+        className="h-9 sm:h-8 px-2 rounded-md border bg-red-600 text-white text-sm w-full sm:w-auto"
+        onClick={() => removeFromQueueApi(it)}
+        title="Usuń z kolejki"
+      >
+        Usuń
+      </button>
+    </div>
   );
 
   const ListView = () => (
@@ -523,77 +784,59 @@ export default function SignQueue() {
       <div className="card">
         {loading ? (
           <div className="py-8 text-center text-gray-500">Ładowanie…</div>
-        ) : items.length === 0 ? (
+        ) : Object.keys(grouped).length === 0 ? (
           <div className="py-8 text-center text-gray-500">
-            Brak pozycji w kolejce do podpisu.
+            Brak pozycji do podpisu.
           </div>
         ) : (
-          <ul className="divide-y">
-            {items.map((it) => {
-              const client = clientsMap[it.clientId] || {};
-              const name =
-                getClientName(client) || it.clientName || it.clientId;
-              const addr = getClientAddress(client) || "—";
-              const suggested = suggestLeg(it);
-              const legClasses =
-                suggested === "transfer"
-                  ? "bg-amber-100 text-amber-800 border-amber-200"
-                  : "bg-emerald-100 text-emerald-800 border-emerald-200";
+          <div className="space-y-4 p-2">
+            {sortedDays.map((day) => (
+              <div key={day} className="space-y-2">
+                <DateHeader day={day} />
+                <ul className="divide-y rounded-md border overflow-hidden bg-white">
+                  {grouped[day].map((it) => {
+                    const client = clientsMap[it.clientId] || {};
+                    const name =
+                      getClientName(client) || it.clientName || it.clientId;
+                    const addr = getClientAddress(client) || "—";
+                    const keyId = `${it.clientId}-${it.index}-${it.month}`;
+                    const sel = chosenLeg[keyId] || "transfer";
+                    const shownDate =
+                      sel === "transfer" ? it.date : it.returnDate;
 
-              return (
-                <li
-                  key={`${it.clientId}-${it.index}-${it.month}`}
-                  className="py-3 px-2 flex flex-wrap items-center gap-3"
-                >
-                  <div className="min-w-[16rem]">
-                    <div className="text-sm text-gray-500 mb-0.5">
-                      {it.date || "—"}
-                    </div>
-                    <div className="text-2xl font-bold leading-tight">
-                      {name}
-                    </div>
-                    <div className="text-lg text-gray-700">{addr}</div>
-                  </div>
+                    return (
+                      <li
+                        key={`${it.clientId}-${it.index}-${it.month}`}
+                        className="py-3 px-2 flex flex-col sm:flex-row sm:items-center gap-3"
+                      >
+                        <button
+                          className="text-left w-full sm:flex-1 min-w-[12rem]"
+                          onClick={() => openCard(it)}
+                          title="Otwórz kartę wpisu"
+                        >
+                          <div className="text-xs sm:text-sm text-gray-500 mb-0.5">
+                            {shownDate ||
+                              it.queue?.courierPlannedDate ||
+                              it.date ||
+                              it.returnDate ||
+                              "—"}
+                          </div>
+                          <div className="text-lg sm:text-xl font-bold leading-tight">
+                            {name}
+                          </div>
+                          <div className="text-sm sm:text-base text-gray-700">
+                            {addr}
+                          </div>
+                        </button>
 
-                  <div className="ml-auto shrink-0 flex flex-col items-end gap-3">
-                    <div>
-                      <span
-                        className={`text-xs px-2 py-0.5 rounded-full border ${legClasses}`}
-                        title="Rodzaj wpisu"
-                      >
-                        {legLabelPL(suggested)}
-                      </span>
-                    </div>
-                    <div className="flex gap-2 whitespace-nowrap flex-nowrap">
-                      <button
-                        className="btn-secondary"
-                        onClick={() =>
-                          saveProtocolFor(it.clientId, it.month || month)
-                        }
-                        title="Dodaj/odśwież w protokole (PDF)"
-                      >
-                        Do protokołu
-                      </button>
-                      <button
-                        className="btn-primary"
-                        onClick={() => openCard(it, suggested)}
-                        title="Otwórz kartę wpisu"
-                      >
-                        Otwórz
-                      </button>
-                      <button
-                        className="btn-danger text-white"
-                        onClick={() => deleteItemFromList(it)}
-                        title="Usuń wpis"
-                      >
-                        Usuń
-                      </button>
-                    </div>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+                        <RowControls it={it} sel={sel} keyId={keyId} />
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </div>
@@ -606,254 +849,212 @@ export default function SignQueue() {
     const addr = getClientAddress(client) || "—";
     const nip = getClientNip(client) || "—";
 
-    const sig = active.signatures || {};
-    const t = sig.transfer || {};
-    const r = sig.return || {};
+    const key = `${active.clientId}-${active.index}-${active.month}`;
+    const activeLeg = chosenLeg[key] || "transfer";
 
-    const services = active.shipping
-      ? ["Wysyłka"]
-      : active.delivery === "odbior"
-      ? ["Kurier x1"]
-      : active.delivery === "odbior+dowoz"
-      ? ["Kurier x2"]
-      : [];
+    const toolsList = (active.tools || []).filter((t) => t?.name);
+    const rows = toolsList.map((t, i) => ({
+      label: t.name,
+      valueKey: `T_${i}`,
+      value: qtyDraft[`T_${i}`] ?? "",
+    }));
+    rows.push({
+      label: "Pakiety",
+      valueKey: "P_PACK",
+      value: qtyDraft["P_PACK"] ?? "",
+      total: true,
+    });
 
-    const SignatureTile = ({ src, leg, role, onClick }) => {
-      const isClient = role === "client";
-      const label = `${legLabelPL(leg)} — ` + (isClient ? "Klient" : "Serwis");
-      const baseBorderClass = isClient
-        ? "border-slate-400"
-        : "border-slate-200";
-      const baseBgClass = isClient ? "bg-slate-50" : "bg-white";
+    const signBtnLabel =
+      activeLeg === "transfer"
+        ? "Podpisz przekazanie narzędzi"
+        : "Podpisz zwrot narzędzi";
 
-      return (
-        <button
-          type="button"
-          onClick={onClick}
-          title={label}
-          className={`relative w-44 ${baseBgClass} ${baseBorderClass} rounded-xl p-2 flex flex-col items-center gap-1 hover:shadow-sm transition text-left`}
-        >
-          <div className="w-full flex items-center justify-between">
-            <div
-              className={`text-[11px] ${
-                isClient ? "text-slate-900" : "text-slate-600"
-              }`}
-            >
-              {label}
-            </div>
-            {isClient && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200">
-                Klient
-              </span>
-            )}
-          </div>
-
-          {src ? (
-            <img
-              src={absSig(src)}
-              alt={label}
-              className="h-9 w-auto object-contain border rounded bg-white px-1"
-            />
-          ) : (
-            <div className="h-9 w-full flex items-center justify-center text-xs text-gray-400">
-              brak
-            </div>
-          )}
-        </button>
-      );
-    };
+    const dateForLeg =
+      activeLeg === "transfer" ? active.date || "—" : active.returnDate || "—";
 
     return (
       <div className="space-y-3">
         <TopBar />
 
-        {/* Повернення до списку */}
-        <button className="btn-link" onClick={backToList}>
+        <button
+          className="px-3 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 shadow-sm"
+          onClick={backToList}
+        >
           ← Powrót do listy
         </button>
 
         <div className="card p-0 overflow-hidden">
-          {/* Заголовок картки */}
           <div className="bg-slate-50 border-b px-4 py-3">
-            <div className="text-xl font-semibold leading-tight">{name}</div>
-            <div className="text-sm text-slate-700">{addr}</div>
+            <div className="text-lg sm:text-xl md:text-2xl font-semibold leading-tight">
+              {name}
+            </div>
+            <div className="text-sm md:text-base text-slate-700">{addr}</div>
             <div className="text-sm text-slate-600 mt-0.5">NIP: {nip}</div>
+            <div className="text-sm text-slate-600 mt-0.5">
+              Data: {dateForLeg}
+            </div>
           </div>
 
-          {/* Тіло */}
-          <div className="p-4 grid lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-2 space-y-4">
-              <div className="grid sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm mb-1">
-                    Data wykonania usługi
-                  </label>
-                  <input
-                    type="date"
-                    className="input w-full"
-                    value={signDate}
-                    onChange={(e) => setSignDate(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm mb-1">Usługi dodatkowe</label>
-                  {services.length ? (
-                    <div className="flex flex-wrap gap-1.5">
-                      {services.map((s, i) => (
-                        <Badge key={i}>{s}</Badge>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-sm text-gray-500">—</div>
+          <div className="p-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-3">
+              <div className="font-medium mb-1">Narzędzia i pakiety</div>
+              <div className="rounded-lg border bg-white overflow-hidden w-full">
+                <table className="w-full table-fixed text-sm">
+                  <colgroup>
+                    <col style={{ width: "auto" }} />
+                    <col style={{ width: "18rem" }} />
+                  </colgroup>
+                  <thead className="bg-slate-100 text-slate-700">
+                    <tr>
+                      <th className="text-left px-3 py-2">Nazwa</th>
+                      <th className="text-right px-3 py-2">Ilość</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((r, i) => (
+                      <tr
+                        key={i}
+                        className={r.total ? "bg-emerald-50 font-semibold" : ""}
+                      >
+                        <td
+                          className={
+                            "px-3 py-2 align-top " +
+                            (r.total ? "text-base md:text-lg font-bold" : "")
+                          }
+                        >
+                          {r.label}
+                        </td>
+                        <td
+                          className={
+                            "px-3 py-2 text-right align-top " +
+                            (r.total ? "text-base md:text-lg font-bold" : "")
+                          }
+                        >
+                          <input
+                            id={`qty-${r.valueKey}`}
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            className={
+                              "input h-10 text-right w-full appearance-none " +
+                              (r.total ? "text-base md:text-lg font-bold" : "")
+                            }
+                            value={r.value ?? ""}
+                            onFocus={(e) => {
+                              setEditingKey(r.valueKey);
+                              e.target.select();
+                            }}
+                            onChange={(e) => {
+                              const cleaned = e.target.value.replace(
+                                /[^\d]/g,
+                                ""
+                              );
+                              setQtyDraft((m) => ({
+                                ...m,
+                                [r.valueKey]: cleaned,
+                              }));
+                            }}
+                            onKeyDown={(e) => {
+                              const ok =
+                                /[0-9]/.test(e.key) ||
+                                [
+                                  "Backspace",
+                                  "Delete",
+                                  "ArrowLeft",
+                                  "ArrowRight",
+                                  "Tab",
+                                  "Home",
+                                  "End",
+                                  "Enter",
+                                ].includes(e.key);
+                              if (!ok) e.preventDefault();
+                            }}
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="mt-3 flex justify-end">
+                <button
+                  className="btn-primary"
+                  onClick={saveQuantities}
+                  title="Zapisz ilości"
+                >
+                  Zapisz ilości
+                </button>
+              </div>
+            </div>
+
+            <div className="lg:col-span-2 space-y-0">
+              <div>
+                <div className="text-sm font-medium">Dodatkowe usługi:</div>
+                <div className="flex flex-wrap gap-2">
+                  {active.shipping && (
+                    <span className="px-3 py-1 rounded-full bg-slate-100 border text-sm">
+                      Wysyłka
+                    </span>
+                  )}
+                  {active.delivery === "odbior" && (
+                    <span className="px-3 py-1 rounded-full bg-slate-100 border text-sm">
+                      Kurier: odbiór
+                    </span>
+                  )}
+                  {active.delivery === "odbior+dowoz" && (
+                    <span className="px-3 py-1 rounded-full bg-slate-100 border text-sm">
+                      Kurier: odbiór i dowóz
+                    </span>
                   )}
                 </div>
               </div>
 
               <div>
-                <div className="font-medium mb-1">Narzędzia (szt.)</div>
-                <div className="rounded-lg border p-3 bg-white">
-                  {(active.tools || []).filter((t) => t?.name).length ? (
-                    <ul className="list-disc pl-5 space-y-1">
-                      {(active.tools || [])
-                        .filter((t) => t?.name)
-                        .map((t, i) => (
-                          <li key={i} className="text-sm">
-                            {t.name}: <b>{t.count}</b> szt.
-                          </li>
-                        ))}
-                    </ul>
-                  ) : (
-                    <div className="text-gray-500 text-sm">—</div>
-                  )}
+                <div className="text-sm font-medium">Komentarz:</div>
+                <div className="whitespace-pre-wrap text-slate-700">
+                  {active.comment || ""}
                 </div>
-              </div>
-
-              {/* Пакети */}
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="text-xl font-semibold">Pakiety:</div>
-                <span className="inline-flex items-center px-3 py-1.5 rounded-lg border border-emerald-200 bg-emerald-100 text-emerald-800 text-2xl font-bold leading-none">
-                  {active.packages || 0}
-                </span>
-                {active.comment ? (
-                  <div className="text-sm text-gray-700">
-                    <span className="text-gray-500">Komentarz:</span>{" "}
-                    {active.comment}
-                  </div>
-                ) : null}
-              </div>
-
-              {/* Дії для картки */}
-              <div className="flex flex-wrap gap-2">
-                <button
-                  className="btn-secondary"
-                  onClick={() =>
-                    saveProtocolFor(active.clientId, active.month || month)
-                  }
-                >
-                  Zapisz do protokołu
-                </button>
-                <button className="btn-secondary" onClick={removeFromQueue}>
-                  Usuń z kolejki
-                </button>
-                <button className="btn-danger text-white" onClick={deleteEntry}>
-                  Usuń wpis
-                </button>
               </div>
             </div>
 
-            {/* Права частина — підписи */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="font-medium">Podpisy</div>
-                <div className="flex items-center gap-2">
-                  <label className="text-sm text-gray-700">
-                    Rodzaj podpisu:
-                  </label>
-                  <select
-                    className="input w-44"
-                    value={legLabelPL(activeLeg)}
-                    onChange={(e) =>
-                      setActiveLeg(legFromSelect(e.target.value))
-                    }
-                  >
-                    <option>Przekazanie</option>
-                    <option>Zwrot</option>
-                  </select>
-                </div>
-              </div>
+            <div />
+          </div>
 
-              <div className="space-y-2">
-                <div className="text-xs font-medium text-slate-600">
-                  Klient — podpis tutaj
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <SignatureTile
-                    src={t.client}
-                    leg="transfer"
-                    role="client"
-                    onClick={() => {
-                      setInlineTarget({ leg: "transfer", role: "client" });
-                      setPadEmpty(true);
-                    }}
-                  />
-                  <SignatureTile
-                    src={r.client}
-                    leg="return"
-                    role="client"
-                    onClick={() => {
-                      setInlineTarget({ leg: "return", role: "client" });
-                      setPadEmpty(true);
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="text-xs font-medium text-slate-600">Serwis</div>
-                <div className="grid grid-cols-2 gap-2">
-                  <SignatureTile
-                    src={t.staff}
-                    leg="transfer"
-                    role="staff"
-                    onClick={() => {
-                      setInlineTarget({ leg: "transfer", role: "staff" });
-                      setPadEmpty(true);
-                    }}
-                  />
-                  <SignatureTile
-                    src={r.staff}
-                    leg="return"
-                    role="staff"
-                    onClick={() => {
-                      setInlineTarget({ leg: "return", role: "staff" });
-                      setPadEmpty(true);
-                    }}
-                  />
-                </div>
-              </div>
+          <div className="px-4 pb-4">
+            <div className="flex justify-center">
+              <button
+                className="btn-primary w-full sm:w-auto"
+                onClick={() => {
+                  setInlineTarget({ leg: activeLeg, role: "client" });
+                  setPadEmpty(true);
+                }}
+                title="Dodaj podpis klienta"
+              >
+                {signBtnLabel}
+              </button>
             </div>
           </div>
         </div>
 
-        {/* МОДАЛКА ПІДПИСУ */}
         {inlineTarget &&
           createPortal(
             <div
-              className="fixed inset-0 z-[99999] flex items-center justify-center p-4"
+              className="fixed inset-0 z-[99999] flex items-center justify-center p-4 overflow-auto"
               role="dialog"
               aria-modal="true"
               onClick={() => setInlineTarget(null)}
               style={{ background: "rgba(0,0,0,0.45)" }}
             >
               <div
-                className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl p-5"
+                className="relative bg-white rounded-2xl shadow-2xl w-full max-w-[900px] md:max-w-3xl p-4 md:p-5"
                 style={{ pointerEvents: "auto" }}
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex items-center justify-between mb-3">
                   <div className="text-lg font-semibold">
-                    {legLabelPL(inlineTarget.leg)} —{" "}
-                    {inlineTarget.role === "client" ? "Klient" : "Serwis"}
+                    {legLabelPL(inlineTarget.leg)} — Klient
                   </div>
                   <div className="flex gap-2">
                     <button
@@ -874,23 +1075,15 @@ export default function SignQueue() {
                   </div>
                 </div>
 
-                <div className="inline-block relative">
-                  <SignaturePad
-                    ref={padRef}
-                    onChange={setPadEmpty}
-                    width={640}
-                    height={220}
-                  />
-                  <div
-                    className="pointer-events-none absolute inset-0 rounded-xl"
-                    style={{
-                      boxShadow:
-                        inlineTarget.leg === activeLeg
-                          ? "inset 0 0 0 6px #f59e0b"
-                          : "inset 0 0 0 4px #cbd5e1",
-                      borderRadius: "0.75rem",
-                    }}
-                  />
+                <div className="w-full">
+                  <div className="mx-auto" style={{ maxWidth: "100%" }}>
+                    <SignaturePad
+                      ref={padRef}
+                      onChange={setPadEmpty}
+                      width={padSize.w}
+                      height={padSize.h}
+                    />
+                  </div>
                 </div>
 
                 <div className="mt-4 flex items-center gap-2">

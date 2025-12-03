@@ -1,9 +1,9 @@
 // src/utils/docStore.js
-// Прості утиліти збереження/читання переліку протоколів у localStorage.
-// Додано: безпечний запис з обробкою QuotaExceeded, м'яка валідація, корисні хелпери.
+// Утиліти для збереження/читання переліку протоколів у localStorage.
+// Безпечна робота з localStorage (перевірка доступності, QuotaExceeded), нормалізація даних та хелпери.
 
 const STORE_KEY = "doc:protocols:v1";
-const MAX_PROTOCOLS = 300; // скільки останніх протоколів тримати (запобігає росту до безкінечності)
+const MAX_PROTOCOLS = 300; // верхня межа списку (запобігання нестримному росту)
 
 // ===== Внутрішні хелпери =====
 const isYm = (s) => typeof s === "string" && /^\d{4}-\d{2}$/.test(s);
@@ -24,6 +24,46 @@ const safeParse = (raw) => {
     return [];
   }
 };
+
+// Безпечні обгортки для localStorage (на випадок недоступності / SSR / privacy-режимів)
+function hasLocalStorage() {
+  try {
+    if (typeof window === "undefined" || !("localStorage" in window))
+      return false;
+    const t = "__ls_test__" + Math.random();
+    window.localStorage.setItem(t, t);
+    window.localStorage.removeItem(t);
+    return true;
+  } catch {
+    return false;
+  }
+}
+const LS_AVAILABLE = hasLocalStorage();
+
+function lsGet(key) {
+  if (!LS_AVAILABLE) return null;
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+function lsSet(key, val) {
+  if (!LS_AVAILABLE) return;
+  try {
+    window.localStorage.setItem(key, val);
+  } catch {
+    // ігноруємо — оброблятимемо вище по стеку
+  }
+}
+function lsRemove(key) {
+  if (!LS_AVAILABLE) return;
+  try {
+    window.localStorage.removeItem(key);
+  } catch {
+    // ігноруємо
+  }
+}
 
 const normalizeRec = (r) => {
   if (!r || typeof r !== "object") return null;
@@ -51,10 +91,10 @@ const normalizeRec = (r) => {
 };
 
 const readList = () => {
-  const raw = localStorage.getItem(STORE_KEY);
+  const raw = lsGet(STORE_KEY);
   const arr = safeParse(raw).map(normalizeRec).filter(Boolean);
 
-  // уникаємо дублікатів id (останній виграє)
+  // уникнення дублікатів id (останній виграє)
   const map = new Map();
   for (const r of arr) map.set(r.id, r);
   const uniq = Array.from(map.values());
@@ -70,7 +110,7 @@ const readList = () => {
 };
 
 const tryWrite = (list) => {
-  localStorage.setItem(STORE_KEY, JSON.stringify(list));
+  lsSet(STORE_KEY, JSON.stringify(list));
 };
 
 const writeList = (list) => {
@@ -82,31 +122,30 @@ const writeList = (list) => {
     tryWrite(out);
     return;
   } catch (e) {
-    // Якщо переповнення сховища — по одному видаляємо найстаріші записи і пробуємо ще.
+    // Якщо переповнення сховища — по одному видаляємо найстаріші та пробуємо ще.
     const isQuota =
       e?.name === "QuotaExceededError" ||
       e?.name === "NS_ERROR_DOM_QUOTA_REACHED" ||
       e?.code === 22;
-    if (!isQuota) throw e;
+    if (!isQuota) return; // якщо інша помилка — тихо ігноруємо, нічого не записали
 
-    // видаляємо з кінця (найстаріші) поки не влізе або поки не залишиться мінімум
     while (out.length > 0) {
       out.pop();
       try {
         tryWrite(out);
         return;
-      } catch (err) {
+      } catch {
         // продовжуємо чистити
       }
     }
-    // якщо сюди дійшли — вже нічого не лишилось, просто очистимо ключ
-    localStorage.removeItem(STORE_KEY);
+    // якщо нічого не лишилось — видаляємо ключ
+    lsRemove(STORE_KEY);
   }
 };
 
-// ===== Публічні API (збережені старі назви/сигнатури) =====
+// ===== Публічні API =====
 
-/** Зберегти/оновити метадані протоколу (upsert по id). dataUrl містить сам PDF у base64. */
+/** Зберегти/оновити метадані протоколу (upsert по id). dataUrl — PDF як data:URL. */
 export function saveProtocolDocMeta({
   id,
   clientId,
@@ -118,11 +157,10 @@ export function saveProtocolDocMeta({
 }) {
   if (!id) return;
 
-  // читаємо без сортування через readList(), але нам ок і так (він нормалізує)
   const list = readList();
   const idx = list.findIndex((x) => x.id === id);
 
-  // Зберігаємо старий createdAt якщо не передали новий
+  // зберігаємо попередню дату, якщо нову не передано
   const prevCreated = idx >= 0 ? list[idx].createdAt : null;
 
   const rec = normalizeRec({
@@ -142,9 +180,9 @@ export function saveProtocolDocMeta({
 
   writeList(list);
 
-  // (опційно) „пінг” для інших вкладок — щоб зловили подію 'storage'
+  // (опційно) ping для інших вкладок — щоб зловили подію 'storage'
   try {
-    localStorage.setItem("doc:protocols:ping", String(Date.now()));
+    lsSet("doc:protocols:ping", String(Date.now()));
   } catch {
     // ігноруємо
   }
@@ -155,6 +193,12 @@ export function getProtocols() {
   return readList();
 }
 
+/** Прочитати один протокол за id. */
+export function getProtocolById(id) {
+  if (!id) return null;
+  return readList().find((x) => x.id === id) || null;
+}
+
 /** Видалити протокол по id. */
 export function deleteProtocol(id) {
   if (!id) return;
@@ -162,32 +206,7 @@ export function deleteProtocol(id) {
   writeList(list);
 }
 
-/** Людський формат дати/часу (для списку). */
-export function humanDateTime(iso) {
-  try {
-    const d = new Date(iso);
-    // лишаю undefined для локалі користувача; якщо хочеш PL — заміни на 'pl-PL'
-    return d.toLocaleString(undefined, {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  } catch {
-    return iso || "";
-  }
-}
-
-// ===== Додаткові корисні утиліти (можеш не використовувати, але вони безпечні) =====
-
-/** Прочитати один протокол за id. */
-export function getProtocolById(id) {
-  if (!id) return null;
-  return readList().find((x) => x.id === id) || null;
-}
-
-/** Видалити кілька протоколів разом. */
+/** Видалити кілька протоколів. */
 export function deleteProtocols(ids = []) {
   if (!Array.isArray(ids) || !ids.length) return;
   const set = new Set(ids);
@@ -197,18 +216,27 @@ export function deleteProtocols(ids = []) {
 
 /** Повністю очистити сховище протоколів. */
 export function clearProtocols() {
-  try {
-    localStorage.removeItem(STORE_KEY);
-  } catch {}
+  lsRemove(STORE_KEY);
 }
 
-/** Оціночний розмір JSON з протоколами у байтах (для діагностики). */
+/** Оціночний розмір JSON у символах (для діагностики). */
 export function getStorageUsageApprox() {
+  const raw = lsGet(STORE_KEY) || "";
+  return raw.length;
+}
+
+/** Людський формат дати/часу (для списку). */
+export function humanDateTime(iso) {
   try {
-    const raw = localStorage.getItem(STORE_KEY) || "";
-    // приблизно: 2 байти на символ у UTF-16 — але повернемо довжину рядка (символів)
-    return raw.length;
+    const d = new Date(iso);
+    return d.toLocaleString(undefined, {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   } catch {
-    return 0;
+    return iso || "";
   }
 }

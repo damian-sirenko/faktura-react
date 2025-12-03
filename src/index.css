@@ -15,10 +15,27 @@
   }
 }
 
+/* html,
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+} */
+
+/* #root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+} */
+
+
 /* Утиліти */
 @layer components {
   .container-app {
     @apply max-w-6xl mx-auto p-4;
+  }
+  .container-app-wide {
+    @apply max-w-7xl mx-auto p-4;
   }
 
   .btn {
@@ -94,11 +111,21 @@
 
 /* Дрібні розміри/варіанти кнопок (для іконок у таблицях) */
 @layer components {
-  .btn-sm { @apply px-3 py-1.5 text-sm rounded-lg; }
-  .btn-xs { @apply px-2 py-1 text-xs rounded-md; }
-  .btn-icon { @apply inline-flex items-center justify-center w-9 h-9 rounded-lg; }
-  .btn-outline { @apply btn bg-white border border-gray-300 hover:bg-gray-50; }
-  .btn-white { @apply btn bg-white text-gray-800 border border-gray-200 hover:bg-gray-50; }
+  .btn-sm {
+    @apply px-3 py-1.5 text-sm rounded-lg;
+  }
+  .btn-xs {
+    @apply px-2 py-1 text-xs rounded-md;
+  }
+  .btn-icon {
+    @apply inline-flex items-center justify-center w-9 h-9 rounded-lg;
+  }
+  .btn-outline {
+    @apply btn bg-white border border-gray-300 hover:bg-gray-50;
+  }
+  .btn-white {
+    @apply btn bg-white text-gray-800 border border-gray-200 hover:bg-gray-50;
+  }
 }
 
 /* Бейджі (узгоджено зі стилем у черзі підписів) */
@@ -117,38 +144,166 @@
 
 /* Компактні таблиці (коли потрібно вмістити більше) */
 @layer components {
-  .table-compact th, .table-compact td { @apply px-2 py-1; }
-  .table-compact thead { @apply bg-gray-100; }
+  .table-compact th,
+  .table-compact td {
+    @apply px-2 py-1;
+  }
+  .table-compact thead {
+    @apply bg-gray-100;
+  }
 }
 
 /* Стан інпутів + помилки */
 @layer components {
-  .input:disabled { @apply bg-gray-100 text-gray-500 cursor-not-allowed; }
-  .input[aria-invalid="true"] { @apply border-red-500 focus:ring-red-400; }
-  .form-hint { @apply text-xs text-gray-600; }
-  .form-error { @apply text-sm text-red-600; }
+  .input:disabled {
+    @apply bg-gray-100 text-gray-500 cursor-not-allowed;
+  }
+  .input[aria-invalid="true"] {
+    @apply border-red-500 focus:ring-red-400;
+  }
+  .form-hint {
+    @apply text-xs text-gray-600;
+  }
+  .form-error {
+    @apply text-sm text-red-600;
+  }
 }
 
 /* Модалки: оверлей і картка — щоб не дублювати класи */
 @layer components {
-  .modal-overlay { @apply fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4; }
-  .modal-card { @apply bg-white rounded-2xl shadow-lg; }
+  .modal-overlay {
+    @apply fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4;
+  }
+  .modal-card {
+    @apply bg-white rounded-2xl shadow-lg;
+  }
 }
 
 /* Друк: універсальні утиліти, не зачіпають твої inline-стилі */
 @media print {
-  .no-print { display: none !important; }
-  .print-only { display: block !important; }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
 }
 @layer components {
-  .print-only { display: none; }
+  .print-only {
+    display: none;
+  }
   /* Бланк/аркуш — базовий вигляд, якщо знадобиться поза inline-стилями */
-  .sheet { @apply bg-white rounded-xl border border-gray-200 shadow-none; }
+  .sheet {
+    @apply bg-white rounded-xl border border-gray-200 shadow-none;
+  }
 }
 
 /* Невеликі корисні дрібниці */
 @layer components {
-  .divider { @apply h-px bg-gray-200 my-2; }
-  .muted { @apply text-gray-500; }
-  .monospace { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+  .divider {
+    @apply h-px bg-gray-200 my-2;
+  }
+  .muted {
+    @apply text-gray-500;
+  }
+  .monospace {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+      "Liberation Mono", "Courier New", monospace;
+  }
+}
+/* === Number inputs: hide spin buttons (Chrome, Safari, Edge, Opera) === */
+input[type="number"].no-spin::-webkit-outer-spin-button,
+input[type="number"].no-spin::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+/* === Number inputs: hide spin buttons (Firefox) === */
+input[type="number"].no-spin {
+  -moz-appearance: textfield;
+}
+:root { scrollbar-gutter: stable both-edges; }
+
+/* Базовий контейнер сторінок – така сама схема, як у хедера (px-3 sm:px-4 md:px-6 lg:px-8) */
+.container-app {
+  width: 100%;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 0.75rem;  /*  px-3  */
+  padding-right: 0.75rem;
+  box-sizing: border-box;
+}
+
+@media (min-width: 640px) { /* sm */
+  .container-app {
+    padding-left: 1rem;   /*  px-4  */
+    padding-right: 1rem;
+  }
+}
+
+@media (min-width: 768px) { /* md */
+  .container-app {
+    padding-left: 1.5rem; /*  px-6  */
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) { /* lg */
+  .container-app {
+    padding-left: 2rem;   /*  px-8  */
+    padding-right: 2rem;
+  }
+}
+
+/* Усі картки (верхні 2 вікна + контейнер таблиці) */
+.card,
+.card-lg {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.psl-page {
+  overflow-x: visible;
+}
+
+/* Обгортка для таблиці з горизонтальним скролом тільки в цьому контейнері */
+.psl-page .psl-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  box-sizing: border-box;
+}
+
+
+/* Усі картки на цій сторінці не ширші за контейнер */
+.psl-page .card,
+.psl-page .card-lg {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Таблиця на сторінці PSL: тягнеться на всю ширину, але має мінімальну, щоб з’явився внутрішній скрол */
+.psl-page .psl-table {
+  width: 100%;
+  min-width: 720px;
+  table-layout: fixed;
+  box-sizing: border-box;
+}
+
+
+
+
+/* Текст у клітинках може переноситись */
+.psl-page th,
+.psl-page td {
+  white-space: normal;
+  word-break: break-word;
+}
+.psl-page .psl-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  box-sizing: border-box;
 }
