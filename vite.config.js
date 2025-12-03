@@ -1,20 +1,18 @@
-// vite.config.js
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 
 export default defineConfig(({ mode }) => {
+  // Підтягуємо .env, .env.production, .env.test і т.д.
   const env = loadEnv(mode, process.cwd(), "");
+
+  // Якщо є VITE_API_URL — беремо його, якщо ні — локальний бекенд
   const devTarget = env.VITE_API_URL || "http://localhost:3000";
 
-  // спільні опції проксі
+  // Єдині настройки проксі
   const tgt = {
     target: devTarget,
     changeOrigin: true,
     secure: false,
-    // проброс preflight (OPTIONS) — важливо для POST /analytics/query
-    // Vite робить це сам, але лишаю наочно
-    // onProxyReq: (_proxyReq, req) => {},
-    // onProxyRes: (_proxyRes, req) => {},
   };
 
   return {
@@ -25,6 +23,7 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       cors: true,
       historyApiFallback: true,
+
       proxy: {
         // базові JSON-API
         "/clients": tgt,
@@ -44,7 +43,7 @@ export default defineConfig(({ mode }) => {
         "/protocols": tgt,
         "/sign-queue": tgt,
 
-        // PSL (na sztuki) — потрібен для StatsPage
+        // PSL
         "/psl": tgt,
 
         // файли та завантаження
@@ -66,7 +65,6 @@ export default defineConfig(({ mode }) => {
       },
     },
 
-    // щоб фронт знав фактичний бекенд (напр., у проді)
     define: {
       "import.meta.env.VITE_API_URL": JSON.stringify(env.VITE_API_URL || ""),
     },

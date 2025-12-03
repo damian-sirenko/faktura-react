@@ -1,7 +1,9 @@
 // src/utils/api.js
+const API_URL = import.meta.env.VITE_API_URL || "";
 
 // база з .env для прода + дефолт /api, якщо змінна не підхопилася
-const rawBase = (import.meta?.env?.VITE_API_URL || "").replace(/\/+$/, "");
+const rawBase = API_URL.replace(/\/+$/, "");
+
 const envBase = rawBase || "/api";
 
 // визначаємо дев під Vite
