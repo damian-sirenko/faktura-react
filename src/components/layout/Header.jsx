@@ -177,7 +177,7 @@ export default function Header() {
             }`}
           />
           <span className="pl-3 border-l border-blue-200 text-[22px] tracking-wide text-blue-100 font-bold">
-            Panel
+            Test
           </span>
         </Link>
 
