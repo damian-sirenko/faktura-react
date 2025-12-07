@@ -1119,7 +1119,7 @@ export default function ClientsPage({
   return (
     <div className="space-y-4">
       {/* Шапка */}
-      <div className="card-lg border-2 border-blue-200 bg-blue-50/60">
+      <div className="card-lg border-2 border-blue-200 bg-blue-50/60 min-w-0 overflow-hidden">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <h1 className="text-2xl font-bold">
             {pageTitle || "📒 Baza klientów"}
@@ -1127,7 +1127,7 @@ export default function ClientsPage({
         </div>
 
         {/* MOBILE / TABLET: фільтри + кнопки (до md) */}
-        <div className="mt-3 flex flex-col sm:flex-row md:hidden gap-3 w-full">
+        <div className="mt-3 flex flex-col sm:flex-row md:hidden gap-3 w-full min-w-0">
           {/* Ліва колонка: фільтри + Dodaj klienta */}
           <div className="flex-1 min-w-0 flex flex-col gap-2 items-start">
             <div className="w-full flex flex-col gap-2">
@@ -1169,7 +1169,7 @@ export default function ClientsPage({
           </div>
 
           {/* Права колонка: кнопки дій */}
-          <div className="flex flex-col gap-2 w-full sm:w-auto sm:items-end">
+          <div className="flex flex-col gap-2 w-full sm:w-auto sm:items-end min-w-0">
             {forceArchivedView ? (
               <>
                 <button
@@ -1236,7 +1236,7 @@ export default function ClientsPage({
         </div>
 
         {/* DESKTOP: фільтри */}
-        <div className="mt-3 hidden md:flex items-center gap-2 flex-wrap">
+        <div className="mt-3 hidden md:flex items-center gap-2 flex-wrap min-w-0">
           <input
             type="search"
             placeholder="Szukaj klienta…"
@@ -1257,7 +1257,7 @@ export default function ClientsPage({
         </div>
 
         {/* DESKTOP: кнопки дій */}
-        <div className="mt-3 hidden md:flex items-center gap-2 flex-wrap">
+        <div className="mt-3 hidden md:flex items-center gap-2 flex-wrap min-w-0">
           <button className="btn-primary" onClick={startAdd}>
             {!showAdd && (
               <svg
@@ -1275,7 +1275,7 @@ export default function ClientsPage({
             {showAdd ? "Anuluj" : "Dodaj klienta"}
           </button>
 
-          <div className="flex items-center gap-2 ml-auto">
+          <div className="flex items-center gap-2 ml-auto flex-wrap min-w-0 justify-end">
             {forceArchivedView ? (
               <>
                 <button

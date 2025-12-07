@@ -196,10 +196,10 @@ export default function ClientList({
                 </td>
 
                 <td className="whitespace-normal break-words max-w-none">
-                  <div className="flex items-start gap-2">
+                  <div className="flex items-start gap-2 min-w-0">
                     <span>{name}</span>
                     {c.notice && (
-                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 whitespace-nowrap mt-0.5">
+                      <span className="hidden lg:inline-flex text-[11px] px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 whitespace-nowrap mt-0.5">
                         wypowiedzenie
                       </span>
                     )}
@@ -241,11 +241,11 @@ export default function ClientList({
                   </td>
                 )}
                 <td className="text-center align-top whitespace-normal">
-                  <div className="inline-flex flex-wrap items-center gap-2 justify-center">
+                  <div className="inline-flex flex-nowrap items-center gap-2 justify-center max-w-full overflow-hidden">
                     <button
                       type="button"
                       onClick={() => onSelect(c)}
-                      className="inline-flex items-center rounded-lg px-3 py-1 text-sm font-semibold border border-[var(--primary-500)] bg-[var(--primary-500)] text-white hover:bg-white hover:text-[var(--primary-600)] focus:ring-2 focus:ring-[var(--primary-300)] transition"
+                      className="inline-flex items-center rounded-lg px-3 py-1 text-sm font-semibold border border-[var(--primary-500)] bg-[var(--primary-500)] text-white hover:bg-white hover:text-[var(--primary-600)] focus:ring-2 focus:ring-[var(--primary-300)] transition whitespace-nowrap"
                       title="Szczegóły klienta"
                     >
                       Szczegóły
