@@ -96,8 +96,8 @@ export default function ClientList({
     checkedIds.length > 0;
 
   return (
-    <div className="overflow-x-hidden relative">
-      <table className="table w-full">
+    <div className="relative w-full overflow-x-auto">
+      <table className="table table-auto w-full">
         <thead>
           <tr>
             {selectable && (
@@ -113,27 +113,28 @@ export default function ClientList({
                 />
               </th>
             )}
-            <th className="text-center whitespace-nowrap">#</th>
+            <th className="text-center whitespace-nowrap hidden lg:table-cell">
+              #
+            </th>
 
-            {/* 🆕 Колонка ID — тільки коли потрібно показувати перед назвою */}
-            {showIdBeforeName && (
-              <th className="whitespace-normal text-left">ID</th>
-            )}
+            <th className="text-left whitespace-nowrap hidden lg:table-cell">
+              ID
+            </th>
 
-            <th className="whitespace-normal">Nazwa</th>
-            <th className="whitespace-nowrap">Email</th>
-            <th className="whitespace-nowrap">Telefon</th>
+            <th className="whitespace-normal break-words w-full">Nazwa</th>
+
+            <th className="whitespace-normal hidden lg:table-cell">Email</th>
+            <th className="whitespace-normal hidden lg:table-cell">Telefon</th>
+
             {showAbonFields && (
-              <th className="whitespace-nowrap hidden md:table-cell">
+              <th className="whitespace-normal hidden lg:table-cell">
                 Abonament
               </th>
             )}
-            {showAbonFields && (
-              <th className="whitespace-nowrap text-right hidden md:table-cell">
-                Kwota ab.
-              </th>
-            )}
-            <th className="text-center whitespace-nowrap">Akcje</th>
+
+            <th className="text-center whitespace-normal lg:whitespace-nowrap">
+              Akcje
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -159,7 +160,6 @@ export default function ClientList({
 
             const rowChecked = selectable && id && checkedIds.includes(id);
 
-            // для tel: створюємо безпечний номер (допускаємо + на початку)
             const telHref = (() => {
               if (!phoneStr || phoneStr === "-") return null;
               const cleaned = phoneStr.replace(/[^+\d]/g, "");
@@ -172,7 +172,7 @@ export default function ClientList({
                 className={`hover:bg-gray-50 ${rowClass}`}
               >
                 {selectable && (
-                  <td className="text-center whitespace-nowrap">
+                  <td className="text-center whitespace-normal">
                     <input
                       type="checkbox"
                       checked={!!rowChecked}
@@ -184,20 +184,18 @@ export default function ClientList({
                   </td>
                 )}
 
-                <td className="text-center whitespace-nowrap">{i + 1}</td>
+                <td className="text-center whitespace-nowrap hidden lg:table-cell">
+                  {i + 1}
+                </td>
 
-                {/* 🆕 Комірка з ID перед назвою */}
-                {showIdBeforeName && (
-                  <td
-                    className="whitespace-normal break-words leading-tight text-xs font-medium text-gray-700"
-                    style={{ maxWidth: `${idCellMaxChars}ch` }}
-                    title={id || "-"}
-                  >
-                    {id || "—"}
-                  </td>
-                )}
+                <td
+                  className="hidden lg:table-cell whitespace-nowrap leading-tight text-xs font-medium text-gray-700"
+                  title={id || "-"}
+                >
+                  {id || "—"}
+                </td>
 
-                <td className="whitespace-normal">
+                <td className="whitespace-normal break-words max-w-none">
                   <div className="flex items-start gap-2">
                     <span>{name}</span>
                     {c.notice && (
@@ -208,9 +206,8 @@ export default function ClientList({
                   </div>
                 </td>
 
-                {/* 🆕 Email — клікабельний, копіює у буфер */}
                 <td
-                  className="max-w-[240px] whitespace-nowrap overflow-hidden text-ellipsis cursor-pointer text-blue-700 hover:underline"
+                  className="hidden lg:table-cell max-w-[240px] whitespace-normal break-words cursor-pointer text-blue-700 hover:underline"
                   title="Kliknij, aby skopiować e-mail"
                   onClick={() => {
                     if (email && email !== "-") {
@@ -222,9 +219,8 @@ export default function ClientList({
                   {email || "-"}
                 </td>
 
-                {/* Telefon — КЛІКАБЕЛЬНИЙ tel: */}
                 <td
-                  className="max-w-[160px] whitespace-nowrap overflow-hidden text-ellipsis"
+                  className="hidden lg:table-cell max-w-[160px] whitespace-normal break-words"
                   title={phoneStr}
                 >
                   {telHref ? (
@@ -238,52 +234,43 @@ export default function ClientList({
 
                 {showAbonFields && (
                   <td
-                    className="max-w-[220px] whitespace-nowrap overflow-hidden text-ellipsis hidden md:table-cell"
+                    className="hidden lg:table-cell max-w-[220px] whitespace-normal break-words overflow-hidden"
                     title={abonament || "-"}
                   >
                     {abonament || "-"}
                   </td>
                 )}
+                <td className="text-center align-top whitespace-normal">
+                  <div className="inline-flex flex-wrap items-center gap-2 justify-center">
+                    <button
+                      type="button"
+                      onClick={() => onSelect(c)}
+                      className="inline-flex items-center rounded-lg px-3 py-1 text-sm font-semibold border border-[var(--primary-500)] bg-[var(--primary-500)] text-white hover:bg-white hover:text-[var(--primary-600)] focus:ring-2 focus:ring-[var(--primary-300)] transition"
+                      title="Szczegóły klienta"
+                    >
+                      Szczegóły
+                    </button>
 
-                {showAbonFields && (
-                  <td className="text-right whitespace-nowrap hidden md:table-cell">
-                    {abonamentAmountStr}
-                  </td>
-                )}
-
-                <td className="text-center whitespace-nowrap">
-                  {/* Zielona “Szczegóły” */}
-                  <button
-                    type="button"
-                    onClick={() => onSelect(c)}
-                    className="inline-flex items-center rounded-lg px-3 py-1 text-sm font-semibold bg-green-600 text-white hover:bg-green-700 focus:ring-2 focus:ring-green-400 mr-2"
-                    title="Szczegóły klienta"
-                  >
-                    Szczegóły
-                  </button>
-
-                  <span className="hidden md:inline-flex items-center gap-2 align-middle">
                     <button
                       type="button"
                       onClick={() => onEdit && onEdit(c)}
                       title="Edytuj"
                       aria-label="Edytuj"
-                      className="inline-flex items-center justify-center rounded-lg p-2 border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 focus:ring-2 focus:ring-blue-300 shadow-soft transition"
+                      className="hidden lg:inline-flex items-center justify-center rounded-lg p-2 border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 focus:ring-2 focus:ring-blue-300 shadow-soft transition"
                     >
                       <IconEdit className="w-5 h-5" />
                     </button>
 
-                    {/* Архівація */}
                     <button
                       type="button"
                       onClick={() => onDeleteRequest && onDeleteRequest(c)}
                       title="Archiwizuj"
                       aria-label="Archiwizuj"
-                      className="inline-flex items-center justify-center rounded-lg p-2 border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 focus:ring-2 focus:ring-amber-300 shadow-soft transition"
+                      className="hidden lg:inline-flex items-center justify-center rounded-lg p-2 border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 focus:ring-2 focus:ring-amber-300 shadow-soft transition"
                     >
                       <IconArchive className="w-5 h-5" />
                     </button>
-                  </span>
+                  </div>
                 </td>
               </tr>
             );
@@ -291,7 +278,6 @@ export default function ClientList({
         </tbody>
       </table>
 
-      {/* 🆕 Toast повідомлення */}
       {toastMsg && (
         <div className="fixed bottom-5 right-5 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg text-sm animate-fadeIn">
           {toastMsg}

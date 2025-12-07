@@ -21,54 +21,62 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
 
- const onSubmit = async (e) => {
-   e.preventDefault();
-   setErr("");
-   setLoading(true);
-   try {
-     const r = await loginRequest(email.trim(), password);
-     const j = await r.json().catch(() => ({}));
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    setErr("");
+    setLoading(true);
+    try {
+      const r = await loginRequest(email.trim(), password);
+      const j = await r.json().catch(() => ({}));
 
-     if (!r.ok) {
-       let message = j?.error || "Błąd logowania";
+      if (!r.ok) {
+        let message = j?.error || "Błąd logowania";
 
-       if (r.status === 400 || r.status === 401) {
-         message = "Nieprawidłowy login lub hasło.";
-       } else {
-         message =
-           "Wystąpił problem techniczny po naszej stronie. Spróbuj ponownie za kilka minut.";
-       }
+        if (r.status === 400 || r.status === 401) {
+          message = "Nieprawidłowy login lub hasło.";
+        } else {
+          message =
+            "Wystąpił problem techniczny po naszej stronie. Spróbuj ponownie za kilka minut.";
+        }
 
-       throw new Error(message);
-     }
+        throw new Error(message);
+      }
 
-     const from = (loc.state && loc.state.from) || "/";
-     nav(from, { replace: true });
-   } catch (e) {
-     let message =
-       e?.message ||
-       "Wystąpił problem techniczny po naszej stronie. Spróbuj ponownie za kilka minut.";
+      const from = (loc.state && loc.state.from) || "/";
+      nav(from, { replace: true });
+    } catch (e) {
+      let message =
+        e?.message ||
+        "Wystąpił problem techniczny po naszej stronie. Spróbuj ponownie za kilka minut.";
 
-     if (
-       typeof message === "string" &&
-       (message.includes("Failed to fetch") ||
-         message.includes("NetworkError") ||
-         message.includes("Network"))
-     ) {
-       message =
-         "Wystąpił problem techniczny po naszej stronie. Spróbuj ponownie za kilka minut.";
-     }
+      if (
+        typeof message === "string" &&
+        (message.includes("Failed to fetch") ||
+          message.includes("NetworkError") ||
+          message.includes("Network"))
+      ) {
+        message =
+          "Wystąpił problem techniczny po naszej stronie. Spróbuj ponownie za kilka minut.";
+      }
 
-     setErr(message);
-   } finally {
-     setLoading(false);
-   }
- };
+      setErr(message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center px-4 bg-slate-50">
-      <div className="w-full max-w-md">
-        <div className="bg-white/80 backdrop-blur-sm shadow-lg rounded-2xl p-6 border border-gray-100">
+    <div
+      className="w-full flex items-center justify-center bg-slate-50 overflow-hidden"
+      style={{
+        minHeight: "calc(100vh - 160px)",
+        maxHeight: "calc(100vh - 100px)",
+        paddingTop: "0px",
+        paddingBottom: "0px",
+      }}
+    >
+      <div className="w-full max-w-lg px-4">
+        <div className="bg-white/80 backdrop-blur-sm shadow-lg rounded-2xl p-5 border border-gray-100 max-h-full overflow-auto">
           <h1 className="text-2xl font-semibold text-center mb-1">
             Witaj w panelu Steryl Serwis
           </h1>
@@ -144,32 +152,26 @@ export default function LoginPage() {
             >
               {loading ? "Logowanie…" : "Zaloguj się"}
             </button>
-
-            <div className="text-xs text-gray-500 text-center mt-1">
-              Po zalogowaniu sesja zapisywana jest w ciasteczku.
-            </div>
           </form>
 
           <div className="mt-4 border-t pt-3 text-xs text-gray-500">
-            <div>Potrzebujesz pomocy?</div>
-            <div>
-              E-mail:{" "}
+            <div className="flex items-center justify-between text-left gap-3">
+              <a
+                href="tel:739015287"
+                className="text-blue-600 hover:underline"
+              >
+                Tel.: 739 015 287
+              </a>
               <a
                 href="mailto:sterylserwis@gmail.com"
-                className="text-blue-600 hover:underline"
+                className="text-blue-600 hover:underline ml-auto"
               >
                 sterylserwis@gmail.com
               </a>
             </div>
-            <div>
-              Telefon:{" "}
-              <a href="tel:739015287" className="text-blue-600 hover:underline">
-                739 015 287
-              </a>
-            </div>
-            <div>Godziny wsparcia: 9:00 – 18:00</div>
-
-            <div className="mt-3 flex flex-wrap items-center justify-center gap-2 text-[11px] text-gray-400">
+            
+            
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-[11px] text-gray-400">
               <a
                 href="/regulamin.html"
                 target="_blank"
@@ -198,10 +200,6 @@ export default function LoginPage() {
               </a>
             </div>
           </div>
-        </div>
-
-        <div className="mt-6 text-center text-xs text-gray-400">
-          Steryl Serwis • Panel obsługi sterylizacji narzędzi
         </div>
       </div>
     </div>

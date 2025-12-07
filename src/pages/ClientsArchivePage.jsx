@@ -7,7 +7,7 @@ export default function ClientsArchivePage() {
       forcedMode="all"
       hideModeSwitcher
       forceArchivedView
-      pageTitle="📒 Klienci — archiwum"
+      pageTitle="Klienci archiwalne"
     />
   );
 }

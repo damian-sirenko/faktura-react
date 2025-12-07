@@ -623,10 +623,10 @@ export default function PrivateSterilizationLog() {
   const inputsDisabled = viewMode === "saved";
 
   return (
-    <div className="w-full mx-auto px-3 sm:px-4 md:px-6 lg:px-8 space-y-4 psl-page">
+    <div className="w-full mx-auto px-3 sm:px-4 md:px-6 lg:px-8 space-y-4 psl-page overflow-x-hidden">
       {/* Верхня панель: поточний місяць + збережені */}
-      <section className="space-y-3">
-        <div className="grid gap-3 md:grid-cols-2">
+      <section className="psl-container space-y-3">
+        <div className="psl-top-wrapper grid gap-3 md:grid-cols-2">
           <div className="card min-w-0">
             <div className="font-semibold mb-2">Bieżący miesiąc</div>
             <div className="text-sm text-gray-700">
@@ -654,7 +654,7 @@ export default function PrivateSterilizationLog() {
                 onClick={() => setWorkspaceMonth(ymOf())}
                 title="Przełącz на bieżący miesiąc roboczy"
               >
-                Obecny miesiąc
+                Bieżący miesiąc
               </button>
             </div>
 
@@ -669,6 +669,8 @@ export default function PrivateSterilizationLog() {
               </button>
             </div>
           </div>
+
+          {/* Blok zapisane miesiące*/}
 
           <div className="card min-w-0">
             <div className="font-semibold mb-2">Zapisane miesiące</div>
@@ -706,7 +708,9 @@ export default function PrivateSterilizationLog() {
             </div>
           </div>
         </div>
+      </section>
 
+      <section className="psl-container">
         {viewMode === "saved" && (
           <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900 space-y-2">
             <div>
@@ -726,172 +730,168 @@ export default function PrivateSterilizationLog() {
         )}
       </section>
 
-      {/* Таблиця з горизонтальним скролом */}
-      <div className="psl-table-scroll ">
-        <main className="space-y-3">
-          <div className="card-lg min-w-0 w-full">
-            <div className="flex flex-wrap items-end gap-3">
-              <div className="flex-1 min-w-[200px]">
-                <div className="font-semibold">
-                  Ewidencja sterylizacji prywatnej — {fmtPLYM(activeYm)}
-                  {viewMode === "saved" ? " (zapisany)" : " (roboczy)"}
-                </div>
-              </div>
-              <div className="w-full sm:w-auto">
-                <label className="block text-sm mb-1">
-                  Filtr: nazwa klienta
-                </label>
-                <input
-                  className="input no-spin w-full"
-                  placeholder="Wpisz nazwę klienta…"
-                  value={nameFilter}
-                  onChange={(e) => setNameFilter(e.target.value)}
-                />
+      {/* Таблиця з горизонтальним скролом у власному контейнері */}
+      <section className="psl-container psl-table-container">
+        <div className="card-lg min-w-0 w-full">
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="flex-1 min-w-[200px]">
+              <div className="font-semibold">
+                Ewidencja sterylizacji prywatnej — {fmtPLYM(activeYm)}
+                {viewMode === "saved" ? " (zapisany)" : " (roboczy)"}
               </div>
             </div>
-
-            <div className="mt-3 w-full">
-              <div className="w-full">
-                <table className="table w-full">
-                  <colgroup>
-                    {cols.map((c) => (
-                      <col key={c.key} style={{ width: c.width }} />
-                    ))}
-                  </colgroup>
-
-                  <thead>
-                    <tr>
-                      <th className="w-[6ch] text-center">#</th>
-                      <th>Klient</th>
-                      <th className="w-[12ch] text-center">Pakiety</th>
-                      <th className="w-[16ch] text-center">
-                        Koszt sterylizacji
-                      </th>
-                      <th className="w-[14ch] text-center">Wysyłka</th>
-                      <th className="w-[16ch] text-center">Razem</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {rowsToRender.map((r, i) => (
-                      <tr key={r.id} className="hover:bg-gray-50">
-                        <td className="text-center">{i + 1}</td>
-
-                        <td className="max-w-0">
-                          <input
-                            list="clients-datalist"
-                            className="input w-full"
-                            value={r.clientName}
-                            onChange={(e) =>
-                              updateRow(r.id, {
-                                clientName: e.target.value,
-                                clientId: clientIdByName(e.target.value),
-                              })
-                            }
-                            placeholder="Wybierz klienta…"
-                            ref={registerInputRef(r.id, "client")}
-                            onKeyDown={handleEnter(r.id, "client")}
-                            disabled={inputsDisabled}
-                          />
-                        </td>
-
-                        <td className="text-right">
-                          <input
-                            className="input w-full text-right no-spin"
-                            type="number"
-                            min="0"
-                            step="1"
-                            inputMode="numeric"
-                            value={r.qty === "" ? "" : r.qty}
-                            onChange={(e) => {
-                              const v = e.target.value;
-                              updateRow(r.id, {
-                                qty: v === "" ? "" : Number(v),
-                              });
-                            }}
-                            title="Ilość pakietów"
-                            ref={registerInputRef(r.id, "qty")}
-                            onKeyDown={handleEnter(r.id, "qty")}
-                            disabled={inputsDisabled}
-                          />
-                        </td>
-
-                        <td className="text-right whitespace-nowrap">
-                          {to2(r.sterilCost)} zł
-                        </td>
-
-                        <td className="text-right">
-                          <input
-                            className="input w-full text-right no-spin"
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            inputMode="decimal"
-                            value={
-                              r.shipOrCourier === "" ? "" : r.shipOrCourier
-                            }
-                            onChange={(e) => {
-                              const v = e.target.value;
-                              updateRow(r.id, {
-                                shipOrCourier: v === "" ? "" : Number(v),
-                              });
-                            }}
-                            title="Kwota wysyłki lub dojazdu"
-                            ref={registerInputRef(r.id, "ship")}
-                            onKeyDown={handleEnter(r.id, "ship")}
-                            disabled={inputsDisabled}
-                          />
-                        </td>
-
-                        <td className="text-right whitespace-nowrap">
-                          {to2(r.total)} zł
-                        </td>
-                      </tr>
-                    ))}
-
-                    <tr>
-                      <td colSpan={6} className="text-right py-3">
-                        <button
-                          className="btn-primary"
-                          onClick={addRow}
-                          ref={addBtnRef}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              addRow();
-                            }
-                          }}
-                          disabled={inputsDisabled}
-                        >
-                          + Dodaj wiersz
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-
-                  <tfoot>
-                    <tr className="bg-blue-50 font-semibold">
-                      <td colSpan={2} className="text-right">
-                        Razem:
-                      </td>
-                      <td className="text-right">{totals.qty}</td>
-                      <td className="text-right">{to2(totals.steril)} zł</td>
-                      <td className="text-right">{to2(totals.ship)} zł</td>
-                      <td className="text-right">{to2(totals.total)} zł</td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
+            <div className="w-full sm:w-auto">
+              <label className="block text-sm mb-1">
+                Filtr: nazwa klienta
+              </label>
+              <input
+                className="input no-spin w-full"
+                placeholder="Wpisz nazwę klienta…"
+                value={nameFilter}
+                onChange={(e) => setNameFilter(e.target.value)}
+              />
             </div>
-
-            <datalist id="clients-datalist">
-              {clients.map((c) => (
-                <option key={c.id || c.name} value={c.name} />
-              ))}
-            </datalist>
           </div>
-        </main>
-      </div>
+
+          <div className="mt-3 w-full">
+            <div className="psl-table-scroll">
+              <table className="table psl-table">
+                <colgroup>
+                  {cols.map((c) => (
+                    <col key={c.key} style={{ width: c.width }} />
+                  ))}
+                </colgroup>
+
+                <thead>
+                  <tr>
+                    <th className="w-[6ch] text-center">#</th>
+                    <th>Klient</th>
+                    <th className="w-[12ch] text-center">Pakiety</th>
+                    <th className="w-[16ch] text-center">Koszt sterylizacji</th>
+                    <th className="w-[14ch] text-center">Wysyłka</th>
+                    <th className="w-[16ch] text-center">Razem</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {rowsToRender.map((r, i) => (
+                    <tr key={r.id} className="hover:bg-gray-50">
+                      <td className="text-center">{i + 1}</td>
+
+                      <td className="max-w-0">
+                        <input
+                          list="clients-datalist"
+                          className="input w-full"
+                          value={r.clientName}
+                          onChange={(e) =>
+                            updateRow(r.id, {
+                              clientName: e.target.value,
+                              clientId: clientIdByName(e.target.value),
+                            })
+                          }
+                          placeholder="Wybierz klienta…"
+                          ref={registerInputRef(r.id, "client")}
+                          onKeyDown={handleEnter(r.id, "client")}
+                          disabled={inputsDisabled}
+                        />
+                      </td>
+
+                      <td className="text-right">
+                        <input
+                          className="input w-full text-right no-spin"
+                          type="number"
+                          min="0"
+                          step="1"
+                          inputMode="numeric"
+                          value={r.qty === "" ? "" : r.qty}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            updateRow(r.id, {
+                              qty: v === "" ? "" : Number(v),
+                            });
+                          }}
+                          title="Ilość pakietów"
+                          ref={registerInputRef(r.id, "qty")}
+                          onKeyDown={handleEnter(r.id, "qty")}
+                          disabled={inputsDisabled}
+                        />
+                      </td>
+
+                      <td className="text-right whitespace-nowrap">
+                        {to2(r.sterilCost)} zł
+                      </td>
+
+                      <td className="text-right">
+                        <input
+                          className="input w-full text-right no-spin"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          inputMode="decimal"
+                          value={
+                            r.shipOrCourier === "" ? "" : r.shipOrCourier
+                          }
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            updateRow(r.id, {
+                              shipOrCourier: v === "" ? "" : Number(v),
+                            });
+                          }}
+                          title="Kwota wysyłki lub dojazdu"
+                          ref={registerInputRef(r.id, "ship")}
+                          onKeyDown={handleEnter(r.id, "ship")}
+                          disabled={inputsDisabled}
+                        />
+                      </td>
+
+                      <td className="text-right whitespace-nowrap">
+                        {to2(r.total)} zł
+                      </td>
+                    </tr>
+                  ))}
+
+                  <tr>
+                    <td colSpan={6} className="text-right py-3">
+                      <button
+                        className="btn-primary"
+                        onClick={addRow}
+                        ref={addBtnRef}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            addRow();
+                          }
+                        }}
+                        disabled={inputsDisabled}
+                      >
+                        + Dodaj wiersz
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+
+                <tfoot>
+                  <tr className="bg-blue-50 font-semibold">
+                    <td colSpan={2} className="text-right">
+                      Razem:
+                    </td>
+                    <td className="text-right">{totals.qty}</td>
+                    <td className="text-right">{to2(totals.steril)} zł</td>
+                    <td className="text-right">{to2(totals.ship)} zł</td>
+                    <td className="text-right">{to2(totals.total)} zł</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <datalist id="clients-datalist">
+            {clients.map((c) => (
+              <option key={c.id || c.name} value={c.name} />
+            ))}
+          </datalist>
+        </div>
+      </section>
 
       <ConfirmDialog
         open={!!toDelete}

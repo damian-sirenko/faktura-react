@@ -42,12 +42,11 @@ export default function Header() {
   }
 
   const linkClass = ({ isActive }) =>
-    `inline-flex items-center rounded-lg px-3 py-2 text-sm font-semibold transition border 
-     ${
-       isActive
-         ? "bg-white text-blue-700 border-white"
-         : "bg-blue-500 text-white border-white hover:bg-white hover:text-blue-700"
-     }`;
+    `inline-flex items-center rounded-lg px-3 py-2 text-sm font-semibold transition border ${
+      isActive
+        ? "bg-white text-[var(--primary-700)] border-white"
+        : "bg-transparent text-white border-white hover:bg-[var(--primary-500)] hover:text-white"
+    }`;
 
   // Дропдаун для «Dokumenty» (десктоп)
   const [docsOpen, setDocsOpen] = useState(false);
@@ -160,249 +159,257 @@ export default function Header() {
   return (
     <header className="bg-blue-600 shadow-md sticky top-0 z-40 w-full">
       <div
-        className={`w-full mx-auto px-3 sm:px-4 md:px-6 lg:px-8 relative flex items-center justify-between gap-3 transition-all ${
+        className={`w-full mx-auto px-3 sm:px-4 md:px-6 lg:px-8 relative transition-all ${
           scrolled ? "py-1" : "py-3"
         }`}
       >
-        {/* Логотип (зліва) */}
-        <Link
-          to="/"
-          className="flex items-center gap-3 text-white transition-all"
-        >
-          <img
-            src="/img/steryl-serwis-logo.png"
-            alt="Steryl Serwis"
-            className={`w-auto transition-all ${
-              scrolled ? "h-8 md:h-9" : "h-10 md:h-12"
-            }`}
-          />
-          <span className="pl-3 border-l border-blue-200 text-[22px] tracking-wide text-blue-100 font-bold">
-            Panel
-          </span>
-        </Link>
-
-        {/* Меню — планшет/десктоп (центр) */}
-        <nav className="hidden md:flex items-center gap-2 flex-wrap py-2">
-          <NavLink to="/" className={linkClass} end>
-            Start
-          </NavLink>
-
-          {/* ▼ Klienci — ховер + клік (десктоп) */}
-          <div
-            className="relative"
-            onMouseEnter={openClients}
-            onMouseLeave={closeClientsSoon}
-            onFocus={openClients}
-            onBlur={closeClientsSoon}
-          >
-            <button
-              type="button"
-              aria-expanded={clientsOpen ? "true" : "false"}
-              aria-haspopup="menu"
-              aria-controls="clients-menu"
-              onClick={toggleClients}
-              className={`inline-flex items-center rounded-lg px-3 py-2 text-sm font-semibold transition border ${
-                clientsActive
-                  ? "bg-white text-blue-700 border-white"
-                  : "bg-blue-500 text-white border-white hover:bg-white hover:text-blue-700"
-              }`}
+        <div className="w-full grid grid-cols-[auto_1fr_auto] items-center gap-3">
+          {/* Логотип (зліва) */}
+          <div className="flex items-center">
+            <Link
+              to="/"
+              className="flex items-center gap-3 text-white transition-all"
             >
-              Klienci{" "}
-              <span className="ml-1" aria-hidden>
-                ▾
+              <img
+                src="/img/steryl-serwis-logo.png"
+                alt="Steryl Serwis"
+                className={`w-auto transition-all ${
+                  scrolled ? "h-8 md:h-9" : "h-10 md:h-12"
+                }`}
+              />
+              <span className="pl-3 border-l border-blue-200 text-[22px] tracking-wide text-blue-100 font-bold">
+                Panel
               </span>
-            </button>
+            </Link>
+          </div>
 
-            <div
-              id="clients-menu"
-              role="menu"
-              className={`absolute left-0 mt-1 w-64 rounded-lg border bg-white shadow z-50 ${
-                clientsOpen ? "block" : "hidden"
-              }`}
-              onMouseEnter={openClients}
-              onMouseLeave={closeClientsSoon}
-            >
-              <NavLink
+          {/* Меню — планшет/десктоп (центр) */}
+          <div className="hidden md:flex justify-center">
+            <nav className="flex items-center gap-2 flex-wrap py-2">
+              <NavLink to="/" className={linkClass} end>
+                Start
+              </NavLink>
+
+              {/* ▼ Klienci — ховер + клік (десктоп) */}
+              <div
+                className="relative"
+                onMouseEnter={openClients}
+                onMouseLeave={closeClientsSoon}
+                onFocus={openClients}
+                onBlur={closeClientsSoon}
+              >
+                <button
+                  type="button"
+                  aria-expanded={clientsOpen ? "true" : "false"}
+                  aria-haspopup="menu"
+                  aria-controls="clients-menu"
+                  onClick={toggleClients}
+                  className={`inline-flex items-center rounded-lg px-3 py-2 text-sm font-semibold transition border ${
+                    clientsActive
+                      ? "bg-white text-[var(--primary-700)] border-white"
+                      : "bg-transparent text-white border-white hover:bg-[var(--primary-500)] hover:text-white"
+                  }`}
+                >
+                  Klienci{" "}
+                  <span className="ml-1" aria-hidden>
+                    ▾
+                  </span>
+                </button>
+
+                <div
+                  id="clients-menu"
+                  role="menu"
+                  className={`absolute left-0 mt-1 w-64 rounded-lg border bg-white shadow z-50 ${
+                    clientsOpen ? "block" : "hidden"
+                  }`}
+                  onMouseEnter={openClients}
+                  onMouseLeave={closeClientsSoon}
+                >
+                  <NavLink
                 to="/clients/abonamentowi"
                 role="menuitem"
                 className={({ isActive }) =>
                   `block px-3 py-2 rounded-md transition ${
                     isActive
-                      ? "bg-blue-600 text-white"
-                      : "text-blue-700 bg-white hover:bg-blue-600 hover:text-white"
+                      ? "bg-white text-[var(--primary-700)]"
+                      : "text-[var(--primary-700)] bg-white hover:bg-[var(--primary-500)] hover:text-white"
                   }`
                 }
               >
                 Abonamentowi
               </NavLink>
 
-              <NavLink
+                  <NavLink
                 to="/clients/prywatni"
                 role="menuitem"
                 className={({ isActive }) =>
                   `block px-3 py-2 rounded-md transition ${
                     isActive
-                      ? "bg-blue-600 text-white"
-                      : "text-blue-700 bg-white hover:bg-blue-600 hover:text-white"
+                      ? "bg-white text-[var(--primary-700)]"
+                      : "text-[var(--primary-700)] bg-white hover:bg-[var(--primary-500)] hover:text-white"
                   }`
                 }
               >
                 Prywatni
               </NavLink>
 
-              <NavLink
-                to="/clients/prywatni/ewidencja"
+                  <NavLink
+                    to="/clients/prywatni/ewidencja"
                 role="menuitem"
                 className={({ isActive }) =>
                   `block pl-6 pr-3 py-2 rounded-md transition ${
                     isActive
-                      ? "bg-blue-600 text-white"
-                      : "text-blue-700 bg-white hover:bg-blue-600 hover:text-white"
+                      ? "bg-white text-[var(--primary-700)]"
+                      : "text-[var(--primary-700)] bg-white hover:bg-[var(--primary-500)] hover:text-white"
                   }`
                 }
                 title="Ewidencja sterylizacji prywatnej"
               >
                 Ewidencja sterylizacji prywatnej
-              </NavLink>
+                  </NavLink>
 
-              <NavLink
+                  <NavLink
                 to="/clients/archiwum"
                 role="menuitem"
                 className={({ isActive }) =>
                   `block px-3 py-2 rounded-md transition ${
                     isActive
-                      ? "bg-blue-600 text-white"
-                      : "text-blue-700 bg-white hover:bg-blue-600 hover:text-white"
+                      ? "bg-white text-[var(--primary-700)]"
+                      : "text-[var(--primary-700)] bg-white hover:bg-[var(--primary-500)] hover:text-white"
                   }`
                 }
               >
                 Archiwum
               </NavLink>
-            </div>
-          </div>
+                </div>
+              </div>
 
-          {/* ▼ Dokumenty — ховер + клік + клавіатура (десктоп) */}
-          <div
-            className="relative"
-            onMouseEnter={openDocs}
-            onMouseLeave={closeDocsSoon}
-            onFocus={openDocs}
-            onBlur={closeDocsSoon}
-          >
-            <button
-              type="button"
-              aria-expanded={docsOpen ? "true" : "false"}
-              aria-haspopup="menu"
-              aria-controls="docs-menu"
-              onClick={toggleDocs}
-              className={`inline-flex items-center rounded-lg px-3 py-2 text-sm font-semibold transition border ${
-                docsActive
-                  ? "bg-white text-blue-700 border-white"
-                  : "bg-blue-500 text-white border-white hover:bg-white hover:text-blue-700"
-              }`}
-            >
-              Dokumenty{" "}
-              <span className="ml-1" aria-hidden>
-                ▾
-              </span>
-            </button>
+              {/* ▼ Dokumenty — ховер + клік + клавіатура (десктоп) */}
+              <div
+                className="relative"
+                onMouseEnter={openDocs}
+                onMouseLeave={closeDocsSoon}
+                onFocus={openDocs}
+                onBlur={closeDocsSoon}
+              >
+                <button
+                  type="button"
+                  aria-expanded={docsOpen ? "true" : "false"}
+                  aria-haspopup="menu"
+                  aria-controls="docs-menu"
+                  onClick={toggleDocs}
+                  className={`inline-flex items-center rounded-lg px-3 py-2 text-sm font-semibold transition border ${
+                    docsActive
+                      ? "bg-white text-[var(--primary-700)] border-white"
+                      : "bg-transparent text-white border-white hover:bg-[var(--primary-500)] hover:text-white"
+                  }`}
+                >
+                  Dokumenty{" "}
+                  <span className="ml-1" aria-hidden>
+                    ▾
+                  </span>
+                </button>
 
-            <div
-              id="docs-menu"
-              role="menu"
-              className={`absolute right-0 mt-1 w-56 rounded-lg border bg-white shadow z-50 ${
-                docsOpen ? "block" : "hidden"
-              }`}
-              onMouseEnter={openDocs}
-              onMouseLeave={closeDocsSoon}
-            >
-              <NavLink
+                <div
+                  id="docs-menu"
+                  role="menu"
+                  className={`absolute right-0 mt-1 w-56 rounded-lg border bg-white shadow z-50 ${
+                    docsOpen ? "block" : "hidden"
+                  }`}
+                  onMouseEnter={openDocs}
+                  onMouseLeave={closeDocsSoon}
+                >
+                  <NavLink
                 to="/saved"
                 role="menuitem"
                 className={({ isActive }) =>
                   `block px-3 py-2 rounded-md transition ${
                     isActive
-                      ? "bg-blue-600 text-white"
-                      : "text-blue-700 bg-white hover:bg-blue-600 hover:text-white"
+                      ? "bg-white text-[var(--primary-700)]"
+                      : "text-[var(--primary-700)] bg-white hover:bg-[var(--primary-500)] hover:text-white"
                   }`
                 }
               >
                 Faktury
               </NavLink>
-              <NavLink
+                  <NavLink
                 to="/documents/protocols"
                 role="menuitem"
                 className={({ isActive }) =>
                   `block px-3 py-2 rounded-md transition ${
                     isActive
-                      ? "bg-blue-600 text-white"
-                      : "text-blue-700 bg-white hover:bg-blue-600 hover:text-white"
+                      ? "bg-white text-[var(--primary-700)]"
+                      : "text-[var(--primary-700)] bg-white hover:bg-[var(--primary-500)] hover:text-white"
                   }`
                 }
               >
                 Protokoły
               </NavLink>
-              <NavLink
+                  <NavLink
                 to="/documents/tools"
                 role="menuitem"
                 className={({ isActive }) =>
                   `block px-3 py-2 rounded-md transition ${
                     isActive
-                      ? "bg-blue-600 text-white"
-                      : "text-blue-700 bg-white hover:bg-blue-600 hover:text-white"
+                      ? "bg-white text-[var(--primary-700)]"
+                      : "text-[var(--primary-700)] bg-white hover:bg-[var(--primary-500)] hover:text-white"
                   }`
                 }
               >
                 Narzędzia
               </NavLink>
-            </div>
+                </div>
+              </div>
+
+              <NavLink to="/stats" className={linkClass}>
+                Statystyki
+              </NavLink>
+
+              <NavLink
+                to="/sign-queue?type=courier"
+                className={(props) => `hidden lg:inline-flex ${linkClass(props)}`}
+              >
+                Do podpisu
+              </NavLink>
+
+              <NavLink to="/admin-counter" className={linkClass}>
+                Ustawienia
+              </NavLink>
+            </nav>
           </div>
 
-          <NavLink to="/stats" className={linkClass}>
-            Statystyki
-          </NavLink>
+          {/* Праворуч: логін/лог-аут + бургер */}
+          <div className="flex items-center justify-end gap-2">
+            <div className="hidden md:block">{AuthButton}</div>
 
-          <NavLink
-            to="/sign-queue?type=courier"
-            className={(props) => `hidden lg:inline-flex ${linkClass(props)}`}
-          >
-            Do podpisu
-          </NavLink>
-
-          <NavLink to="/admin-counter" className={linkClass}>
-            Ustawienia
-          </NavLink>
-        </nav>
-
-        {/* Кнопка логін/вилог — десктоп, справа в потоці */}
-        <div className="hidden md:block ml-3">{AuthButton}</div>
-
-        {/* Бургер — мобільні (< md) */}
-        <button
-          className="md:hidden inline-flex items-center justify-center h-10 w-10 rounded-lg bg-blue-500 text-white hover:bg-white hover:text-blue-700 border border-white transition"
-          aria-label="Menu"
-          aria-expanded={menuOpen ? "true" : "false"}
-          onClick={() => setMenuOpen((v) => !v)}
-        >
-          <span className="sr-only">Otwórz menu</span>
-          <div className="space-y-1.5">
-            <span
-              className={`block h-[2px] w-6 bg-current transition-transform ${
-                menuOpen ? "translate-y-[7px] rotate-45" : ""
-              }`}
-            />
-            <span
-              className={`block h-[2px] w-6 bg-current transition-opacity ${
-                menuOpen ? "opacity-0" : ""
-              }`}
-            />
-            <span
-              className={`block h-[2px] w-6 bg-current transition-transform ${
-                menuOpen ? "-translate-y-[7px] -rotate-45" : ""
-              }`}
-            />
+            {/* Бургер — мобільні (< md) */}
+            <button
+              className="md:hidden inline-flex items-center justify-center h-10 w-10 rounded-lg bg-blue-500 text-white hover:bg-white hover:text-blue-700 border border-white transition"
+              aria-label="Menu"
+              aria-expanded={menuOpen ? "true" : "false"}
+              onClick={() => setMenuOpen((v) => !v)}
+            >
+              <span className="sr-only">Otwórz menu</span>
+              <div className="space-y-1.5">
+                <span
+                  className={`block h-[2px] w-6 bg-current transition-transform ${
+                    menuOpen ? "translate-y-[7px] rotate-45" : ""
+                  }`}
+                />
+                <span
+                  className={`block h-[2px] w-6 bg-current transition-opacity ${
+                    menuOpen ? "opacity-0" : ""
+                  }`}
+                />
+                <span
+                  className={`block h-[2px] w-6 bg-current transition-transform ${
+                    menuOpen ? "-translate-y-[7px] -rotate-45" : ""
+                  }`}
+                />
+              </div>
+            </button>
           </div>
-        </button>
+        </div>
       </div>
 
       {/* Мобільне меню (slide-down) */}

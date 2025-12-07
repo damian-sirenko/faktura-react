@@ -6,7 +6,7 @@ export default function ClientsAbonPage() {
     <ClientsPage
       forcedMode="abonament"
       hideModeSwitcher
-      pageTitle="📒 Klienci — abonamentowi"
+      pageTitle="Klienci abonamentowi"
     />
   );
 }

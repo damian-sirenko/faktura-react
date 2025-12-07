@@ -6,7 +6,7 @@ export default function ClientsPrivatePage() {
     <ClientsPage
       forcedMode="perpiece"
       hideModeSwitcher
-      pageTitle="📒 Klienci — prywatni"
+      pageTitle="Klienci 'Na Sztuki'"
     />
   );
 }
