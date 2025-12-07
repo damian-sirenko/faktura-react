@@ -1093,45 +1093,12 @@ export default function SavedInvoicesPage() {
 
   /* ====== RENDER ====== */
   return (
-    <div className="max-w-6xl mx-auto p-4 space-y-4">
-      <h1 className="text-2xl font-bold">📁 Zapisane faktury</h1>
-
-      {/* Кнопки керування формою */}
-      <div className="card-lg flex items-center gap-2">
-        <button className="btn-primary" onClick={openNewForm}>
-          Dodaj fakturę
-        </button>
-
-        <button
-          className="btn-secondary"
-          onClick={editSelected}
-          disabled={selected.length !== 1}
-          title={
-            selected.length === 1
-              ? "Edytuj zaznaczoną fakturę"
-              : "Zaznacz dokładnie jedną fakturę na liście"
-          }
-        >
-          Edytuj zaznaczoną
-        </button>
-
-        {formOpen && (
-          <button
-            className="btn-secondary"
-            onClick={() => {
-              setFormOpen(false);
-              setEditingIndex(null);
-              setEditingOriginalNumber(null);
-            }}
-          >
-            Zamknij formularz
-          </button>
-        )}
-      </div>
-
-      {/* Filters */}
-      <div className="card-lg space-y-3">
-        <div className="flex flex-wrap gap-3 items-end">
+    <div className="max-w-6xl mx-auto p-4 space-y-4 min-w-0">
+      {/* Контейнер кнопок + фільтри в одному стилі */}
+      <div className="card-lg border-2 border-blue-200 bg-blue-50/60 space-y-4 min-w-0 overflow-hidden">
+        {/* Filters у верхній частині */}
+        <h1 className="text-2xl font-bold">Wystawione faktury</h1>
+        <div className="flex flex-wrap gap-3 items-end min-w-0">
           <div>
             <label className="block text-sm mb-1">Klient</label>
             <input
@@ -1220,34 +1187,67 @@ export default function SavedInvoicesPage() {
               <option value="overdue">przeterminowana</option>
             </select>
           </div>
+        </div>
 
-          <div className="flex-1" />
+        {/* Кнопки — один стиль, без дублювань */}
+        <div className="flex flex-wrap items-center gap-2 min-w-0">
+          <button className="btn-primary" onClick={openNewForm}>
+            Dodaj fakturę
+          </button>
 
-          <div className="flex gap-2">
-            <IconButton
+          <button
+            className="btn-primary"
+            onClick={editSelected}
+            disabled={selected.length !== 1}
+            title={
+              selected.length === 1
+                ? "Edytuj zaznaczoną fakturę"
+                : "Zaznacz dokładnie jedną fakturę на liście"
+            }
+          >
+            Edytuj zaznaczoną
+          </button>
+
+          {formOpen && (
+            <button
+              className="btn-primary"
+              onClick={() => {
+                setFormOpen(false);
+                setEditingIndex(null);
+                setEditingOriginalNumber(null);
+              }}
+            >
+              Zamknij formularz
+            </button>
+          )}
+
+          <div className="flex-1 min-w-0" />
+
+          <div className="flex flex-wrap gap-2 min-w-0 justify-end">
+            <button
+              className="btn-primary"
               title="Pobierz wybrane (ZIP)"
               onClick={bulkDownloadZip}
-              variant="secondary"
             >
-              <IconDownload />
-            </IconButton>
-            {/* ✅ Експорт .epp + PDF-список одночасно */}
+              <span className="mr-2">⬇️</span>ZIP
+            </button>
             <button
-              className="btn-secondary"
+              className="btn-primary"
               onClick={bulkExportEPPAndListPDF}
               disabled={!selected.length}
               title="Eksport .epp + PDF lista"
               aria-label="Eksport EPP + PDF"
             >
-              .epp + PDF
+              <span className="mr-2">📄</span>.epp + PDF
             </button>
-            <IconButton
+            <button
+              className="btn-primary"
               title="Usuń zaznaczone"
               onClick={bulkDelete}
-              variant="danger"
+              disabled={!selected.length}
             >
-              <IconTrash />
-            </IconButton>
+              <span className="mr-2">🗑️</span>Usuń zaznaczone
+            </button>
           </div>
         </div>
       </div>
