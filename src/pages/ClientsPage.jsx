@@ -1198,7 +1198,7 @@ export default function ClientsPage({
                   disabled={!checkedIds.length}
                   title="Przenieś zaznaczonych klientów do archiwum"
                 >
-                  <span className="mr-2">📦</span>
+                  <span className="mr-2"></span>
                   Archiwizuj zaznaczone
                 </button>
 
@@ -1208,7 +1208,7 @@ export default function ClientsPage({
                   disabled={!checkedIds.length}
                   title="Generuj faktury z zaznaczonych klientów"
                 >
-                  <span className="mr-2">🧾</span>
+                  <span className="mr-2"></span>
                   Generuj faktury
                 </button>
 
@@ -1218,7 +1218,7 @@ export default function ClientsPage({
                   disabled={!checkedIds.length}
                   title="Generuj PDF z etykietami (3×7 na A4)"
                 >
-                  <span className="mr-2">🏷️</span>
+                  <span className="mr-2"></span>
                   Generuj etykiety
                 </button>
 
@@ -1227,7 +1227,7 @@ export default function ClientsPage({
                   onClick={openKartoteka}
                   title="Generuj PDF kartoteki klientów abonamentowych"
                 >
-                  <span className="mr-2">📂</span>
+                  <span className="mr-2"></span>
                   Generuj kartotekę
                 </button>
               </>
@@ -1304,7 +1304,7 @@ export default function ClientsPage({
                   disabled={!checkedIds.length}
                   title="Przenieś zaznaczonych klientów do archiwum"
                 >
-                  <span className="mr-2">📦</span>
+                  <span className="mr-2"></span>
                   Archiwizuj zaznaczone
                 </button>
                 <button
@@ -1313,7 +1313,7 @@ export default function ClientsPage({
                   disabled={!checkedIds.length}
                   title="Generuj faktury z zaznaczonych klientów"
                 >
-                  <span className="mr-2">🧾</span>
+                  <span className="mr-2"></span>
                   Generuj faktury
                 </button>
 
@@ -1323,7 +1323,7 @@ export default function ClientsPage({
                   disabled={!checkedIds.length}
                   title="Generuj PDF z etykietami (3×7 na A4)"
                 >
-                  <span className="mr-2">🏷️</span>
+                  <span className="mr-2"></span>
                   Generuj etykiety
                 </button>
                 <button
@@ -1331,7 +1331,7 @@ export default function ClientsPage({
                   onClick={openKartoteka}
                   title="Generuj PDF kartoteki klientów abonamentowych"
                 >
-                  <span className="mr-2">📂</span>
+                  <span className="mr-2"></span>
                   Generuj kartotekę
                 </button>
               </>

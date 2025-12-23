@@ -1094,11 +1094,155 @@ export default function SavedInvoicesPage() {
   /* ====== RENDER ====== */
   return (
     <div className="max-w-6xl mx-auto p-4 space-y-4 min-w-0">
-      {/* Контейнер кнопок + фільтри в одному стилі */}
-      <div className="card-lg border-2 border-blue-200 bg-blue-50/60 space-y-4 min-w-0 overflow-hidden">
-        {/* Filters у верхній частині */}
+      {/* Контейнер кнопок + фільтри (адаптивно як у клієнтах) */}
+      <div className="card-lg border-2 border-blue-200 bg-blue-50/60 space-y-3 min-w-0 overflow-hidden">
         <h1 className="text-2xl font-bold">Wystawione faktury</h1>
-        <div className="flex flex-wrap gap-3 items-end min-w-0">
+        {/* MOBILE / TABLET */}
+        <div className="flex flex-col sm:flex-row md:hidden gap-3 w-full min-w-0">
+          <div className="flex-1 min-w-0 flex flex-col gap-2">
+            <div className="w-full flex flex-col gap-2">
+              <input
+                className="input w-full"
+                placeholder="Szukaj po kliencie"
+                value={searchClient}
+                onChange={(e) => {
+                  setSearchClient(e.target.value);
+                  setPage(1);
+                }}
+              />
+              <input
+                className="input w-full"
+                placeholder="Szukaj po numerze"
+                value={searchNumber}
+                onChange={(e) => {
+                  setSearchNumber(e.target.value);
+                  setPage(1);
+                }}
+              />
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <label className="block text-sm mb-1">Data</label>
+                  <select
+                    className="input w-full"
+                    value={dateFilter}
+                    onChange={(e) => {
+                      setDateFilter(e.target.value);
+                      setPage(1);
+                    }}
+                  >
+                    <option value="all">Wszystkie</option>
+                    <option value="today">Dzisiaj</option>
+                    <option value="week">Ten tydzień</option>
+                    <option value="month">Ten miesiąc</option>
+                    <option value="custom">Zakres</option>
+                  </select>
+                </div>
+                <div className="flex-1">
+                  <label className="block text-sm mb-1">Status</label>
+                  <select
+                    className="input w-full"
+                    value={statusFilter}
+                    onChange={(e) => {
+                      setStatusFilter(e.target.value);
+                      setPage(1);
+                    }}
+                    title="Filtruj po statusie"
+                  >
+                    <option value="all">Wszystkie</option>
+                    <option value="issued">wystawiona</option>
+                    <option value="paid">opłacona</option>
+                    <option value="overdue">przeterminowana</option>
+                  </select>
+                </div>
+              </div>
+              {dateFilter === "custom" && (
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="date"
+                    className="input w-full"
+                    value={customFrom}
+                    onChange={(e) => {
+                      setCustomFrom(e.target.value);
+                      setPage(1);
+                    }}
+                  />
+                  <input
+                    type="date"
+                    className="input w-full"
+                    value={customTo}
+                    onChange={(e) => {
+                      setCustomTo(e.target.value);
+                      setPage(1);
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <button className="btn-primary flex-1 min-w-[140px]" onClick={openNewForm}>
+                Dodaj fakturę
+              </button>
+              <button
+                className="btn-primary flex-1 min-w-[140px]"
+                onClick={editSelected}
+                disabled={selected.length !== 1}
+                title={
+                  selected.length === 1
+                    ? "Edytuj zaznaczoną fakturę"
+                    : "Zaznacz dokładnie jedną fakturę на liście"
+                }
+              >
+                Edytuj zaznaczoną
+              </button>
+              {formOpen && (
+                <button
+                  className="btn-primary flex-1 min-w-[140px]"
+                  onClick={() => {
+                    setFormOpen(false);
+                    setEditingIndex(null);
+                    setEditingOriginalNumber(null);
+                  }}
+                >
+                  Zamknij formularz
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2 w-full sm:w-auto sm:items-end min-w-0">
+            <div className="flex gap-2 w-full">
+              <button
+                className="btn-primary flex-1 basis-1/2 justify-center"
+                title="Pobierz wybrane (ZIP)"
+                onClick={bulkDownloadZip}
+                disabled={!selected.length}
+              >
+                ZIP
+              </button>
+              <button
+                className="btn-primary flex-1 basis-1/2 justify-center"
+                onClick={bulkExportEPPAndListPDF}
+                disabled={!selected.length}
+                title="Eksport .epp + PDF lista"
+                aria-label="Eksport EPP + PDF"
+              >
+                .epp + PDF
+              </button>
+            </div>
+            <button
+              className="btn-danger w-full justify-center"
+              title="Usuń zaznaczone"
+              onClick={bulkDelete}
+              disabled={!selected.length}
+            >
+              Usuń zaznaczone
+            </button>
+          </div>
+        </div>
+
+        {/* DESKTOP */}
+        <div className="hidden md:flex flex-wrap gap-3 items-end min-w-0">
           <div>
             <label className="block text-sm mb-1">Klient</label>
             <input
@@ -1169,7 +1313,6 @@ export default function SavedInvoicesPage() {
             </>
           )}
 
-          {/* ✅ фільтр за статусом (використовує effectiveStatusOf) */}
           <div>
             <label className="block text-sm mb-1">Status</label>
             <select
@@ -1189,69 +1332,72 @@ export default function SavedInvoicesPage() {
           </div>
         </div>
 
-        {/* Кнопки — один стиль, без дублювань */}
-        <div className="flex flex-wrap items-center gap-2 min-w-0">
-          <button className="btn-primary" onClick={openNewForm}>
-            Dodaj fakturę
-          </button>
-
-          <button
-            className="btn-primary"
-            onClick={editSelected}
-            disabled={selected.length !== 1}
-            title={
-              selected.length === 1
-                ? "Edytuj zaznaczoną fakturę"
-                : "Zaznacz dokładnie jedną fakturę на liście"
-            }
-          >
-            Edytuj zaznaczoną
-          </button>
-
-          {formOpen && (
-            <button
-              className="btn-primary"
-              onClick={() => {
-                setFormOpen(false);
-                setEditingIndex(null);
-                setEditingOriginalNumber(null);
-              }}
-            >
-              Zamknij formularz
+        <div className="hidden md:block w-full overflow-x-auto">
+          <div className="flex flex-nowrap items-center gap-2 min-w-max">
+            <button className="btn-primary shrink-0 justify-center" onClick={openNewForm}>
+              Dodaj fakturę
             </button>
-          )}
 
-          <div className="flex-1 min-w-0" />
+            <div className="flex-1" />
 
-          <div className="flex flex-wrap gap-2 min-w-0 justify-end">
-            <button
-              className="btn-primary"
-              title="Pobierz wybrane (ZIP)"
-              onClick={bulkDownloadZip}
-            >
-              <span className="mr-2">⬇️</span>ZIP
-            </button>
-            <button
-              className="btn-primary"
-              onClick={bulkExportEPPAndListPDF}
-              disabled={!selected.length}
-              title="Eksport .epp + PDF lista"
-              aria-label="Eksport EPP + PDF"
-            >
-              <span className="mr-2">📄</span>.epp + PDF
-            </button>
-            <button
-              className="btn-primary"
-              title="Usuń zaznaczone"
-              onClick={bulkDelete}
-              disabled={!selected.length}
-            >
-              <span className="mr-2">🗑️</span>Usuń zaznaczone
-            </button>
+            <div className="flex items-center gap-2 flex-nowrap justify-end min-w-0">
+              <button
+                className="btn-primary shrink-0 justify-center"
+                onClick={editSelected}
+                disabled={selected.length !== 1}
+                title={
+                  selected.length === 1
+                    ? "Edytuj zaznaczoną fakturę"
+                    : "Zaznacz dokładnie jedną fakturę на liście"
+                }
+              >
+                Edytuj zaznaczoną
+              </button>
+
+              {formOpen && (
+                <button
+                  className="btn-primary shrink-0 justify-center"
+                  onClick={() => {
+                    setFormOpen(false);
+                    setEditingIndex(null);
+                    setEditingOriginalNumber(null);
+                  }}
+                >
+                  Zamknij formularz
+                </button>
+              )}
+
+              <div className="flex gap-2 flex-nowrap items-center min-w-0">
+                <button
+                  className="btn-primary shrink-0 justify-center"
+                  title="Pobierz wybrane (ZIP)"
+                  onClick={bulkDownloadZip}
+                  disabled={!selected.length}
+                >
+                  ZIP
+                </button>
+                <button
+                  className="btn-primary shrink-0 justify-center"
+                  onClick={bulkExportEPPAndListPDF}
+                  disabled={!selected.length}
+                  title="Eksport .epp + PDF lista"
+                  aria-label="Eksport EPP + PDF"
+                >
+                  .epp + PDF
+                </button>
+                <button
+                  className="btn-danger shrink-0 justify-center"
+                  title="Usuń zaznaczone"
+                  onClick={bulkDelete}
+                  disabled={!selected.length}
+                >
+                  Usuń zaznaczone
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-
       {/* Form */}
       {formOpen && (
         <div ref={formRef} className="card-lg" onKeyDown={onFormKeyDown}>
@@ -1581,7 +1727,7 @@ export default function SavedInvoicesPage() {
       )}
 
       {/* Table */}
-      <div className="card-lg overflow-x-auto">
+      <div className="card-lg overflow-x-auto min-w-0">
         <div className="mb-2 flex items-center gap-3">
           <label className="text-sm">Na stronę:</label>
           <select
@@ -1601,7 +1747,7 @@ export default function SavedInvoicesPage() {
           </div>
         </div>
 
-        <table className="table w-full">
+        <table className="table w-full min-w-[720px]">
           <thead>
             <tr>
               <th className="text-center" scope="col">
