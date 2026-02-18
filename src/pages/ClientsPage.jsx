@@ -91,7 +91,6 @@ function pick(row, keys) {
   return "";
 }
 const todayISO = () => new Date().toISOString().slice(0, 10);
-
 // === bool parser: true/1/"true"/"1"/"yes"/"tak" -> true
 function boolish(v) {
   if (typeof v === "boolean") return v;
@@ -125,6 +124,8 @@ function formatInvoiceNumberPreview(counter, ym) {
   }
   return `ST-${seq}/${month}/${year}`;
 }
+
+// [INSERT NEAR OTHER HELPERS]
 
 // fetch -> base64 для jsPDF VFS
 async function __toBase64FromUrl(url) {
@@ -306,6 +307,17 @@ export default function ClientsPage({
     list: [],
   });
 
+  const [isNarrowTable, setIsNarrowTable] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.innerWidth < 1100;
+  });
+
+  useEffect(() => {
+    const onResize = () => setIsNarrowTable(window.innerWidth < 1100);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
   const emptyClient = {
     id: "",
     name: "",
@@ -322,11 +334,13 @@ export default function ClientsPage({
     notice: false,
     comment: "",
     billingMode: "abonament",
-    logistics: "kurier", // 'punkt' | 'paczkomat' | 'kurier'
+    logistics: "kurier", // 'punkt' | 'paczkomat' | 'kurier' (wymagane)
+    // індивідуальні ціни (за замовчуванням глобальні)
     courierPriceMode: "global",
     courierPriceGross: null,
     shippingPriceMode: "global",
     shippingPriceGross: null,
+    // ✅ нове: архівація
     archived: false,
   };
   const [formClient, setFormClient] = useState(emptyClient);
@@ -346,6 +360,7 @@ export default function ClientsPage({
                 ? s.currentIssueMonth
                 : prev.currentIssueMonth,
           }));
+          // якщо модалка ще не відкрита — синхронізуємо дефолт
           setGenModal((g) =>
             g.open ? g : { ...g, month: s.currentIssueMonth || g.month }
           );
@@ -410,6 +425,7 @@ export default function ClientsPage({
               : null;
 
           return {
+            // ► архівація
             archived: boolish(r.archived),
             archivedAt:
               r.archivedAt ||
@@ -482,7 +498,6 @@ export default function ClientsPage({
     setShowAdd(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
-
   const startEdit = (client) => {
     const idxByRef = clients.findIndex((c) => c === client);
     let idx = idxByRef;
@@ -490,6 +505,7 @@ export default function ClientsPage({
       const id = getId(client);
       idx = clients.findIndex((c) => getId(c) === id);
     }
+    // гарантуємо дефолт логістики при редагуванні старих записів
     const withDefaultLogi = {
       ...client,
       logistics: client.logistics || "kurier",
@@ -515,10 +531,12 @@ export default function ClientsPage({
     payload.subscriptionAmount = Number(payload.subscriptionAmount || 0);
     if (!payload.billingMode) payload.billingMode = tab;
 
+    // ⚠️ гарантуємо стабільний id
     if (!payload.id?.trim()) {
       payload.id = slugify(payload.name);
     }
 
+    // ✅ не даємо випадково створити архівованого клієнта
     if (payload.archived == null) payload.archived = false;
 
     let updated = [...clients];
@@ -592,6 +610,7 @@ export default function ClientsPage({
   const handleUpdateClient = async (nextClient) => {
     let idx = clients.findIndex((c) => sameClient(c, selectedClient));
     if (idx === -1) {
+      // остання спроба — по id з nextClient
       const nid = getId(nextClient);
       idx = clients.findIndex((c) => getId(c) === nid);
     }
@@ -609,7 +628,7 @@ export default function ClientsPage({
     } catch {}
   };
 
-  // Завантаження протоколів для обраного клієнта
+  // ✅ Завантаження протоколів для обраного клієнта
   useEffect(() => {
     const loadProtocols = async (clientObj) => {
       if (!clientObj) {
@@ -642,11 +661,13 @@ export default function ClientsPage({
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
 
+    // 1) базовий набір по режиму (abonament/perpiece/all)
     const base =
       forcedMode === "all"
         ? clients
         : clients.filter((c) => (c.billingMode || "abonament") === tab);
 
+    // 2) архів чи ні
     const byArchive = base.filter((c) =>
       forceArchivedView
         ? Boolean(c.archived)
@@ -655,6 +676,7 @@ export default function ClientsPage({
         : !Boolean(c.archived)
     );
 
+    // 3) якщо ми у вкладці abonament — додатковий фільтр по назві абонементу
     const byAbon =
       forcedMode === "abonament" ||
       (forcedMode !== "perpiece" && tab === "abonament")
@@ -667,39 +689,22 @@ export default function ClientsPage({
           )
         : byArchive;
 
+    // 4) пошук по імені
     const afterSearch = s
       ? byAbon.filter((c) => (c.name || "").toLowerCase().includes(s))
       : byAbon;
 
     // 5) СОРТУВАННЯ:
-    //    "na sztuki" — за ID зростаюче
-    //    "abonament" — за ID спадно (найбільший угорі)
+    //    якщо це "na sztuki" (perpiece), сортуємо за числовим значенням id зростаюче
     const isPerPieceView =
       forcedMode === "perpiece" ||
       (forcedMode !== "abonament" && tab === "perpiece");
-
-    const isAbonamentView =
-      forcedMode === "abonament" ||
-      (forcedMode !== "perpiece" && tab === "abonament");
 
     if (isPerPieceView) {
       const sorted = [...afterSearch].sort((a, b) => {
         const na = idNumericValue(a);
         const nb = idNumericValue(b);
-        if (na !== nb) return na - nb; // як було раніше: від найменшого до найбільшого
-        return (a.name || "").localeCompare(b.name || "", "pl", {
-          sensitivity: "base",
-          numeric: true,
-        });
-      });
-      return sorted;
-    }
-
-    if (isAbonamentView) {
-      const sorted = [...afterSearch].sort((a, b) => {
-        const na = idNumericValue(a);
-        const nb = idNumericValue(b);
-        if (na !== nb) return nb - na; // найбільший ID зверху
+        if (na !== nb) return na - nb;
         return (a.name || "").localeCompare(b.name || "", "pl", {
           sensitivity: "base",
           numeric: true,
@@ -719,7 +724,7 @@ export default function ClientsPage({
     forceArchivedView,
   ]);
 
-  // Замість видалення — архівація (один)
+  // ► Замість видалення — архівація (один)
   const askDelete = (client) => {
     setClientToDelete(client);
     setConfirmOpen(true);
@@ -745,7 +750,7 @@ export default function ClientsPage({
     }
   };
 
-  // перемикач вкладок
+  // ► перемикач вкладок
   const switchTab = (t) => {
     setTab(t);
     setSelectedClient(null);
@@ -754,7 +759,7 @@ export default function ClientsPage({
     setCheckedIds([]);
   };
 
-  // мультивибір
+  // ► мультивибір
   const onToggleCheck = (id, checked) => {
     setCheckedIds((prev) =>
       checked
@@ -769,13 +774,13 @@ export default function ClientsPage({
     });
   };
 
-  // групова архівація (замість видалення)
+  // ► групова архівація (замість видалення)
   const bulkDelete = async () => {
     if (!checkedIds.length) {
       alert("Zaznacz klientów do archiwizacji.");
       return;
     }
-    if (!window.confirm("Przenieść zaznaczonych klientów do archiwum?")) return;
+    if (!confirm("Przenieść zaznaczonych klientów do archiwum?")) return;
     const today = new Date().toISOString().slice(0, 10);
     const updated = clients.map((c) =>
       checkedIds.includes(getId(c))
@@ -797,71 +802,7 @@ export default function ClientsPage({
     }
   };
 
-  // групове trwałe usunięcie (tylko w archiwum)
-  const bulkDeleteForever = async () => {
-    if (!checkedIds.length) {
-      alert("Zaznacz klientów do usunięcia.");
-      return;
-    }
-    if (
-      !window.confirm(
-        "Na pewno trwale usunąć zaznaczonych klientów? Tej operacji nie można cofnąć."
-      )
-    ) {
-      return;
-    }
-
-    const updated = clients.filter((c) => !checkedIds.includes(getId(c)));
-
-    setClients(updated);
-    setCheckedIds([]);
-
-    try {
-      await fetch(api("/save-clients"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updated),
-      });
-      alert("✅ Klienci zostali trwale usunięci.");
-    } catch {
-      alert("❌ Nie udało się zapisać zmian.");
-    }
-  };
-
-  // grupowe przywrócenie z archiwum do aktywnych
-  const bulkRestoreFromArchive = async () => {
-    if (!checkedIds.length) {
-      alert("Zaznacz klientów do przywrócenia.");
-      return;
-    }
-    if (!window.confirm("Przywrócić zaznaczonych klientów do aktywnych?")) {
-      return;
-    }
-
-    const today = new Date().toISOString().slice(0, 10);
-
-    const updated = clients.map((c) =>
-      checkedIds.includes(getId(c))
-        ? { ...c, archived: false, archivedAt: null, updatedAt: today }
-        : c
-    );
-
-    setClients(updated);
-    setCheckedIds([]);
-
-    try {
-      await fetch(api("/save-clients"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updated),
-      });
-      alert("✅ Przywrócono klientów do aktywnych.");
-    } catch {
-      alert("❌ Nie udało się zapisać zmian.");
-    }
-  };
-
-  // генерація з бази
+  // ► генерація з бази
   const openGen = async () => {
     if (!checkedIds.length) {
       alert("Zaznacz klientów.");
@@ -913,6 +854,7 @@ export default function ClientsPage({
     window.open(api("/clients/kartoteka.pdf"), "_blank", "noopener,noreferrer");
   }, []);
 
+  // [REPLACE WHOLE FUNCTION generateLabelsPDF]
   const generateLabelsPDF = async () => {
     if (!checkedIds.length) {
       alert("Zaznacz klientów.");
@@ -931,27 +873,32 @@ export default function ClientsPage({
     });
     await __registerDejaVuFonts(doc);
 
+    // Сталі
     const PAGE_W = 210;
     const PAGE_H = 297;
 
-    const PAGE_MARGIN = 5;
-    const GAP = 2;
+    const PAGE_MARGIN = 5; // невеликий край сторінки
+    const GAP = 2; // 2 мм між етикетками
     const COLS = 3;
     const ROWS = 7;
 
-    const ID_BAND_H = 10;
+    const ID_BAND_H = 10; // вища смуга для стабільного центрування
     const FONT_SIZE = 12;
 
+    // Область верстки всередині полів
     const AREA_W = PAGE_W - PAGE_MARGIN * 2;
     const AREA_H = PAGE_H - PAGE_MARGIN * 2;
 
+    // Розміри комірок: 3×7
     const cellW = (AREA_W - GAP * (COLS - 1)) / COLS;
     const cellH = (AREA_H - GAP * (ROWS - 1)) / ROWS;
 
+    // Налаштування тексту
     doc.setFont("DejaVuSans", "bold");
     doc.setFontSize(FONT_SIZE);
     doc.setLineWidth(0.2);
 
+    // Точні метрики рядка в мм (без дублювань)
     const mmPerPt = 0.352777778;
     const LHF =
       typeof doc.getLineHeightFactor === "function"
@@ -959,6 +906,7 @@ export default function ClientsPage({
         : 1.15;
     const lineH = FONT_SIZE * LHF * mmPerPt;
 
+    // Паддінги всередині комірок
     const PAD_X = 1.5;
     const PAD_Y = 1.5;
 
@@ -969,6 +917,7 @@ export default function ClientsPage({
 
     const perPage = COLS * ROWS;
 
+    // Універсальний рендер текстового блоку по центру осередку (по X і Y)
     function drawCenteredBlock(x0, top, width, height, text) {
       const availW = width - PAD_X * 2;
 
@@ -997,11 +946,15 @@ export default function ClientsPage({
       const x0 = PAGE_MARGIN + c * (cellW + GAP);
       const y0 = PAGE_MARGIN + r * (cellH + GAP);
 
+      // рамка комірки
       doc.rect(x0, y0, cellW, cellH);
+      // лінія між верхнім та нижнім контейнерами
       doc.line(x0, y0 + ID_BAND_H, x0 + cellW, y0 + ID_BAND_H);
 
+      // Верхній контейнер: ID (по центру)
       drawCenteredBlock(x0, y0, cellW, ID_BAND_H, lab.id);
 
+      // Нижній контейнер: назва (по центру)
       drawCenteredBlock(x0, y0 + ID_BAND_H, cellW, cellH - ID_BAND_H, lab.name);
     });
 
@@ -1115,128 +1068,17 @@ export default function ClientsPage({
       });
     } catch {}
   };
-
   return (
-    <div className="space-y-4">
-      {/* Шапка */}
-      <div className="card-lg border-2 border-blue-200 bg-blue-50/60 min-w-0 overflow-hidden">
+    <div className="layout-container space-y-4">
+      {/* Шапка без дублюючих кнопок режиму */}
+      <div className="card-lg border-2 border-blue-200 bg-blue-50/60">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <h1 className="text-2xl font-bold">
-            {pageTitle || "📒 Baza klientów"}
+            {pageTitle || "Klienci abonamrntowi"}
           </h1>
         </div>
 
-        {/* MOBILE / TABLET: фільтри + кнопки (до md) */}
-        <div className="mt-3 flex flex-col sm:flex-row md:hidden gap-3 w-full min-w-0">
-          {/* Ліва колонка: фільтри + Dodaj klienta */}
-          <div className="flex-1 min-w-0 flex flex-col gap-2 items-start">
-            <div className="w-full flex flex-col gap-2">
-              <input
-                type="search"
-                placeholder="Szukaj klienta…"
-                className="input w-full"
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-              />
-              {tab === "abonament" && (
-                <input
-                  type="search"
-                  placeholder="Filtr abonamentu…"
-                  className="input w-full"
-                  value={abonFilter}
-                  onChange={(e) => setAbonFilter(e.target.value)}
-                  title="Filtruj po nazwie abonamentu"
-                />
-              )}
-            </div>
-
-            <button className="btn-primary w-full" onClick={startAdd}>
-              {!showAdd && (
-                <svg
-                  className="w-4 h-4 mr-2"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M12 5v14M5 12h14" />
-                </svg>
-              )}
-              {showAdd ? "Anuluj" : "Dodaj klienta"}
-            </button>
-          </div>
-
-          {/* Права колонка: кнопки дій */}
-          <div className="flex flex-col gap-2 w-full sm:w-auto sm:items-end min-w-0">
-            {forceArchivedView ? (
-              <>
-                <button
-                  className="btn-primary"
-                  onClick={bulkRestoreFromArchive}
-                  disabled={!checkedIds.length}
-                  title="Przywróć zaznaczonych klientów do aktywnych"
-                >
-                  Przywróć do aktywnych
-                </button>
-
-                <button
-                  className="btn-danger"
-                  onClick={bulkDeleteForever}
-                  disabled={!checkedIds.length}
-                  title="Usuń zaznaczonych klientów na zawsze"
-                >
-                  Usuń na zawsze
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  className="btn-primary"
-                  onClick={bulkDelete}
-                  disabled={!checkedIds.length}
-                  title="Przenieś zaznaczonych klientów do archiwum"
-                >
-                  <span className="mr-2"></span>
-                  Archiwizuj zaznaczone
-                </button>
-
-                <button
-                  className="btn-primary"
-                  onClick={openGen}
-                  disabled={!checkedIds.length}
-                  title="Generuj faktury z zaznaczonych klientów"
-                >
-                  <span className="mr-2"></span>
-                  Generuj faktury
-                </button>
-
-                <button
-                  className="btn-primary"
-                  onClick={generateLabelsPDF}
-                  disabled={!checkedIds.length}
-                  title="Generuj PDF z etykietami (3×7 na A4)"
-                >
-                  <span className="mr-2"></span>
-                  Generuj etykiety
-                </button>
-
-                <button
-                  className="btn-primary"
-                  onClick={openKartoteka}
-                  title="Generuj PDF kartoteki klientów abonamentowych"
-                >
-                  <span className="mr-2"></span>
-                  Generuj kartotekę
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* DESKTOP: фільтри */}
-        <div className="mt-3 hidden md:flex items-center gap-2 flex-wrap min-w-0">
+        <div className="mt-3 flex items-center gap-2 flex-wrap">
           <input
             type="search"
             placeholder="Szukaj klienta…"
@@ -1244,6 +1086,7 @@ export default function ClientsPage({
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
+
           {tab === "abonament" && (
             <input
               type="search"
@@ -1254,117 +1097,68 @@ export default function ClientsPage({
               title="Filtruj po nazwie abonamentu"
             />
           )}
-        </div>
 
-        {/* DESKTOP: кнопки дій */}
-        <div className="mt-3 hidden md:flex items-center gap-2 flex-wrap min-w-0">
           <button className="btn-primary" onClick={startAdd}>
-            {!showAdd && (
-              <svg
-                className="w-4 h-4 mr-2"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-            )}
             {showAdd ? "Anuluj" : "Dodaj klienta"}
           </button>
 
-          <div className="flex items-center gap-2 ml-auto flex-wrap min-w-0 justify-end">
-            {forceArchivedView ? (
-              <>
-                <button
-                  className="btn-primary"
-                  onClick={bulkRestoreFromArchive}
-                  disabled={!checkedIds.length}
-                  title="Przywróć zaznaczonych klientów do aktywnych"
-                >
-                  Przywróć do aktywnych
-                </button>
+          <div className="ml-auto flex items-center gap-2 flex-wrap">
+            <button
+              className="btn-primary"
+              onClick={bulkDelete}
+              disabled={!checkedIds.length}
+              title="Przenieś zaznaczonych klientów do archiwum"
+            >
+              Archiwizuj zaznaczone
+            </button>
 
-                <button
-                  className="btn-danger"
-                  onClick={bulkDeleteForever}
-                  disabled={!checkedIds.length}
-                  title="Usuń zaznaczonych klientów na zawsze"
-                >
-                  Usuń na zawsze
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  className="btn-primary"
-                  onClick={bulkDelete}
-                  disabled={!checkedIds.length}
-                  title="Przenieś zaznaczonych klientów do archiwum"
-                >
-                  <span className="mr-2"></span>
-                  Archiwizuj zaznaczone
-                </button>
-                <button
-                  className="btn-primary"
-                  onClick={openGen}
-                  disabled={!checkedIds.length}
-                  title="Generuj faktury z zaznaczonych klientów"
-                >
-                  <span className="mr-2"></span>
-                  Generuj faktury
-                </button>
+            <button
+              className="btn-primary"
+              onClick={openGen}
+              disabled={!checkedIds.length}
+              title="Generuj faktury z zaznaczonych klientów"
+            >
+              Generuj faktury
+            </button>
 
-                <button
-                  className="btn-primary"
-                  onClick={generateLabelsPDF}
-                  disabled={!checkedIds.length}
-                  title="Generuj PDF z etykietami (3×7 na A4)"
-                >
-                  <span className="mr-2"></span>
-                  Generuj etykiety
-                </button>
-                <button
-                  className="btn-primary"
-                  onClick={openKartoteka}
-                  title="Generuj PDF kartoteki klientów abonamentowych"
-                >
-                  <span className="mr-2"></span>
-                  Generuj kartotekę
-                </button>
-              </>
-            )}
+            <button
+              className="btn-primary"
+              onClick={openKartoteka}
+              title="Generuj PDF kartoteki klientów abonamentowych"
+            >
+              Generuj kartotekę
+            </button>
+
+            <button
+              className="btn-primary"
+              onClick={generateLabelsPDF}
+              title="Generuj PDF z etykietami (3×7 na A4)"
+            >
+              Generuj etykiety
+            </button>
           </div>
         </div>
 
-        {/* Стрічка-перемикач режимів */}
         {!hideModeSwitcher && (
           <div className="mt-3">
             <div className="w-full grid grid-cols-2 rounded-xl overflow-hidden border-2 border-blue-300 text-center select-none">
               <button
                 type="button"
-                className={
-                  "py-3 font-semibold transition " +
-                  (tab === "abonament"
-                    ? "bg-blue-600 text-white"
-                    : "bg-white text-blue-700 hover:bg-blue-50")
-                }
+                className="btn-primary w-full py-3 rounded-none disabled:opacity-100 disabled:cursor-default"
                 onClick={() => switchTab("abonament")}
+                disabled={tab === "abonament"}
+                aria-pressed={tab === "abonament"}
                 title="Klienci z abonamentem"
               >
                 Abonament
               </button>
+
               <button
                 type="button"
-                className={
-                  "py-3 font-semibold transition " +
-                  (tab === "perpiece"
-                    ? "bg-blue-600 text-white"
-                    : "bg-white text-blue-700 hover:bg-blue-50")
-                }
+                className="btn-primary w-full py-3 rounded-none disabled:opacity-100 disabled:cursor-default"
                 onClick={() => switchTab("perpiece")}
+                disabled={tab === "perpiece"}
+                aria-pressed={tab === "perpiece"}
                 title="Klienci rozliczani na sztuki"
               >
                 Na sztuki
@@ -1412,17 +1206,6 @@ export default function ClientsPage({
                 }
               />
             </div>
-
-            <div>
-              <label className="block text-sm mb-1">Adres</label>
-              <input
-                className="input w-full"
-                value={formClient.address}
-                onChange={(e) =>
-                  setFormClient({ ...formClient, address: e.target.value })
-                }
-              />
-            </div>
             <div>
               <label className="block text-sm mb-1">Telefon</label>
               <input
@@ -1430,6 +1213,16 @@ export default function ClientsPage({
                 value={formClient.phone}
                 onChange={(e) =>
                   setFormClient({ ...formClient, phone: e.target.value })
+                }
+              />
+            </div>
+            <div>
+              <label className="block text-sm mb-1">Adres</label>
+              <input
+                className="input w-full"
+                value={formClient.address}
+                onChange={(e) =>
+                  setFormClient({ ...formClient, address: e.target.value })
                 }
               />
             </div>
@@ -1448,6 +1241,7 @@ export default function ClientsPage({
               </select>
             </div>
 
+            {/* ▼▼▼ ТУТ: обов'язкове поле "Logistyka" ▼▼▼ */}
             <div>
               <label className="block text-sm mb-1">Logistyka *</label>
               <select
@@ -1465,6 +1259,7 @@ export default function ClientsPage({
                 ))}
               </select>
             </div>
+            {/* ▲▲▲ КІНЕЦЬ блоку логістики ▲▲▲ */}
 
             {formClient.type === "firma" ? (
               <div>
@@ -1496,10 +1291,7 @@ export default function ClientsPage({
                 className="input w-full"
                 value={formClient.subscription}
                 onChange={(e) =>
-                  setFormClient({
-                    ...formClient,
-                    subscription: e.target.value,
-                  })
+                  setFormClient({ ...formClient, subscription: e.target.value })
                 }
               >
                 <option value="">— brak (na sztuki) —</option>
@@ -1589,26 +1381,54 @@ export default function ClientsPage({
           </div>
         </form>
       )}
-
       {!selectedClient ? (
-        <div className="card-lg overflow-x-auto">
-          <ClientList
-            clients={filtered}
-            onSelect={handleSelectClient}
-            onEdit={startEdit}
-            onDeleteRequest={askDelete}
-            selectable
-            checkedIds={checkedIds}
-            onToggleCheck={onToggleCheck}
-            onToggleCheckAll={onToggleCheckAll}
-            showAbonFields={forcedMode === "abonament" || forcedMode === "all"}
-            plainContacts
-            showIdBeforeName={forcedMode === "perpiece"}
-            idCellMaxChars={13}
-            logisticsLabelMap={LOGI_LABEL}
-            showLogistics
-          />
-        </div>
+        isNarrowTable ? (
+          <div className="card-lg w-full">
+            <div className="divide-y">
+              {filtered.map((c) => (
+                <div key={getId(c)} className="py-3 flex items-center gap-3">
+                  <div className="min-w-0 flex-1 break-words">
+                    {c.name || "—"}
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-primary btn-sm shrink-0"
+                    onClick={() => handleSelectClient(c)}
+                  >
+                    Szczegóły
+                  </button>
+                </div>
+              ))}
+
+              {!filtered.length && (
+                <div className="py-6 text-center text-sm text-gray-600">
+                  Brak klientów
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="card-lg w-full overflow-x-auto">
+            <ClientList
+              clients={filtered}
+              onSelect={handleSelectClient}
+              onEdit={startEdit}
+              onDeleteRequest={askDelete}
+              selectable
+              checkedIds={checkedIds}
+              onToggleCheck={onToggleCheck}
+              onToggleCheckAll={onToggleCheckAll}
+              showAbonFields={
+                forcedMode === "abonament" || forcedMode === "all"
+              }
+              plainContacts
+              showIdBeforeName={forcedMode === "perpiece"}
+              idCellMaxChars={13}
+              logisticsLabelMap={LOGI_LABEL}
+              showLogistics
+            />
+          </div>
+        )
       ) : (
         <div className="card-lg">
           <ClientCard
@@ -1627,7 +1447,7 @@ export default function ClientsPage({
         </div>
       )}
 
-      {/* Модалка архівації */}
+      {/* Модалка архівації (замість видалення) */}
       <Modal
         open={confirmOpen}
         title="Przenieść klienta do archiwum?"

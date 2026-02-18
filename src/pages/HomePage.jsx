@@ -11,7 +11,7 @@ const IconInvoice = ({ className = "" }) => (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    strokeWidth="1.6"
+    strokeWidth="2.25"
     strokeLinecap="round"
     strokeLinejoin="round"
     aria-hidden="true"
@@ -29,7 +29,7 @@ const IconUsers = ({ className = "" }) => (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    strokeWidth="1.6"
+    strokeWidth="1.15"
     strokeLinecap="round"
     strokeLinejoin="round"
     aria-hidden="true"
@@ -47,7 +47,7 @@ const IconArchive = ({ className = "" }) => (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    strokeWidth="1.6"
+    strokeWidth="1.15"
     strokeLinecap="round"
     strokeLinejoin="round"
     aria-hidden="true"
@@ -64,7 +64,7 @@ const IconSignature = ({ className = "" }) => (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    strokeWidth="1.6"
+    strokeWidth="1.15"
     strokeLinecap="round"
     strokeLinejoin="round"
     aria-hidden="true"
@@ -83,7 +83,7 @@ const IconDocsStack = ({ className = "" }) => (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    strokeWidth="1.6"
+    strokeWidth="1.15"
     strokeLinecap="round"
     strokeLinejoin="round"
     aria-hidden="true"
@@ -102,7 +102,7 @@ const IconPackages = ({ className = "" }) => (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    strokeWidth="1.6"
+    strokeWidth="1.15"
     strokeLinecap="round"
     strokeLinejoin="round"
     aria-hidden="true"
@@ -119,7 +119,7 @@ const IconTable = ({ className = "" }) => (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    strokeWidth="1.6"
+    strokeWidth="1.15"
     strokeLinecap="round"
     strokeLinejoin="round"
     aria-hidden="true"
@@ -134,11 +134,6 @@ const IconTable = ({ className = "" }) => (
 export default function HomePage() {
   const [addOpen, setAddOpen] = useState(false);
   const [clients, setClients] = useState([]);
-  const tileClass =
-    "bg-blue-500 hover:bg-blue-600 text-white rounded-2xl shadow-soft flex items-center justify-center text-center transition home-tile";
-  const iconClass =
-    "text-white mx-auto mb-3 w-[clamp(42px,11vw,68px)] h-[clamp(42px,11vw,68px)]";
-  const titleClass = "font-semibold break-words text-[16px]";
 
   // м'яка перевірка авторизації при вході на головну:
   // легкий запит до захищеного /settings (мінімальні дані).
@@ -180,16 +175,16 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-[70vh] flex items-center pb-5">
-      <div className="max-w-6xl mx-auto w-full px-3 sm:px-4 md:px-6 py-6">
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6 place-items-center">
+    <div className="min-h-[70vh] flex items-center">
+      <div className="w-full flex justify-center">
+        <div className="inline-grid grid-cols-2 md:grid-cols-3 gap-1">
           <Link
             to="/clients"
-            className={tileClass}
+            className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl shadow-soft w-[150px] sm:w-[180px] md:w-[220px] aspect-square flex items-center justify-center text-center px-2 py-2 sm:px-4 sm:py-4 transition"
           >
             <div>
-              <IconUsers className={iconClass} />
-              <div className={titleClass}>
+              <IconUsers className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 text-white mx-auto mb-2 sm:mb-3" />
+              <div className="text-xs sm:text-sm md:text-lg lg:text-xl font-semibold break-words">
                 Baza klientów
               </div>
             </div>
@@ -197,11 +192,11 @@ export default function HomePage() {
 
           <Link
             to="/clients/prywatni/ewidencja"
-            className={tileClass}
+            className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl shadow-soft w-[150px] sm:w-[180px] md:w-[220px] aspect-square flex items-center justify-center text-center px-2 py-2 sm:px-4 sm:py-4 transition"
           >
             <div>
-              <IconPackages className={iconClass} />
-              <div className={titleClass}>
+              <IconPackages className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 text-white mx-auto mb-2 sm:mb-3" />
+              <div className="text-xs sm:text-sm md:text-lg lg:text-xl font-semibold break-words">
                 "Na sztuki"
               </div>
             </div>
@@ -209,11 +204,11 @@ export default function HomePage() {
 
           <Link
             to="/saved"
-            className={tileClass}
+            className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl shadow-soft w-[150px] sm:w-[180px] md:w-[220px] aspect-square flex items-center justify-center text-center px-2 py-2 sm:px-4 sm:py-4 transition"
           >
             <div>
-              <IconArchive className={iconClass} />
-              <div className={titleClass}>
+              <IconArchive className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 text-white mx-auto mb-2 sm:mb-3" />
+              <div className="text-xs sm:text-sm md:text-lg lg:text-xl font-semibold break-words">
                 Faktury
               </div>
             </div>
@@ -221,12 +216,12 @@ export default function HomePage() {
 
           <Link
             to="/documents/protocols"
-            className={tileClass}
+            className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl shadow-soft w-[150px] sm:w-[180px] md:w-[220px] aspect-square flex items-center justify-center text-center px-2 py-2 sm:px-4 sm:py-4 transition"
             title="Lista zapisanych protokołów"
           >
             <div>
-              <IconDocsStack className={iconClass} />
-              <div className={titleClass}>
+              <IconDocsStack className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 text-white mx-auto mb-2 sm:mb-3" />
+              <div className="text-xs sm:text-sm md:text-lg lg:text-xl font-semibold break-words">
                 Protokoły
               </div>
             </div>
@@ -235,11 +230,11 @@ export default function HomePage() {
           <button
             type="button"
             onClick={() => setAddOpen(true)}
-            className={tileClass}
+            className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl shadow-soft w-[150px] sm:w-[180px] md:w-[220px] aspect-square flex items-center justify-center text-center px-2 py-2 sm:px-4 sm:py-4 transition"
           >
             <div>
-              <IconTable className={iconClass} />
-              <div className={titleClass}>
+              <IconTable className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 text-white mx-auto mb-2 sm:mb-3" />
+              <div className="text-xs sm:text-sm md:text-lg lg:text-xl font-semibold break-words">
                 Dodaj wpis do protokołu
               </div>
             </div>
@@ -247,12 +242,12 @@ export default function HomePage() {
 
           <Link
             to="/sign-queue?type=courier"
-            className={tileClass}
+            className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl shadow-soft w-[150px] sm:w-[180px] md:w-[220px] aspect-square flex items-center justify-center text-center px-2 py-2 sm:px-4 sm:py-4 transition"
             title="Protokoły oczekujące на podpis"
           >
             <div>
-              <IconSignature className={iconClass} />
-              <div className={titleClass}>
+              <IconSignature className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 text-white mx-auto mb-2 sm:mb-3" />
+              <div className="text-xs sm:text-sm md:text-lg lg:text-xl font-semibold break-words">
                 Protokoły do podpisu
               </div>
             </div>

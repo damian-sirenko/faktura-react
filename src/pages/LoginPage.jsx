@@ -2,6 +2,8 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { apiFetch } from "../utils/api"; // ВАЖЛИВО: прямий імпорт apiFetch
+import { setAuthToken } from "../utils/api";
+
 
 async function loginRequest(email, password) {
   // жодних window.*, тільки наш apiFetch
@@ -25,6 +27,7 @@ export default function LoginPage() {
     e.preventDefault();
     setErr("");
     setLoading(true);
+
     try {
       const r = await loginRequest(email.trim(), password);
       const j = await r.json().catch(() => ({}));
@@ -42,6 +45,10 @@ export default function LoginPage() {
         throw new Error(message);
       }
 
+      if (j.token) {
+        setAuthToken(j.token);
+      }
+
       const from = (loc.state && loc.state.from) || "/";
       nav(from, { replace: true });
     } catch (e) {
@@ -56,7 +63,7 @@ export default function LoginPage() {
           message.includes("Network"))
       ) {
         message =
-          "Wystąpił problem techniczny po naszej stronie. Spróbuj ponownie za kilka minut.";
+          "Wystąpił problem techniczny po naszej stronie. Spróbuj ponownie за кілька хвилин.";
       }
 
       setErr(message);
@@ -64,6 +71,7 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+  
 
   return (
     <div
@@ -156,10 +164,7 @@ export default function LoginPage() {
 
           <div className="mt-4 border-t pt-3 text-xs text-gray-500">
             <div className="flex items-center justify-between text-left gap-3">
-              <a
-                href="tel:739015287"
-                className="text-blue-600 hover:underline"
-              >
+              <a href="tel:739015287" className="text-blue-600 hover:underline">
                 Tel.: 739 015 287
               </a>
               <a
@@ -169,8 +174,7 @@ export default function LoginPage() {
                 sterylserwis@gmail.com
               </a>
             </div>
-            
-            
+
             <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-[11px] text-gray-400">
               <a
                 href="/regulamin.html"

@@ -1,4 +1,3 @@
-// src/components/clients/ClientList.jsx
 import React, { useState, useEffect } from "react";
 
 // узгоджено з бекендом: стабільний slug без діакритиків
@@ -23,7 +22,7 @@ function idFromClient(c) {
   return slugFromName(name);
 }
 
-/* === ЄДИНИЙ СТИЛЬ ІКОНОК: кольорова іконка на світлому фоні === */
+/* === ЄДИНИЙ СТИЛЬ ІКОНОК === */
 const IconEdit = ({ className = "" }) => (
   <svg
     className={className}
@@ -40,7 +39,6 @@ const IconEdit = ({ className = "" }) => (
   </svg>
 );
 
-/* 🆕 Іконка архіву замість смітника */
 const IconArchive = ({ className = "" }) => (
   <svg
     className={className}
@@ -52,11 +50,8 @@ const IconArchive = ({ className = "" }) => (
     strokeLinejoin="round"
     aria-hidden="true"
   >
-    {/* кришка коробки */}
     <rect x="3" y="4" width="18" height="4" rx="1" />
-    {/* корпус коробки */}
     <path d="M5 8h14v9a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V8z" />
-    {/* маленька ручка */}
     <path d="M10 12h4" />
   </svg>
 );
@@ -66,18 +61,14 @@ export default function ClientList({
   onSelect,
   onEdit,
   onDeleteRequest,
-  // ▼ нове
   selectable = false,
   checkedIds = [],
   onToggleCheck,
   onToggleCheckAll,
   showAbonFields = true,
-
-  /* 🆕 керування відображенням ID у вкладці "na sztuki" */
-  showIdBeforeName = false,
-  idCellMaxChars = 10,
 }) {
   const [toastMsg, setToastMsg] = useState("");
+
   useEffect(() => {
     if (!toastMsg) return;
     const t = setTimeout(() => setToastMsg(""), 2000);
@@ -88,16 +79,61 @@ export default function ClientList({
     return <div className="card">Brak klientów w bazie.</div>;
   }
 
-  // використовуємо стабільні id; порожні не враховуємо
   const idsOnPage = clients.map(idFromClient).filter(Boolean);
   const allOnPageChecked =
     idsOnPage.length > 0 &&
     idsOnPage.every((id) => checkedIds.includes(id)) &&
     checkedIds.length > 0;
 
+  // тут ти вручну підганяєш ширину колонок у відсотках (міняй тільки числа)
+  const COL_PCT = (() => {
+    const base = {
+      select: 4, // checkbox
+      no: 4, // #
+      id: 8, // ID
+      email: 18, // Email
+      phone: 10, // Telefon
+      abon: 10, // Abonament
+      actions: 20, // Akcje
+    };
+
+    const used =
+      (selectable ? base.select : 0) +
+      base.no +
+      base.id +
+      base.email +
+      base.phone +
+      (showAbonFields ? base.abon : 0) +
+      base.actions;
+
+    const name = Math.max(10, 100 - used);
+
+    return {
+      select: `${base.select}%`,
+      no: `${base.no}%`,
+      id: `${base.id}%`,
+      name: `${name}%`,
+      email: `${base.email}%`,
+      phone: `${base.phone}%`,
+      abon: `${base.abon}%`,
+      actions: `${base.actions}%`,
+    };
+  })();
+
   return (
-    <div className="relative w-full overflow-x-auto">
-      <table className="table table-auto w-full">
+    <div className="relative w-full max-w-full overflow-x-auto">
+      <table className="table w-full table-fixed">
+        <colgroup>
+          {selectable && <col style={{ width: COL_PCT.select }} />}
+          <col style={{ width: COL_PCT.no }} />
+          <col style={{ width: COL_PCT.id }} />
+          <col style={{ width: COL_PCT.name }} />
+          <col style={{ width: COL_PCT.email }} />
+          <col style={{ width: COL_PCT.phone }} />
+          {showAbonFields && <col style={{ width: COL_PCT.abon }} />}
+          <col style={{ width: COL_PCT.actions }} />
+        </colgroup>
+
         <thead>
           <tr>
             {selectable && (
@@ -109,164 +145,69 @@ export default function ClientList({
                     onToggleCheckAll &&
                     onToggleCheckAll(idsOnPage, e.target.checked)
                   }
-                  aria-label="Zaznacz wszystkich na stronie"
                 />
               </th>
             )}
-            <th className="text-center whitespace-nowrap hidden lg:table-cell">
-              #
-            </th>
-
-            <th className="text-left whitespace-nowrap hidden lg:table-cell">
-              ID
-            </th>
-
-            <th className="whitespace-normal break-words w-full">Nazwa</th>
-
-            <th className="whitespace-normal hidden lg:table-cell">Email</th>
-            <th className="whitespace-normal hidden lg:table-cell">Telefon</th>
-
-            {showAbonFields && (
-              <th className="whitespace-normal hidden lg:table-cell">
-                Abonament
-              </th>
-            )}
-
-            <th className="text-center whitespace-normal lg:whitespace-nowrap">
-              Akcje
-            </th>
+            <th className="text-center whitespace-nowrap">#</th>
+            <th className="text-left whitespace-nowrap">ID</th>
+            <th className="whitespace-normal break-words">Nazwa</th>
+            <th className="whitespace-normal">Email</th>
+            <th className="whitespace-normal">Telefon</th>
+            {showAbonFields && <th className="whitespace-normal">Abonament</th>}
+            <th className="text-center whitespace-nowrap">Akcje</th>
           </tr>
         </thead>
+
         <tbody>
           {clients.map((c, i) => {
             const id = idFromClient(c);
-            const name = c.name || c.Klient || "-";
-            const email = c.email || c.Email || "-";
-            const phone = c.phone ?? c.Telefon ?? "-";
-            const phoneStr =
-              phone == null || phone === "-" ? "-" : String(phone);
-            const abonament =
-              c.subscription ?? c.Abonament ?? c.abonament ?? "-";
-            const abonamentAmountRaw =
-              c.subscriptionAmount ??
-              c["Kwota abonamentu"] ??
-              c.abonamentAmount ??
-              0;
-            const abonamentAmount = Number(abonamentAmountRaw) || 0;
-            const abonamentAmountStr = abonamentAmount
-              ? `${abonamentAmount.toFixed(2)} zł`
-              : "-";
+            const name = c.name || "-";
+            const email = c.email || "-";
+            const phone = c.phone || "-";
+            const abonament = c.subscription || "-";
             const rowClass = c.notice ? "bg-rose-50" : "";
 
-            const rowChecked = selectable && id && checkedIds.includes(id);
-
-            const telHref = (() => {
-              if (!phoneStr || phoneStr === "-") return null;
-              const cleaned = phoneStr.replace(/[^+\d]/g, "");
-              return cleaned.length >= 6 ? `tel:${cleaned}` : null;
-            })();
-
             return (
-              <tr
-                key={id || `${name}-${i}`}
-                className={`hover:bg-gray-50 ${rowClass}`}
-              >
+              <tr key={id || i} className={`hover:bg-gray-50 ${rowClass}`}>
                 {selectable && (
-                  <td className="text-center whitespace-normal">
+                  <td className="text-center">
                     <input
                       type="checkbox"
-                      checked={!!rowChecked}
+                      checked={checkedIds.includes(id)}
                       onChange={(e) =>
                         onToggleCheck && onToggleCheck(id, e.target.checked)
                       }
-                      aria-label={`Zaznacz klienta ${name}`}
                     />
                   </td>
                 )}
 
-                <td className="text-center whitespace-nowrap hidden lg:table-cell">
-                  {i + 1}
-                </td>
+                <td className="text-center">{i + 1}</td>
+                <td className="whitespace-nowrap text-xs">{id}</td>
+                <td className="break-words">{name}</td>
+                <td className="break-words">{email}</td>
+                <td className="break-words">{phone}</td>
 
-                <td
-                  className="hidden lg:table-cell whitespace-nowrap leading-tight text-xs font-medium text-gray-700"
-                  title={id || "-"}
-                >
-                  {id || "—"}
-                </td>
+                {showAbonFields && <td>{abonament}</td>}
 
-                <td className="whitespace-normal break-words max-w-none">
-                  <div className="flex items-start gap-2 min-w-0">
-                    <span>{name}</span>
-                    {c.notice && (
-                      <span className="hidden lg:inline-flex text-[11px] px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 whitespace-nowrap mt-0.5">
-                        wypowiedzenie
-                      </span>
-                    )}
-                  </div>
-                </td>
-
-                <td
-                  className="hidden lg:table-cell max-w-[240px] whitespace-normal break-words cursor-pointer text-blue-700 hover:underline"
-                  title="Kliknij, aby skopiować e-mail"
-                  onClick={() => {
-                    if (email && email !== "-") {
-                      navigator.clipboard.writeText(email);
-                      setToastMsg("Skopiowano e-mail: " + email);
-                    }
-                  }}
-                >
-                  {email || "-"}
-                </td>
-
-                <td
-                  className="hidden lg:table-cell max-w-[160px] whitespace-normal break-words"
-                  title={phoneStr}
-                >
-                  {telHref ? (
-                    <a href={telHref} className="btn-link">
-                      {phoneStr}
-                    </a>
-                  ) : (
-                    phoneStr
-                  )}
-                </td>
-
-                {showAbonFields && (
-                  <td
-                    className="hidden lg:table-cell max-w-[220px] whitespace-normal break-words overflow-hidden"
-                    title={abonament || "-"}
-                  >
-                    {abonament || "-"}
-                  </td>
-                )}
-                <td className="text-center align-top whitespace-normal">
-                  <div className="inline-flex flex-nowrap items-center gap-2 justify-center max-w-full overflow-hidden">
+                <td className="text-center">
+                  <div className="inline-flex items-center gap-2">
                     <button
-                      type="button"
                       onClick={() => onSelect(c)}
-                      className="inline-flex items-center rounded-lg px-3 py-1 text-sm font-semibold border border-[var(--primary-500)] bg-[var(--primary-500)] text-white hover:bg-white hover:text-[var(--primary-600)] focus:ring-2 focus:ring-[var(--primary-300)] transition whitespace-nowrap"
-                      title="Szczegóły klienta"
+                      className="btn-primary btn-sm"
                     >
                       Szczegóły
                     </button>
 
                     <button
-                      type="button"
                       onClick={() => onEdit && onEdit(c)}
-                      title="Edytuj"
-                      aria-label="Edytuj"
-                      className="hidden lg:inline-flex items-center justify-center rounded-lg p-2 border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 focus:ring-2 focus:ring-blue-300 shadow-soft transition"
+                      className="inline-flex items-center justify-center rounded-lg p-2 border border-blue-200 bg-blue-50 text-blue-700"
                     >
                       <IconEdit className="w-5 h-5" />
                     </button>
 
                     <button
-                      type="button"
                       onClick={() => onDeleteRequest && onDeleteRequest(c)}
-                      title="Archiwizuj"
-                      aria-label="Archiwizuj"
-                      className="hidden lg:inline-flex items-center justify-center rounded-lg p-2 border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 focus:ring-2 focus:ring-amber-300 shadow-soft transition"
+                      className="inline-flex items-center justify-center rounded-lg p-2 border border-amber-200 bg-amber-50 text-amber-700"
                     >
                       <IconArchive className="w-5 h-5" />
                     </button>
@@ -279,7 +220,7 @@ export default function ClientList({
       </table>
 
       {toastMsg && (
-        <div className="fixed bottom-5 right-5 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg text-sm animate-fadeIn">
+        <div className="fixed bottom-5 right-5 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg text-sm">
           {toastMsg}
         </div>
       )}

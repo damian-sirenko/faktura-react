@@ -82,26 +82,29 @@ function normalizeName(name = "") {
   return s;
 }
 
-/** Dzielenie nazwy kontrahenta na 1..3 linie po maks X znaków z podziałem po słowach */
-function splitNameTo3(name, maxLen = 50) {
+function splitNameTo3(name, _maxLen = 50) {
   const s = normalizeName(name);
   if (!s) return ["", "", ""];
-  if (s.length <= maxLen) return [s, s, s]; // jak w Fakturowni – powielone
-  const out = [];
-  let rest = s;
-  for (let i = 0; i < 3 && rest.length > 0; i++) {
-    if (rest.length <= maxLen) {
-      out.push(rest);
-      rest = "";
-      break;
-    }
-    let cut = rest.lastIndexOf(" ", maxLen);
-    if (cut < 0 || cut < maxLen * 0.6) cut = maxLen;
-    out.push(rest.slice(0, cut).trim());
-    rest = rest.slice(cut).trim();
+  return [s, s, s];
+}
+
+/** Próba pobrania nazwy nabywcy z różnych pól faktury */
+function getBuyerNameFromInvoice(inv) {
+  const candidates = [
+    inv && inv.client,
+    inv && inv.client_name,
+    inv && inv.clientName,
+    inv && inv.buyer_name,
+    inv && inv.buyerName,
+    inv && inv.buyer && inv.buyer.name,
+    inv && inv.buyer && inv.buyer.fullName,
+    inv && inv.Klient,
+  ];
+  for (const raw of candidates) {
+    const n = normalizeName(raw || "");
+    if (n) return n;
   }
-  while (out.length < 3) out.push(out[out.length - 1] || "");
-  return out.slice(0, 3);
+  return "";
 }
 
 /** Rozbij adres "Ulica 1/2, 31-875 Kraków" -> {street, postal, city} */
@@ -277,9 +280,15 @@ function generateEPPContent(invoices = [], options = {}) {
 
   // ===== Każda faktura
   for (const inv of invoices) {
-    const buyerNameRaw =
-      (inv.client && String(inv.client)) || inv.buyer_name || "";
+    const buyerNameRaw = getBuyerNameFromInvoice(inv);
     const [buyerName1, buyerName2, buyerName3] = splitNameTo3(buyerNameRaw);
+
+    if (!buyerName1 && options.requireBuyerName) {
+      const num = inv && inv.number ? String(inv.number) : "(brak numeru)";
+      throw new Error(
+        `[EPP] Brak nazwy kontrahenta dla faktury ${num} – uzupełnij dane nabywcy przed eksportem`
+      );
+    }
 
     const number = inv.number || "";
     const issue = inv.issueDate || inv.issue_date || "";

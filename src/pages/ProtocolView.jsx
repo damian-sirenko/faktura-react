@@ -289,8 +289,9 @@ export default function ProtocolView() {
 
       try {
         const data = await apiJson(
-          api(`/protocols/${encodeURIComponent(clientId)}/${safeMonth}`)
+          `/protocols/${encodeURIComponent(clientId)}/${safeMonth}`
         );
+        
 
         if (!alive) return;
 
@@ -326,7 +327,8 @@ export default function ProtocolView() {
       }
 
       try {
-        const list = (await apiJson(api("/clients"))) || [];
+        const list = (await apiJson("/clients")) || [];
+
         const found = list.find((c) => toClientId(c) === clientId) || null;
         if (alive) setClient(found);
       } catch {
@@ -461,12 +463,13 @@ export default function ProtocolView() {
     setEdit((prev) => ({ ...prev, [i]: { ...st, saving: true, error: "" } }));
     try {
       const res = await apiFetch(
-        api(`/protocols/${encodeURIComponent(clientId)}/${safeMonth}/${i}`),
+        `/protocols/${encodeURIComponent(clientId)}/${safeMonth}/${i}`,
         {
           method: "PATCH",
           json: body,
         }
       );
+      
 
       let updated = null;
       try {
@@ -541,13 +544,15 @@ export default function ProtocolView() {
     try {
       for (const idx of idxs) {
         await apiFetch(
-          api(`/protocols/${encodeURIComponent(clientId)}/${safeMonth}/${idx}`),
+          `/protocols/${encodeURIComponent(clientId)}/${safeMonth}/${idx}`,
           { method: "DELETE" }
         );
+        
       }
       const data = await apiJson(
-        api(`/protocols/${encodeURIComponent(clientId)}/${safeMonth}`)
+        `/protocols/${encodeURIComponent(clientId)}/${safeMonth}`
       );
+      
       const entries = Array.isArray(data?.entries) ? data.entries : [];
       setProtocol({
         id: data?.id || clientId,
@@ -631,7 +636,7 @@ export default function ProtocolView() {
   const backLabel = location.state?.backLabel || "← Powrót do listy protokołów";
 
   return (
-    <div className="space-y-4">
+    <div className="h-full min-h-0 flex flex-col gap-4 overflow-x-hidden">
       <style>{`
         @media print {
           @page { size: A4 landscape; margin: 10mm; }
@@ -685,7 +690,7 @@ export default function ProtocolView() {
         </button>
       </div>
 
-      <div className="sheet card p-4">
+      <div className="sheet card p-4 flex-1 min-h-0 flex flex-col">
         <div className="text-base font-semibold text-center mb-2">
           Protokół przekazania narzędzi
         </div>
@@ -759,8 +764,8 @@ export default function ProtocolView() {
           </div>
         </div>
 
-        <div>
-          <table className="proto-table table w-full">
+        <div className="flex-1 min-h-0 overflow-auto">
+          <table className="proto-table table w-full min-w-[1100px]">
             <colgroup>
               <col style={{ width: "4ch" }} />
               <col style={{ width: "11ch" }} />

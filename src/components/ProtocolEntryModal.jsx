@@ -660,7 +660,7 @@ export default function ProtocolEntryModal({
       style={{ background: "rgba(0,0,0,0.45)" }}
     >
       <div
-        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-[1200px] h-[92vh] flex flex-col overflow-hidden"
+        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-[1200px] h-[92dvh] max-h-[92dvh] flex flex-col overflow-hidden min-h-0"
         onClick={(e) => e.stopPropagation()}
       >
         {/* toast */}
@@ -671,7 +671,6 @@ export default function ProtocolEntryModal({
             </div>
           </div>
         )}
-
         {/* Header */}
         <div className="px-4 py-3 border-b flex items-center gap-3">
           <div className="font-semibold text-base">
@@ -688,10 +687,8 @@ export default function ProtocolEntryModal({
             ✕
           </button>
         </div>
-
-        {/* wybór klientа */}
         <div className="p-4 border-b">
-          <div className="grid md:grid-cols-[1fr_auto_auto] gap-3 items-end">
+          <div className="grid gap-3 md:grid-cols-[1fr_auto_auto] md:items-end">
             <div className="relative">
               <label className="block text-xs mb-1 text-gray-600">
                 Klient (wpisz fragment nazwy lub ID)
@@ -706,7 +703,7 @@ export default function ProtocolEntryModal({
                   setMonthEntries([]);
                   setEditingIndex(null);
                   setSelectedEntryIndex(null);
-                  setClientActiveIdx(-1); // reset highlight
+                  setClientActiveIdx(-1);
                 }}
                 onKeyDown={onClientInputKeyDown}
               />
@@ -735,20 +732,35 @@ export default function ProtocolEntryModal({
               )}
             </div>
 
-            <div className="md:justify-self-end">
-              <label className="block text-xs mb-1 text-gray-600">
-                Data przekazania
-              </label>
-              <input
-                ref={dateRef}
-                type="date"
-                className="input w-48"
-                value={dateISO}
-                onChange={(e) => setDateISO(e.target.value)}
-              />
+            <div className="grid grid-cols-2 gap-3 md:flex md:gap-3 md:items-end md:justify-self-end">
+              <div>
+                <label className="block text-xs mb-1 text-gray-600">
+                  Data przekazania
+                </label>
+                <input
+                  ref={dateRef}
+                  type="date"
+                  className="input w-full md:w-48 text-sm px-2 py-1"
+                  value={dateISO}
+                  onChange={(e) => setDateISO(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs mb-1 text-gray-600">
+                  Miesiąc wpisów (filtr)
+                </label>
+                <input
+                  type="month"
+                  className="input w-full md:w-48 text-sm px-2 py-1"
+                  value={entriesMonth}
+                  onChange={(e) => setEntriesMonth(e.target.value)}
+                  aria-label="Filtr miesiąca wpisów w protokole"
+                />
+              </div>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 md:justify-self-end">
               <button
                 type="button"
                 className="btn-secondary"
@@ -764,20 +776,6 @@ export default function ProtocolEntryModal({
                 Wyczyść
               </button>
             </div>
-          </div>
-
-          {/* фільтр місяця */}
-          <div className="mt-3">
-            <label className="block text-xs mb-1 text-gray-600">
-              Miesiąc wpisów (filtr)
-            </label>
-            <input
-              type="month"
-              className="input w-48"
-              value={entriesMonth}
-              onChange={(e) => setEntriesMonth(e.target.value)}
-              aria-label="Filtr miesiąca wpisów w protokole"
-            />
           </div>
 
           {pickedClient ? (
@@ -803,7 +801,7 @@ export default function ProtocolEntryModal({
         </div>
 
         {/* Форма + entries */}
-        <div className="flex-1 overflow-auto p-4 space-y-4">
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
           {/* Narzędzia + komentarz */}
           <div className="card print-full-width print-reset-pad">
             {/* ✅ вирівнюємо назви колонок на одному рівні */}
@@ -1149,8 +1147,8 @@ export default function ProtocolEntryModal({
             ) : monthEntries.length === 0 ? (
               <div className="text-gray-500">Brak wpisów w tym miesiącu.</div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="table w-full table-fixed print-table">
+              <div className="overflow-auto max-h-[45dvh] md:max-h-[50dvh]">
+                <table className="table w-full table-auto min-w-[1100px] print-table">
                   <thead>
                     <tr className="bg-gray-50">
                       <th className="text-center w-[5ch]">✓</th>
@@ -1406,7 +1404,6 @@ export default function ProtocolEntryModal({
             )}
           </div>
         </div>
-
         {/* Footer */}
         <div className="px-4 py-3 border-t flex items-center justify-between text-xs text-gray-600">
           {/* порожньо або кнопки */}

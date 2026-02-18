@@ -1,6 +1,7 @@
 // src/pages/SavedInvoicesPage.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { api, apiFetch } from "../utils/api";
+import servicesSeed from "../../data/services.json";
 
 /* ===== ВСПОМОГАТЕЛЬНО: ключ кешу для інвойсу ===== */
 const cacheKeyOf = (inv) =>
@@ -112,7 +113,6 @@ const IconTrash = () => (
     <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
   </svg>
 );
-/* ✅ перегляд */
 const IconEye = () => (
   <svg
     width="16"
@@ -178,16 +178,25 @@ function sortByNumberDesc(a, b) {
   return B.y - A.y || B.m - A.m || B.seq - A.seq;
 }
 
+const shortInvNumber = (no) => String(no || "").split("/")[0] || "";
+
 /* ====== money helpers ====== */
 const to2 = (x) => Number(x || 0).toFixed(2);
 
-// 12.34 -> "12,34"
 const pl2 = (n) => {
   const v = Number(String(n ?? 0).replace(",", "."));
   return Number.isFinite(v) ? v.toFixed(2).replace(".", ",") : "0,00";
 };
+const parsePL = (s) => {
+  const v = Number(
+    String(s ?? "")
+      .trim()
+      .replace(/\s+/g, "")
+      .replace(",", ".")
+  );
+  return Number.isFinite(v) ? v : 0;
+};
 
-// "12,34 PLN"
 const fmtPLN = (n) => `${pl2(n)} PLN`;
 
 /* ====== перерахунок позиції ====== */
@@ -339,17 +348,108 @@ const effectiveStatusOf = (inv) => {
   if (due && due < today) return "overdue";
   return stored;
 };
+function StatusDotMenu({ value, effective, onChange }) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const onDoc = (e) => {
+      if (!wrapRef.current) return;
+      if (!wrapRef.current.contains(e.target)) setOpen(false);
+    };
+    const onKey = (e) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+
+    document.addEventListener("mousedown", onDoc);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const eff = effective || value;
+
+  const dotClass =
+    eff === "paid"
+      ? "bg-green-500"
+      : eff === "overdue"
+      ? "bg-rose-500"
+      : "bg-amber-500";
+
+  const options = [
+    { k: "issued", label: "wystawiona", dot: "bg-amber-500" },
+    { k: "paid", label: "opłacona", dot: "bg-green-500" },
+    { k: "overdue", label: "przeterminowana", dot: "bg-rose-500" },
+  ];
+
+  const title =
+    effective && effective !== value
+      ? "Status nadpisany automatycznie (przeterminowana)"
+      : "Zmień status";
+
+  return (
+    <div ref={wrapRef} className="relative inline-block">
+      <button
+        type="button"
+        className="inline-flex items-center justify-center gap-1.5 px-2 py-1 rounded-md border bg-white hover:bg-gray-50 text-xs"
+        onClick={() => setOpen((v) => !v)}
+        title={title}
+        aria-label="Zmień status"
+      >
+        <span className={`inline-block w-2.5 h-2.5 rounded-full ${dotClass}`} />
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M6 9l6 6 6-6"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="absolute left-1/2 top-full mt-1 -translate-x-1/2 w-36 rounded-xl border bg-white shadow-lg p-1 z-50">
+          {options.map((o) => (
+            <button
+              key={o.k}
+              type="button"
+              className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm hover:bg-gray-50 ${
+                o.k === value ? "bg-gray-50" : ""
+              }`}
+              onClick={() => {
+                onChange?.(o.k);
+                setOpen(false);
+              }}
+            >
+              <span className={`w-2.5 h-2.5 rounded-full ${o.dot}`} />
+              <span className="text-left">{o.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function SavedInvoicesPage() {
   const [invoices, setInvoices] = useState([]);
   const [clients, setClients] = useState([]);
   const [preview, setPreview] = useState({ open: false, src: "" });
 
-  // ===== Довідник послуг (назва → {price_gross, vat_rate})
   const [servicesCatalog, setServicesCatalog] = useState({});
-  const [servicesDict, setServicesDict] = useState([]); // лише назви для datalist
+  const [servicesDict, setServicesDict] = useState([]);
 
-  // filters
   const [searchClient, setSearchClient] = useState("");
   const [searchNumber, setSearchNumber] = useState("");
   const [dateFilter, setDateFilter] = useState("all");
@@ -357,14 +457,11 @@ export default function SavedInvoicesPage() {
   const [customTo, setCustomTo] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  // pagination
-  const [perPage, setPerPage] = useState(50);
+  const [perPage, setPerPage] = useState(200);
   const [page, setPage] = useState(1);
 
-  // selection
   const [selected, setSelected] = useState([]);
 
-  // form add/edit
   const [formOpen, setFormOpen] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);
   const [editingOriginalNumber, setEditingOriginalNumber] = useState(null);
@@ -375,6 +472,7 @@ export default function SavedInvoicesPage() {
     client: "",
     buyer_nip: "",
     buyer_pesel: "",
+    buyer_kind: "firma",
     buyer_address: "",
     buyer_street: "",
     buyer_postal: "",
@@ -382,78 +480,71 @@ export default function SavedInvoicesPage() {
     issueDate: todayISO(),
     dueDate: plusDaysISO(todayISO(), 7),
     status: "issued",
+    payment_method: "transfer",
     items: [{ name: "", qty: 1, price_gross: 0, vat_rate: 23 }],
   });
 
-  // delete confirm
+  const [duePreset, setDuePreset] = useState("7");
+  const [dueCustomDays, setDueCustomDays] = useState(7);
+
+  const getDueDays = () => {
+    const d =
+      duePreset === "custom"
+        ? Number(dueCustomDays || 0)
+        : Number(duePreset || 0);
+    return Number.isFinite(d) && d >= 0 ? d : 7;
+  };
+
+  const applyDueFromIssue = (issueISO) => {
+    const days = getDueDays();
+    setForm((f) => ({
+      ...f,
+      dueDate: plusDaysISO(issueISO || f.issueDate, days),
+    }));
+  };
+
+  const inferDuePresetFromDates = (issueISO, dueISO) => {
+    const a = issueISO ? new Date(issueISO) : null;
+    const b = dueISO ? new Date(dueISO) : null;
+    if (!a || !b || Number.isNaN(a.getTime()) || Number.isNaN(b.getTime())) {
+      setDuePreset("7");
+      setDueCustomDays(7);
+      return;
+    }
+    const diff = Math.round((b.getTime() - a.getTime()) / 86400000);
+    if (diff === 1 || diff === 3 || diff === 7) {
+      setDuePreset(String(diff));
+      setDueCustomDays(diff);
+    } else {
+      setDuePreset("custom");
+      setDueCustomDays(diff >= 0 ? diff : 7);
+    }
+  };
+
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [toDelete, setToDelete] = useState(null);
 
-  // ref
   const formRef = useRef(null);
 
-  /* Load data */
   useEffect(() => {
     (async () => {
       try {
-        const r = await apiFetch(api("/invoices"));
+        const r = await apiFetch("/invoices");
         const data = await r.json();
         const arr = Array.isArray(data) ? data : [];
         arr.sort(sortByNumberDesc);
         setInvoices(arr);
 
-        // ✅ /services + fallback з існуючих faktur
         let catalog = {};
-
-        // 1) з БД services
         try {
-          const rs = await apiFetch(api("/services"), { cache: "no-store" });
-          if (rs.ok) {
-            const list = await rs.json();
-            if (Array.isArray(list)) {
-              for (const s of list) {
-                const name = String(s.name || "").trim();
-                if (!name) continue;
-                catalog[name] = {
-                  price_gross: Number(s.price_gross ?? s.price ?? 0) || 0,
-                  vat_rate: Number(s.vat_rate ?? 23) || 23,
-                };
-              }
-            }
-          }
-        } catch {}
-
-        // 2) fallback: збережені інвойси → унікуємо назви
-        try {
-          const namesFromInvoices = new Set();
-          for (const inv of arr) {
-            const items = Array.isArray(inv.items) ? inv.items : [];
-            for (const it of items) {
-              const nm = String(it?.name || "").trim();
-              if (!nm) continue;
-              namesFromInvoices.add(nm);
-              if (!catalog[nm]) {
-                // приблизні значення, щоб автопідказка працювала
-                const gross =
-                  Number(
-                    it.price_gross ??
-                      it.gross_price ??
-                      (typeof it.gross_total === "string"
-                        ? it.gross_total.replace(",", ".")
-                        : 0)
-                  ) || 0;
-                const vat =
-                  Number(
-                    typeof it.vat_rate === "string"
-                      ? it.vat_rate.replace("%", "")
-                      : it.vat_rate ?? 23
-                  ) || 23;
-                catalog[nm] = {
-                  price_gross: gross > 0 ? gross : 0,
-                  vat_rate: vat,
-                };
-              }
-            }
+          const list = Array.isArray(servicesSeed) ? servicesSeed : [];
+          for (const s of list) {
+            const name = String(s?.name || "").trim();
+            if (!name) continue;
+            catalog[name] = {
+              price_gross: Number(s?.price_gross ?? 0) || 0,
+              vat_rate: Number(s?.vat_rate ?? 23) || 23,
+            };
           }
         } catch {}
 
@@ -461,13 +552,12 @@ export default function SavedInvoicesPage() {
         setServicesDict(Object.keys(catalog).sort());
       } catch {}
 
-      apiFetch(api("/clients"))
+      apiFetch("/clients")
         .then((r) => r.json())
         .then((data) => setClients(Array.isArray(data) ? data : []));
     })();
   }, []);
 
-  /* Закриття прев’ю по Escape */
   useEffect(() => {
     if (!preview.open) return;
     const onKey = (e) => {
@@ -477,7 +567,6 @@ export default function SavedInvoicesPage() {
     return () => window.removeEventListener("keydown", onKey);
   }, [preview.open]);
 
-  /* Helpers */
   const suggestNextNumber = (issueDate) => {
     const d = issueDate ? new Date(issueDate) : new Date();
     if (Number.isNaN(d.getTime())) return "";
@@ -496,11 +585,12 @@ export default function SavedInvoicesPage() {
     return `ST-${next}/${m}/${y}`;
   };
 
-  /* Client autoload / NIP-PESEL exclusivity */
   const handleClientChange = (val) => {
+    const v = String(val ?? "");
+
     setForm((f) => ({
       ...f,
-      client: val,
+      client: v,
       buyer_address: "",
       buyer_street: "",
       buyer_postal: "",
@@ -508,41 +598,46 @@ export default function SavedInvoicesPage() {
       buyer_nip: "",
       buyer_pesel: "",
     }));
+
     const found =
       clients.find(
-        (c) => (c.name || c.Klient || "").trim() === String(val).trim()
+        (c) => (c.name || c.Klient || "").trim() === String(v).trim()
       ) || null;
-    if (found) {
-      const isFirma =
-        String(found.type || found["Firma - OP"] || "op").toLowerCase() ===
-        "firma";
-      const nip = found.nip || found.NIP || "";
-      const pesel = found.pesel || found.Pesel || "";
-      const address = found.address || found.Adres || "";
 
-      const { street, postal, city } = splitAddress(address);
+    if (!found) return;
 
-      setForm((f) => ({
-        ...f,
-        buyer_address: address || joinAddress(street, postal, city),
-        buyer_street: street,
-        buyer_postal: postal,
-        buyer_city: city,
-        buyer_nip: isFirma ? nip : "",
-        buyer_pesel: !isFirma ? pesel : "",
-      }));
-    }
+    const isFirma =
+      String(found.type || found["Firma - OP"] || "op").toLowerCase() ===
+      "firma";
+    const nip = found.nip || found.NIP || "";
+    const pesel = found.pesel || found.Pesel || "";
+    const address = found.address || found.Adres || "";
+
+    const { street, postal, city } = splitAddress(address);
+
+    setForm((f) => ({
+      ...f,
+      client: v,
+      buyer_kind: isFirma ? "firma" : "op",
+      buyer_address: address || joinAddress(street, postal, city),
+      buyer_street: street,
+      buyer_postal: postal,
+      buyer_city: city,
+      buyer_nip: isFirma ? nip : "",
+      buyer_pesel: !isFirma ? pesel : "",
+    }));
   };
+
   const onChangeNip = (v) =>
     setForm((f) => ({
       ...f,
       buyer_nip: v,
       buyer_pesel: v ? "" : f.buyer_pesel,
     }));
+
   const onChangePesel = (v) =>
     setForm((f) => ({ ...f, buyer_pesel: v, buyer_nip: v ? "" : f.buyer_nip }));
 
-  /* Date filter */
   const filteredByDate = useMemo(() => {
     if (dateFilter === "all") return invoices;
     const today = new Date();
@@ -564,9 +659,13 @@ export default function SavedInvoicesPage() {
     } else if (dateFilter === "custom") {
       from = customFrom ? new Date(customFrom) : null;
       to = customTo ? new Date(customTo) : null;
+      if (to) to.setDate(to.getDate() + 1);
+
     }
     return invoices.filter((inv) => {
-      const d = inv.issueDate ? new Date(inv.issueDate) : null;
+      const rawDate =
+        inv.createdAt || inv.created_at || inv.created || inv.issueDate;
+      const d = rawDate ? new Date(rawDate) : null;
       if (!d || Number.isNaN(d.getTime())) return false;
       if (from && d < from) return false;
       if (to && d >= to) return false;
@@ -583,7 +682,6 @@ export default function SavedInvoicesPage() {
         : true;
       const okNo = no ? (inv.number || "").toLowerCase().includes(no) : true;
 
-      // 🔴 фільтр по ЕФЕКТИВНОМУ статусу (з автопротермінуванням)
       const eff = effectiveStatusOf(inv);
       const okStatus = statusFilter === "all" ? true : eff === statusFilter;
 
@@ -591,7 +689,6 @@ export default function SavedInvoicesPage() {
     });
   }, [filteredByDate, searchClient, searchNumber, statusFilter]);
 
-  /* Pagination */
   const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
   const pageSafe = Math.min(page, totalPages);
   const pageSlice = filtered.slice(
@@ -599,16 +696,15 @@ export default function SavedInvoicesPage() {
     pageSafe * perPage
   );
 
-  /* Selection */
   const toggleSelectAllOnPage = () => {
-    const pageFiles = pageSlice.map((i) => i.filename);
+    const pageFiles = pageSlice.map((i) => i.filename).filter(Boolean);
+
     const allSelected = pageFiles.every((f) => selected.includes(f));
     if (allSelected)
       setSelected(selected.filter((f) => !pageFiles.includes(f)));
     else setSelected(Array.from(new Set([...selected, ...pageFiles])));
   };
 
-  /* Bulk actions */
   const bulkDelete = () => {
     if (!selected.length) {
       alert("Nie wybrano żadnych faktur.");
@@ -620,7 +716,7 @@ export default function SavedInvoicesPage() {
 
   const bulkDownloadZip = async () => {
     if (!selected.length) return alert("Nie wybrano żadnych faktur.");
-    const r = await apiFetch(api("/download-multiple"), {
+    const r = await apiFetch("/download-multiple", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ files: selected }),
@@ -635,14 +731,13 @@ export default function SavedInvoicesPage() {
     setTimeout(() => URL.revokeObjectURL(url), 0);
   };
 
-  // ✅ ЕКСПОРТ .EPP + ПАРАЛЕЛЬНО PDF-СПИСОК
   const bulkExportEPPAndListPDF = async () => {
     if (!selected.length) return alert("Nie wybrano żadnych faktur.");
     console.log("[UI] bulkExportEPPAndListPDF start, selected =", selected);
     try {
       const body = JSON.stringify({ files: selected });
 
-      const eppReq = apiFetch(api("/export-epp"), {
+      const eppReq = apiFetch("/export-epp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body,
@@ -657,8 +752,7 @@ export default function SavedInvoicesPage() {
         setTimeout(() => URL.revokeObjectURL(url), 0);
       });
 
-      // Ендпоінт для PDF-списку (на бекенді зроби формат як у зразку)
-      const pdfReq = apiFetch(api("/export-invoice-list-pdf"), {
+      const pdfReq = apiFetch("/export-invoice-list-pdf", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body,
@@ -679,7 +773,6 @@ export default function SavedInvoicesPage() {
     }
   };
 
-  /* Row actions */
   const openPreviewNoCache = (inv) => {
     const base = previewSrcFor(inv);
     const url = `${base}${base.includes("?") ? "&" : "?"}r=${Date.now()}`;
@@ -774,6 +867,7 @@ export default function SavedInvoicesPage() {
       client: inv.client || "",
       buyer_nip: buyerNip,
       buyer_pesel: buyerPesel,
+      buyer_kind: buyerNip ? "firma" : "op",
       buyer_address:
         buyerAddress || joinAddress(buyerStreet, buyerPostal, buyerCity),
       buyer_street: buyerStreet,
@@ -781,6 +875,7 @@ export default function SavedInvoicesPage() {
       buyer_city: buyerCity,
       issueDate: inv.issueDate || todayISO(),
       dueDate: inv.dueDate || plusDaysISO(inv.issueDate || todayISO(), 7),
+      payment_method: inv.payment_method || inv.paymentMethod || "transfer",
       status: inv.status || "issued",
       items: (inv.items || []).map((it) => ({
         name: it.name || "",
@@ -798,6 +893,7 @@ export default function SavedInvoicesPage() {
     };
     if (!clone.items.length)
       clone.items = [{ name: "", qty: 1, price_gross: 0, vat_rate: 23 }];
+    inferDuePresetFromDates(clone.issueDate, clone.dueDate);
     setForm(clone);
     setFormOpen(true);
     setTimeout(() => {
@@ -816,7 +912,7 @@ export default function SavedInvoicesPage() {
       if (toDelete.list === "bulk" && Array.isArray(toDelete.filenames)) {
         await Promise.all(
           toDelete.filenames.map((fn) =>
-            apiFetch(api(`/invoices/by-filename/${encodeURIComponent(fn)}`), {
+            apiFetch(`/invoices/by-filename/${encodeURIComponent(fn)}`, {
               method: "DELETE",
               headers: { "x-confirm-action": "delete-invoice" },
             })
@@ -824,10 +920,11 @@ export default function SavedInvoicesPage() {
         );
       } else if (toDelete.one) {
         const fn = toDelete.one.filename;
-        await apiFetch(api(`/invoices/by-filename/${encodeURIComponent(fn)}`), {
+        await apiFetch(`/invoices/by-filename/${encodeURIComponent(fn)}`, {
           method: "DELETE",
           headers: { "x-confirm-action": "delete-invoice" },
         });
+        
       }
     } catch (e) {
       alert("Błąd usuwania faktury.");
@@ -835,9 +932,8 @@ export default function SavedInvoicesPage() {
       setConfirmOpen(false);
       setToDelete(null);
       setSelected([]);
-      // refetch з БД, щоб список не «повертався» після reload
       try {
-        const r = await apiFetch(api("/invoices"), { cache: "no-store" });
+        const r = await apiFetch("/invoices", { cache: "no-store" });
         const data = await r.json();
         const arr = Array.isArray(data) ? data : [];
         arr.sort(sortByNumberDesc);
@@ -848,8 +944,7 @@ export default function SavedInvoicesPage() {
 
   const updateStatus = async (inv, newStatus) => {
     try {
-      // оновлюємо тільки статус, бекенд розпізнає "status-only"
-      await apiFetch(api(`/invoices/${encodeURIComponent(inv.number || "")}`), {
+      await apiFetch(`/invoices/${encodeURIComponent(inv.number || "")}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -857,19 +952,15 @@ export default function SavedInvoicesPage() {
         },
         body: JSON.stringify({ status: newStatus }),
       });
-    } catch (e) {
-      // тихо
-    }
+    } catch (e) {}
 
-    // рефреш даних
     try {
-      const r = await apiFetch(api("/invoices"), { cache: "no-store" });
+      const r = await apiFetch("/invoices", { cache: "no-store" });
       const data = await r.json();
       const arr = Array.isArray(data) ? data : [];
       arr.sort(sortByNumberDesc);
       setInvoices(arr);
     } catch (e) {
-      // фолбек — оптимістично локально
       setInvoices((prev) => {
         const next = prev.map((i) =>
           i === inv ? { ...i, status: newStatus } : i
@@ -880,7 +971,6 @@ export default function SavedInvoicesPage() {
     }
   };
 
-  /* ======= Автопідтягування ціни за назвою послуги ======= */
   const updateItemField = (idx, key, val) =>
     setForm((f) => {
       const items = [...f.items];
@@ -892,7 +982,6 @@ export default function SavedInvoicesPage() {
     setForm((f) => {
       const items = [...f.items];
       const current = { ...items[idx], name };
-      // якщо є в довіднику — підставляємо ціну/ПДВ
       const rec = servicesCatalog[String(name || "").trim()];
       if (rec) {
         current.price_gross = Number(rec.price_gross || 0);
@@ -911,7 +1000,6 @@ export default function SavedInvoicesPage() {
   const removeItemRow = (idx) =>
     setForm((f) => ({ ...f, items: f.items.filter((_, i) => i !== idx) }));
 
-  /* Form submit (by button only) */
   const onFormKeyDown = (e) => {
     if (e.key === "Enter") e.preventDefault();
   };
@@ -997,7 +1085,7 @@ export default function SavedInvoicesPage() {
           payload._renumber = true;
         }
 
-        await apiFetch(api(`/invoices/${encodeURIComponent(oldNo)}`), {
+        await apiFetch(`/invoices/${encodeURIComponent(oldNo)}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -1006,7 +1094,7 @@ export default function SavedInvoicesPage() {
           body: JSON.stringify(payload),
         });
 
-        const r = await apiFetch(api("/invoices"), { cache: "no-store" });
+        const r = await apiFetch("/invoices", { cache: "no-store" });
         const data = await r.json();
         const arr = Array.isArray(data) ? data : [];
         arr.sort(sortByNumberDesc);
@@ -1024,7 +1112,7 @@ export default function SavedInvoicesPage() {
         const next = [payload, ...invoices].sort(sortByNumberDesc);
         setInvoices(next);
 
-        await apiFetch(api("/save-invoices"), {
+        await apiFetch("/save-invoices", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(next),
@@ -1048,9 +1136,10 @@ export default function SavedInvoicesPage() {
     [clients]
   );
 
-  /* === Handlery верхніх кнопок === */
   const openNewForm = () => {
     const baseDate = todayISO();
+    setDuePreset("7");
+    setDueCustomDays(7);
     const suggestedNo = suggestNextNumber(baseDate);
     setEditingIndex(null);
     setEditingOriginalNumber(null);
@@ -1060,12 +1149,14 @@ export default function SavedInvoicesPage() {
       client: "",
       buyer_nip: "",
       buyer_pesel: "",
+      buyer_kind: "firma",
       buyer_address: "",
       buyer_street: "",
       buyer_postal: "",
       buyer_city: "",
       issueDate: baseDate,
       dueDate: plusDaysISO(baseDate, 7),
+      payment_method: "transfer",
       status: "issued",
       items: [{ name: "", qty: 1, price_gross: 0, vat_rate: 23 }],
     });
@@ -1074,8 +1165,18 @@ export default function SavedInvoicesPage() {
       formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 0);
   };
+  const closeForm = () => {
+    setFormOpen(false);
+    setEditingIndex(null);
+    setEditingOriginalNumber(null);
+    setEditingOriginalFilename(null);
+  };
 
-  /* ✅ редагування вибраної чекбоксом */
+  const toggleNewForm = () => {
+    if (formOpen) closeForm();
+    else openNewForm();
+  };
+
   const editSelected = () => {
     if (selected.length !== 1) {
       alert("Zaznacz dokładnie jedną fakturę do edycji.");
@@ -1091,285 +1192,120 @@ export default function SavedInvoicesPage() {
     startEdit(inv, idx);
   };
 
-  /* ====== RENDER ====== */
   return (
-    <div className="max-w-6xl mx-auto p-4 space-y-4 min-w-0">
-      {/* Контейнер кнопок + фільтри (адаптивно як у клієнтах) */}
-      <div className="card-lg border-2 border-blue-200 bg-blue-50/60 space-y-3 min-w-0 overflow-hidden">
-        <h1 className="text-2xl font-bold">Wystawione faktury</h1>
-        {/* MOBILE / TABLET */}
-        <div className="flex flex-col sm:flex-row md:hidden gap-3 w-full min-w-0">
-          <div className="flex-1 min-w-0 flex flex-col gap-2">
-            <div className="w-full flex flex-col gap-2">
-              <input
-                className="input w-full"
-                placeholder="Szukaj po kliencie"
-                value={searchClient}
-                onChange={(e) => {
-                  setSearchClient(e.target.value);
-                  setPage(1);
-                }}
-              />
-              <input
-                className="input w-full"
-                placeholder="Szukaj po numerze"
-                value={searchNumber}
-                onChange={(e) => {
-                  setSearchNumber(e.target.value);
-                  setPage(1);
-                }}
-              />
-              <div className="flex gap-2">
-                <div className="flex-1">
-                  <label className="block text-sm mb-1">Data</label>
-                  <select
-                    className="input w-full"
-                    value={dateFilter}
-                    onChange={(e) => {
-                      setDateFilter(e.target.value);
-                      setPage(1);
-                    }}
-                  >
-                    <option value="all">Wszystkie</option>
-                    <option value="today">Dzisiaj</option>
-                    <option value="week">Ten tydzień</option>
-                    <option value="month">Ten miesiąc</option>
-                    <option value="custom">Zakres</option>
-                  </select>
-                </div>
-                <div className="flex-1">
-                  <label className="block text-sm mb-1">Status</label>
-                  <select
-                    className="input w-full"
-                    value={statusFilter}
-                    onChange={(e) => {
-                      setStatusFilter(e.target.value);
-                      setPage(1);
-                    }}
-                    title="Filtruj po statusie"
-                  >
-                    <option value="all">Wszystkie</option>
-                    <option value="issued">wystawiona</option>
-                    <option value="paid">opłacona</option>
-                    <option value="overdue">przeterminowana</option>
-                  </select>
-                </div>
-              </div>
-              {dateFilter === "custom" && (
-                <div className="grid grid-cols-2 gap-2">
-                  <input
-                    type="date"
-                    className="input w-full"
-                    value={customFrom}
-                    onChange={(e) => {
-                      setCustomFrom(e.target.value);
-                      setPage(1);
-                    }}
-                  />
-                  <input
-                    type="date"
-                    className="input w-full"
-                    value={customTo}
-                    onChange={(e) => {
-                      setCustomTo(e.target.value);
-                      setPage(1);
-                    }}
-                  />
-                </div>
-              )}
-            </div>
+    <div className="w-full mx-auto px-2 sm:px-3 md:px-5 lg:px-6 space-y-4 psl-page">
+      <section className="psl-container">
+        <div className="card-lg border-2 border-blue-200 bg-blue-50/60 space-y-3 min-w-0 w-full max-w-full">
+          <h1 className="text-2xl font-bold">Wystawione faktury</h1>
 
-            <div className="flex flex-wrap gap-2">
-              <button className="btn-primary flex-1 min-w-[140px]" onClick={openNewForm}>
-                Dodaj fakturę
-              </button>
-              <button
-                className="btn-primary flex-1 min-w-[140px]"
-                onClick={editSelected}
-                disabled={selected.length !== 1}
-                title={
-                  selected.length === 1
-                    ? "Edytuj zaznaczoną fakturę"
-                    : "Zaznacz dokładnie jedną fakturę на liście"
-                }
-              >
-                Edytuj zaznaczoną
-              </button>
-              {formOpen && (
+          <div className="flex flex-col sm:flex-row sm:flex-wrap md:hidden gap-3 w-full min-w-0">
+            <div className="flex-1 min-w-0 flex flex-col gap-2">
+              <div className="w-full flex flex-col gap-2">
+                <input
+                  className="input w-full"
+                  placeholder="Szukaj po kliencie"
+                  value={searchClient}
+                  onChange={(e) => {
+                    setSearchClient(e.target.value);
+                    setPage(1);
+                  }}
+                />
+                <input
+                  className="input w-full"
+                  placeholder="Szukaj po numerze"
+                  value={searchNumber}
+                  onChange={(e) => {
+                    setSearchNumber(e.target.value);
+                    setPage(1);
+                  }}
+                />
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <label className="block text-sm mb-1">Data</label>
+                    <select
+                      className="input w-full"
+                      value={dateFilter}
+                      onChange={(e) => {
+                        setDateFilter(e.target.value);
+                        setPage(1);
+                      }}
+                    >
+                      <option value="all">Wszystkie</option>
+                      <option value="today">Dzisiaj</option>
+                      <option value="week">Ten tydzień</option>
+                      <option value="month">Ten miesiąc</option>
+                      <option value="custom">Zakres</option>
+                    </select>
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-sm mb-1">Status</label>
+                    <select
+                      className="input w-full"
+                      value={statusFilter}
+                      onChange={(e) => {
+                        setStatusFilter(e.target.value);
+                        setPage(1);
+                      }}
+                      title="Filtruj po statusie"
+                    >
+                      <option value="all">Wszystkie</option>
+                      <option value="issued">wystawiona</option>
+                      <option value="paid">opłacona</option>
+                      <option value="overdue">przeterminowana</option>
+                    </select>
+                  </div>
+                </div>
+                {dateFilter === "custom" && (
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="date"
+                      className="input w-full"
+                      value={customFrom}
+                      onChange={(e) => {
+                        setCustomFrom(e.target.value);
+                        setPage(1);
+                      }}
+                    />
+                    <input
+                      type="date"
+                      className="input w-full"
+                      value={customTo}
+                      onChange={(e) => {
+                        setCustomTo(e.target.value);
+                        setPage(1);
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-wrap gap-2">
                 <button
                   className="btn-primary flex-1 min-w-[140px]"
-                  onClick={() => {
-                    setFormOpen(false);
-                    setEditingIndex(null);
-                    setEditingOriginalNumber(null);
-                  }}
+                  onClick={toggleNewForm}
                 >
-                  Zamknij formularz
+                  {formOpen ? "Zamknij formularz" : "Dodaj fakturę"}
                 </button>
-              )}
-            </div>
-          </div>
 
-          <div className="flex flex-col gap-2 w-full sm:w-auto sm:items-end min-w-0">
-            <div className="flex gap-2 w-full">
-              <button
-                className="btn-primary flex-1 basis-1/2 justify-center"
-                title="Pobierz wybrane (ZIP)"
-                onClick={bulkDownloadZip}
-                disabled={!selected.length}
-              >
-                ZIP
-              </button>
-              <button
-                className="btn-primary flex-1 basis-1/2 justify-center"
-                onClick={bulkExportEPPAndListPDF}
-                disabled={!selected.length}
-                title="Eksport .epp + PDF lista"
-                aria-label="Eksport EPP + PDF"
-              >
-                .epp + PDF
-              </button>
-            </div>
-            <button
-              className="btn-danger w-full justify-center"
-              title="Usuń zaznaczone"
-              onClick={bulkDelete}
-              disabled={!selected.length}
-            >
-              Usuń zaznaczone
-            </button>
-          </div>
-        </div>
-
-        {/* DESKTOP */}
-        <div className="hidden md:flex flex-wrap gap-3 items-end min-w-0">
-          <div>
-            <label className="block text-sm mb-1">Klient</label>
-            <input
-              className="input"
-              placeholder="Szukaj po kliencie"
-              value={searchClient}
-              onChange={(e) => {
-                setSearchClient(e.target.value);
-                setPage(1);
-              }}
-            />
-          </div>
-          <div>
-            <label className="block text-sm mb-1">Numer</label>
-            <input
-              className="input"
-              placeholder="Szukaj po numerze"
-              value={searchNumber}
-              onChange={(e) => {
-                setSearchNumber(e.target.value);
-                setPage(1);
-              }}
-            />
-          </div>
-          <div>
-            <label className="block text-sm mb-1">Data</label>
-            <select
-              className="input"
-              value={dateFilter}
-              onChange={(e) => {
-                setDateFilter(e.target.value);
-                setPage(1);
-              }}
-            >
-              <option value="all">Wszystkie</option>
-              <option value="today">Dzisiaj</option>
-              <option value="week">Ten tydzień</option>
-              <option value="month">Ten miesiąc</option>
-              <option value="custom">Zakres</option>
-            </select>
-          </div>
-          {dateFilter === "custom" && (
-            <>
-              <div>
-                <label className="block text-sm mb-1">Od</label>
-                <input
-                  type="date"
-                  className="input"
-                  value={customFrom}
-                  onChange={(e) => {
-                    setCustomFrom(e.target.value);
-                    setPage(1);
-                  }}
-                />
-              </div>
-              <div>
-                <label className="block text-sm mb-1">Do</label>
-                <input
-                  type="date"
-                  className="input"
-                  value={customTo}
-                  onChange={(e) => {
-                    setCustomTo(e.target.value);
-                    setPage(1);
-                  }}
-                />
-              </div>
-            </>
-          )}
-
-          <div>
-            <label className="block text-sm mb-1">Status</label>
-            <select
-              className="input"
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setPage(1);
-              }}
-              title="Filtruj po statusie"
-            >
-              <option value="all">Wszystkie</option>
-              <option value="issued">wystawiona</option>
-              <option value="paid">opłacona</option>
-              <option value="overdue">przeterminowana</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="hidden md:block w-full overflow-x-auto">
-          <div className="flex flex-nowrap items-center gap-2 min-w-max">
-            <button className="btn-primary shrink-0 justify-center" onClick={openNewForm}>
-              Dodaj fakturę
-            </button>
-
-            <div className="flex-1" />
-
-            <div className="flex items-center gap-2 flex-nowrap justify-end min-w-0">
-              <button
-                className="btn-primary shrink-0 justify-center"
-                onClick={editSelected}
-                disabled={selected.length !== 1}
-                title={
-                  selected.length === 1
-                    ? "Edytuj zaznaczoną fakturę"
-                    : "Zaznacz dokładnie jedną fakturę на liście"
-                }
-              >
-                Edytuj zaznaczoną
-              </button>
-
-              {formOpen && (
                 <button
-                  className="btn-primary shrink-0 justify-center"
-                  onClick={() => {
-                    setFormOpen(false);
-                    setEditingIndex(null);
-                    setEditingOriginalNumber(null);
-                  }}
+                  className="btn-primary flex-1 min-w-[140px]"
+                  onClick={editSelected}
+                  disabled={selected.length !== 1}
+                  title={
+                    selected.length === 1
+                      ? "Edytuj zaznaczoną fakturę"
+                      : "Zaznacz dokładnie jedną fakturę na liście"
+                  }
                 >
-                  Zamknij formularz
+                  Edytuj zaznaczoną
                 </button>
-              )}
+              </div>
+            </div>
 
-              <div className="flex gap-2 flex-nowrap items-center min-w-0">
+            <div className="flex flex-col gap-2 w-full sm:w-auto sm:items-end min-w-0">
+              <div className="flex gap-2 w-full">
                 <button
-                  className="btn-primary shrink-0 justify-center"
+                  className="btn-primary flex-1 basis-1/2 justify-center"
                   title="Pobierz wybrane (ZIP)"
                   onClick={bulkDownloadZip}
                   disabled={!selected.length}
@@ -1377,7 +1313,149 @@ export default function SavedInvoicesPage() {
                   ZIP
                 </button>
                 <button
-                  className="btn-primary shrink-0 justify-center"
+                  className="btn-primary flex-1 basis-1/2 justify-center"
+                  onClick={bulkExportEPPAndListPDF}
+                  disabled={!selected.length}
+                  title="Eksport .epp + PDF lista"
+                  aria-label="Eksport EPP + PDF"
+                >
+                  .epp + PDF
+                </button>
+              </div>
+              <button
+                className="btn-danger w-full justify-center"
+                title="Usuń zaznaczone"
+                onClick={bulkDelete}
+                disabled={!selected.length}
+              >
+                Usuń zaznaczone
+              </button>
+            </div>
+          </div>
+
+          <div className="hidden md:flex flex-wrap gap-3 items-end min-w-0 w-full">
+            <div>
+              <label className="block text-sm mb-1">Klient</label>
+              <input
+                className="input"
+                placeholder="Szukaj po kliencie"
+                value={searchClient}
+                onChange={(e) => {
+                  setSearchClient(e.target.value);
+                  setPage(1);
+                }}
+              />
+            </div>
+            <div>
+              <label className="block text-sm mb-1">Numer</label>
+              <input
+                className="input"
+                placeholder="Szukaj po numerze"
+                value={searchNumber}
+                onChange={(e) => {
+                  setSearchNumber(e.target.value);
+                  setPage(1);
+                }}
+              />
+            </div>
+            <div>
+              <label className="block text-sm mb-1">Data</label>
+              <select
+                className="input"
+                value={dateFilter}
+                onChange={(e) => {
+                  setDateFilter(e.target.value);
+                  setPage(1);
+                }}
+              >
+                <option value="all">Wszystkie</option>
+                <option value="today">Dzisiaj</option>
+                <option value="week">Ten tydzień</option>
+                <option value="month">Ten miesiąc</option>
+                <option value="custom">Zakres</option>
+              </select>
+            </div>
+            {dateFilter === "custom" && (
+              <>
+                <div>
+                  <label className="block text-sm mb-1">Od</label>
+                  <input
+                    type="date"
+                    className="input"
+                    value={customFrom}
+                    onChange={(e) => {
+                      setCustomFrom(e.target.value);
+                      setPage(1);
+                    }}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm mb-1">Do</label>
+                  <input
+                    type="date"
+                    className="input"
+                    value={customTo}
+                    onChange={(e) => {
+                      setCustomTo(e.target.value);
+                      setPage(1);
+                    }}
+                  />
+                </div>
+              </>
+            )}
+
+            <div>
+              <label className="block text-sm mb-1">Status</label>
+              <select
+                className="input"
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setPage(1);
+                }}
+                title="Filtruj po statusie"
+              >
+                <option value="all">Wszystkie</option>
+                <option value="issued">wystawiona</option>
+                <option value="paid">opłacona</option>
+                <option value="overdue">przeterminowana</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="hidden md:flex items-center gap-2 flex-wrap min-w-0 w-full max-w-full">
+            <button
+              className="btn-primary justify-center"
+              onClick={toggleNewForm}
+            >
+              {formOpen ? "Zamknij formularz" : "Dodaj fakturę"}
+            </button>
+
+            <div className="flex items-center gap-2 flex-wrap justify-end ml-auto min-w-0">
+              <button
+                className="btn-primary justify-center"
+                onClick={editSelected}
+                disabled={selected.length !== 1}
+                title={
+                  selected.length === 1
+                    ? "Edytuj zaznaczoną fakturę"
+                    : "Zaznacz dokładnie jedną fakturę na liście"
+                }
+              >
+                Edytuj zaznaczoną
+              </button>
+
+              <div className="flex gap-2 flex-wrap items-center justify-end min-w-0">
+                <button
+                  className="btn-primary justify-center"
+                  title="Pobierz wybrane (ZIP)"
+                  onClick={bulkDownloadZip}
+                  disabled={!selected.length}
+                >
+                  ZIP
+                </button>
+                <button
+                  className="btn-primary justify-center"
                   onClick={bulkExportEPPAndListPDF}
                   disabled={!selected.length}
                   title="Eksport .epp + PDF lista"
@@ -1386,7 +1464,7 @@ export default function SavedInvoicesPage() {
                   .epp + PDF
                 </button>
                 <button
-                  className="btn-danger shrink-0 justify-center"
+                  className="btn-danger justify-center"
                   title="Usuń zaznaczone"
                   onClick={bulkDelete}
                   disabled={!selected.length}
@@ -1397,123 +1475,244 @@ export default function SavedInvoicesPage() {
             </div>
           </div>
         </div>
-      </div>
-      {/* Form */}
+      </section>
+
       {formOpen && (
-        <div ref={formRef} className="card-lg" onKeyDown={onFormKeyDown}>
-          <div className="grid md:grid-cols-4 gap-3">
-            <div className="md:col-span-2">
-              <label className="block text-sm mb-1">Numer *</label>
-              <input
-                className="input w-full"
-                value={form.number}
-                onChange={(e) => setForm({ ...form, number: e.target.value })}
-                required
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm mb-1">Klient *</label>
-              <input
-                className="input w-full"
-                list="clients-list"
-                value={form.client}
-                onChange={(e) => handleClientChange(e.target.value)}
-                required
-                placeholder="Zacznij pisać, aby wybrać..."
-              />
-              <datalist id="clients-list">
-                {clientNames.map((n) => (
-                  <option key={n} value={n} />
-                ))}
-              </datalist>
+        <section className="psl-container" ref={formRef}>
+          <div className="card-lg" onKeyDown={onFormKeyDown}>
+            <div className="grid md:grid-cols-4 gap-3">
+              <div className="md:col-span-2">
+                <label className="block text-sm mb-1">Numer *</label>
+                <input
+                  className="input w-full"
+                  value={form.number}
+                  onChange={(e) => setForm({ ...form, number: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm mb-1">Klient *</label>
+                <input
+                  className="input w-full"
+                  list="clients-list"
+                  value={form.client}
+                  onChange={(e) => handleClientChange(e.target.value)}
+                  required
+                  placeholder="Zacznij pisać, aby wybrać..."
+                />
+                <datalist id="clients-list">
+                  {clientNames.map((n) => (
+                    <option key={n} value={n} />
+                  ))}
+                </datalist>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 md:col-span-2">
+                <div>
+                  <label className="block text-sm mb-1">Typ klienta</label>
+
+                  <div className="rounded-lg border bg-white px-3 py-2 flex flex-col gap-2">
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <input
+                        type="radio"
+                        name="buyer_kind"
+                        value="firma"
+                        checked={(form.buyer_kind || "firma") === "firma"}
+                        onChange={() => {
+                          setForm((f) => ({
+                            ...f,
+                            buyer_kind: "firma",
+                            buyer_pesel: "",
+                          }));
+                        }}
+                      />
+                      <span>Firma</span>
+                    </label>
+
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <input
+                        type="radio"
+                        name="buyer_kind"
+                        value="op"
+                        checked={(form.buyer_kind || "firma") === "op"}
+                        onChange={() => {
+                          setForm((f) => ({
+                            ...f,
+                            buyer_kind: "op",
+                            buyer_nip: "",
+                          }));
+                        }}
+                      />
+                      <span>Osoba prywatna</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm mb-1">
+                    {(form.buyer_kind || "firma") === "firma" ? "NIP" : "PESEL"}
+                  </label>
+                  <input
+                    className="input w-full"
+                    value={
+                      (form.buyer_kind || "firma") === "firma"
+                        ? form.buyer_nip
+                        : form.buyer_pesel
+                    }
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setForm((f) => {
+                        const kind = f.buyer_kind || "firma";
+                        return kind === "firma"
+                          ? { ...f, buyer_nip: v, buyer_pesel: "" }
+                          : { ...f, buyer_pesel: v, buyer_nip: "" };
+                      });
+                    }}
+                    placeholder={
+                      (form.buyer_kind || "firma") === "firma"
+                        ? "Wpisz NIP"
+                        : "Wpisz PESEL"
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="md:col-span-4 grid grid-cols-1 md:grid-cols-4 gap-3">
+                <div className="md:col-span-2">
+                  <label className="block text-sm mb-1">Adres</label>
+                  <input
+                    className="input w-full"
+                    placeholder="Ulica 1/2"
+                    value={form.buyer_street}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, buyer_street: e.target.value }))
+                    }
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm mb-1">Kod pocztowy</label>
+                  <input
+                    className="input w-full"
+                    placeholder="31-875"
+                    value={form.buyer_postal}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, buyer_postal: e.target.value }))
+                    }
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm mb-1">Miejscowość</label>
+                  <input
+                    className="input w-full"
+                    placeholder="Kraków"
+                    value={form.buyer_city}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, buyer_city: e.target.value }))
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="md:col-span-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-sm mb-1">
+                    Data wystawienia *
+                  </label>
+                  <input
+                    type="date"
+                    className="input w-full"
+                    value={form.issueDate}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setForm((f) => ({
+                        ...f,
+                        issueDate: v,
+                        dueDate: plusDaysISO(v, getDueDays()),
+                        number: f.number || suggestNextNumber(v),
+                      }));
+                    }}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm mb-1">
+                    Termin płatności (dni)
+                  </label>
+                  <select
+                    className="input w-full"
+                    value={duePreset}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setDuePreset(v);
+                      if (v !== "custom") {
+                        const days = Number(v || 7);
+                        setDueCustomDays(days);
+                        setForm((f) => ({
+                          ...f,
+                          dueDate: plusDaysISO(f.issueDate, days),
+                        }));
+                      } else {
+                        setForm((f) => ({
+                          ...f,
+                          dueDate: plusDaysISO(
+                            f.issueDate,
+                            Number(dueCustomDays || 7)
+                          ),
+                        }));
+                      }
+                    }}
+                  >
+                    <option value="1">1</option>
+                    <option value="3">3</option>
+                    <option value="7">7</option>
+                    <option value="custom">Inny</option>
+                  </select>
+
+                  {duePreset === "custom" && (
+                    <input
+                      type="number"
+                      min="0"
+                      className="input w-full mt-2"
+                      value={dueCustomDays}
+                      onChange={(e) => {
+                        const d = Number(e.target.value || 0);
+                        setDueCustomDays(d);
+                        setForm((f) => ({
+                          ...f,
+                          dueDate: plusDaysISO(f.issueDate, d),
+                        }));
+                      }}
+                      placeholder="np. 14"
+                    />
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm mb-1">
+                    Termin płatności *
+                  </label>
+                  <input
+                    type="date"
+                    className="input w-full"
+                    value={form.dueDate}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setForm((f) => ({ ...f, dueDate: v }));
+                      inferDuePresetFromDates(form.issueDate, v);
+                    }}
+                    required
+                  />
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm mb-1">NIP</label>
-              <input
-                className="input w-full"
-                value={form.buyer_nip}
-                onChange={(e) => onChangeNip(e.target.value)}
-                disabled={!!form.buyer_pesel}
-              />
-            </div>
-            <div>
-              <label className="block text-sm mb-1">PESEL</label>
-              <input
-                className="input w-full"
-                value={form.buyer_pesel}
-                onChange={(e) => onChangePesel(e.target.value)}
-                disabled={!!form.buyer_nip}
-              />
-            </div>
-
-            {/* ====== адреса ====== */}
-            <div>
-              <label className="block text-sm mb-1">Kod pocztowy</label>
-              <input
-                className="input w-full"
-                placeholder="31-875"
-                value={form.buyer_postal}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, buyer_postal: e.target.value }))
-                }
-              />
-            </div>
-            <div>
-              <label className="block text-sm mb-1">Miasto</label>
-              <input
-                className="input w-full"
-                placeholder="Kraków"
-                value={form.buyer_city}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, buyer_city: e.target.value }))
-                }
-              />
-            </div>
-            <div className="md:col-span-4">
-              <label className="block text-sm mb-1">Ulica</label>
-              <input
-                className="input w-full"
-                placeholder="Ulica 1/2"
-                value={form.buyer_street}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, buyer_street: e.target.value }))
-                }
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm mb-1">Data wystawienia *</label>
-              <input
-                type="date"
-                className="input w-full"
-                value={form.issueDate}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  setForm((f) => ({
-                    ...f,
-                    issueDate: v,
-                    dueDate: f.dueDate || plusDaysISO(v, 7),
-                    number: f.number || suggestNextNumber(v),
-                  }));
-                }}
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm mb-1">Termin płatności *</label>
-              <input
-                type="date"
-                className="input w-full"
-                value={form.dueDate}
-                onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
-                required
-              />
-            </div>
-            <div>
+            <div className="mt-4">
               <label className="block text-sm mb-1">Status</label>
               <select
-                className={`input w-40 text-center font-medium rounded-md border ${
+                className={`input w-full md:w-64 text-center font-medium rounded-md border ${
                   effectiveStatusOf(form) === "paid"
                     ? "bg-green-100 text-green-800 border-green-200"
                     : effectiveStatusOf(form) === "overdue"
@@ -1521,75 +1720,59 @@ export default function SavedInvoicesPage() {
                     : "bg-amber-100 text-amber-900 border-amber-200"
                 }`}
                 value={form.status}
-                onChange={(e) => setForm({ ...form, status: e.target.value })}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, status: e.target.value }))
+                }
               >
                 <option value="issued">wystawiona</option>
                 <option value="paid">opłacona</option>
                 <option value="overdue">przeterminowana</option>
               </select>
             </div>
-          </div>
 
-          {/* Items */}
-          <div className="mt-4">
-            <div className="font-normal text-sm mb-2">
-              Pozycje (wszystkie поля wymagane)
-            </div>
+            <div className="mt-4">
+              <div className="font-normal text-sm mb-2">
+                Pozycje (wszystkie pola wymagane)
+              </div>
 
-            <div className="overflow-x-auto">
-              <table className="table w-full table-fixed">
-                <colgroup>
-                  <col style={{ width: "58%" }} />
-                  <col style={{ width: "12ch" }} />
-                  <col style={{ width: "14ch" }} />
-                  <col style={{ width: "12ch" }} />
-                  <col style={{ width: "12ch" }} />
-                  <col style={{ width: "12ch" }} />
-                  <col style={{ width: "12ch" }} />
-                  <col style={{ width: "8ch" }} />
-                </colgroup>
+              <div className="md:hidden space-y-3">
+                {form.items.map((it, idx) => {
+                  const q = Number(it.qty || 0);
+                  const gU = Number(it.price_gross || 0);
+                  const v = Number(it.vat_rate || 23);
+                  const nU = gU / (1 + v / 100);
+                  const g = gU * q;
+                  const n = nU * q;
+                  const vv = g - n;
 
-                <thead>
-                  <tr className="text-xs font-normal">
-                    <th className="text-left">Nazwa towaru / usługi *</th>
-                    <th className="text-center">Ilość *</th>
-                    <th className="text-right">Cena brutto (szt.) *</th>
-                    <th className="text-center">VAT % *</th>
-                    <th className="text-right">Wartość netto</th>
-                    <th className="text-right">Wartość VAT</th>
-                    <th className="text-right">Wartość brutto</th>
-                    <th className="text-center">—</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {form.items.map((it, idx) => {
-                    const q = Number(it.qty || 0);
-                    const gU = Number(it.price_gross || 0);
-                    const v = Number(it.vat_rate || 23);
-                    const nU = gU / (1 + v / 100);
-                    const g = gU * q;
-                    const n = nU * q;
-                    const vv = g - n;
-                    return (
-                      <tr key={idx}>
-                        <td className="align-middle">
-                          <input
-                            className="input w-full"
-                            list="services-list"
-                            value={it.name}
-                            onChange={(e) =>
-                              updateItemNameAndAutofill(idx, e.target.value)
-                            }
-                            placeholder="Zacznij pisać, aby wybrać…"
-                            required
-                          />
-                        </td>
-                        <td className="text-center align-middle">
+                  return (
+                    <div
+                      key={idx}
+                      className="rounded-xl border bg-white p-3 space-y-2"
+                    >
+                      <div>
+                        <label className="block text-sm mb-1">
+                          Nazwa towaru / usługi *
+                        </label>
+                        <input
+                          className="input w-full"
+                          list="services-list"
+                          value={it.name}
+                          onChange={(e) =>
+                            updateItemNameAndAutofill(idx, e.target.value)
+                          }
+                          placeholder="Zacznij pisać, aby wybrać…"
+                          required
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-sm mb-1">Ilość *</label>
                           <input
                             type="number"
                             min="1"
-                            className="input w-full text-right"
-                            style={{ minWidth: "10ch" }}
+                            className="input w-full min-w-0 text-center"
                             value={it.qty}
                             onChange={(e) =>
                               updateItemField(
@@ -1600,28 +1783,12 @@ export default function SavedInvoicesPage() {
                             }
                             required
                           />
-                        </td>
-                        <td className="text-right align-middle">
-                          <input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            className="input w-full text-right"
-                            value={it.price_gross}
-                            onChange={(e) =>
-                              updateItemField(
-                                idx,
-                                "price_gross",
-                                Number(e.target.value) || 0
-                              )
-                            }
-                            required
-                          />
-                        </td>
-                        <td className="text-center align-middle">
+                        </div>
+
+                        <div>
+                          <label className="block text-sm mb-1">VAT % *</label>
                           <select
-                            className="input w-full text-right"
-                            style={{ minWidth: "10ch" }}
+                            className="input w-full min-w-0 text-right"
                             value={it.vat_rate}
                             onChange={(e) =>
                               updateItemField(
@@ -1637,279 +1804,580 @@ export default function SavedInvoicesPage() {
                             <option value={5}>5</option>
                             <option value={0}>0</option>
                           </select>
-                        </td>
-                        <td className="text-right align-middle">{to2(n)}</td>
-                        <td className="text-right align-middle">{to2(vv)}</td>
-                        <td className="text-right align-middle">{to2(g)}</td>
-                        <td className="text-center align-middle">
-                          <button
-                            type="button"
-                            className="btn-danger px-2 py-1 text-white"
-                            onClick={() => removeItemRow(idx)}
-                            title="Usuń pozycję"
-                            aria-label={`Usuń pozycję ${idx + 1}`}
-                          >
-                            <IconTrash />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-sm mb-1">
+                            Cena brutto (szt.) *
+                          </label>
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            className="input w-full text-center"
+                            value={pl2(it.price_gross)}
+                            onChange={(e) =>
+                              updateItemField(
+                                idx,
+                                "price_gross",
+                                parsePL(e.target.value)
+                              )
+                            }
+                            required
+                          />
+                        </div>
+
+                        <div className="rounded-lg bg-gray-50 border px-3 py-2">
+                          <div className="text-xs text-gray-600">
+                            Wartość brutto
+                          </div>
+                          <div className="text-right">{pl2(g)}</div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="rounded-lg bg-gray-50 border px-3 py-2">
+                          <div className="text-xs text-gray-600">
+                            Wartość netto
+                          </div>
+                          <div className="text-right">{pl2(n)}</div>
+                        </div>
+                        <div className="rounded-lg bg-gray-50 border px-3 py-2">
+                          <div className="text-xs text-gray-600">
+                            Wartość VAT
+                          </div>
+                          <div className="text-right">{pl2(vv)}</div>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          className="btn-danger px-3 py-2 text-white"
+                          onClick={() => removeItemRow(idx)}
+                          title="Usuń pozycję"
+                          aria-label={`Usuń pozycję ${idx + 1}`}
+                        >
+                          <IconTrash />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="hidden md:block overflow-x-auto">
+                <table className="table w-full table-fixed [&_th]:align-middle [&_td]:align-middle">
+                  <colgroup>
+                    <col style={{ width: "26%" }} />
+                    <col style={{ width: "10%" }} />
+                    <col style={{ width: "14%" }} />
+                    <col style={{ width: "12%" }} />
+                    <col style={{ width: "12%" }} />
+                    <col style={{ width: "10%" }} />
+                    <col style={{ width: "10%" }} />
+                    <col style={{ width: "6%" }} />
+                  </colgroup>
+
+                  <thead>
+                    <tr className="text-xs font-normal">
+                      <th className="text-left">Nazwa towaru / usługi *</th>
+                      <th className="text-center">Ilość *</th>
+                      <th className="text-right">Cena brutto (szt.) *</th>
+                      <th className="text-center">VAT % *</th>
+                      <th className="text-right">Wartość netto</th>
+                      <th className="text-right">Wartość VAT</th>
+                      <th className="text-right">Wartość brutto</th>
+                      <th className="text-center">—</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {form.items.map((it, idx) => {
+                      const q = Number(it.qty || 0);
+                      const gU = Number(it.price_gross || 0);
+                      const v = Number(it.vat_rate || 23);
+                      const nU = gU / (1 + v / 100);
+                      const g = gU * q;
+                      const n = nU * q;
+                      const vv = g - n;
+
+                      return (
+                        <tr key={idx}>
+                          <td className="align-middle min-w-0 overflow-hidden">
+                            <input
+                              className="input w-full min-w-0"
+                              list="services-list"
+                              value={it.name}
+                              onChange={(e) =>
+                                updateItemNameAndAutofill(idx, e.target.value)
+                              }
+                              placeholder="Zacznij pisać, aby wybrać…"
+                              required
+                            />
+                          </td>
+
+                          <td className="text-center align-middle overflow-hidden">
+                            <input
+                              type="number"
+                              min="1"
+                              className="input w-full min-w-0 text-right"
+                              value={it.qty}
+                              onChange={(e) =>
+                                updateItemField(
+                                  idx,
+                                  "qty",
+                                  Number(e.target.value) || 1
+                                )
+                              }
+                              required
+                            />
+                          </td>
+
+                          <td className="text-right align-middle overflow-hidden">
+                            <input
+                              type="text"
+                              inputMode="decimal"
+                              className="input w-full min-w-0 text-center"
+                              value={pl2(it.price_gross)}
+                              onChange={(e) =>
+                                updateItemField(
+                                  idx,
+                                  "price_gross",
+                                  parsePL(e.target.value)
+                                )
+                              }
+                              required
+                            />
+                          </td>
+
+                          <td className="text-center align-middle overflow-hidden">
+                            <select
+                              className="input w-full min-w-0 text-right"
+                              value={it.vat_rate}
+                              onChange={(e) =>
+                                updateItemField(
+                                  idx,
+                                  "vat_rate",
+                                  Number(e.target.value) || 23
+                                )
+                              }
+                              required
+                            >
+                              <option value={23}>23</option>
+                              <option value={8}>8</option>
+                              <option value={5}>5</option>
+                              <option value={0}>0</option>
+                            </select>
+                          </td>
+
+                          <td className="text-right align-middle whitespace-nowrap overflow-hidden text-ellipsis">
+                            {pl2(n)}
+                          </td>
+                          <td className="text-right align-middle whitespace-nowrap overflow-hidden text-ellipsis">
+                            {pl2(vv)}
+                          </td>
+                          <td className="text-right align-middle whitespace-nowrap overflow-hidden text-ellipsis">
+                            {pl2(g)}
+                          </td>
+
+                          <td className="text-center align-middle overflow-hidden">
+                            <button
+                              type="button"
+                              className="btn-danger px-2 py-1 text-white"
+                              onClick={() => removeItemRow(idx)}
+                              title="Usuń pozycję"
+                              aria-label={`Usuń pozycję ${idx + 1}`}
+                            >
+                              <IconTrash />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
 
               <datalist id="services-list">
                 {servicesDict.map((s) => (
                   <option key={s} value={s} />
                 ))}
               </datalist>
+
+              <div className="mt-2">
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={addItemRow}
+                >
+                  ➕ Dodaj pozycję
+                </button>
+              </div>
+
+              <div className="mt-3 text-right text-sm text-gray-700">
+                {(() => {
+                  const totals = (form.items || []).reduce(
+                    (a, it) => {
+                      const q = Number(it.qty || 0);
+                      const gU = Number(it.price_gross || 0);
+                      const v = Number(it.vat_rate || 23);
+                      const nU = gU / (1 + v / 100);
+                      a.gross += gU * q;
+                      a.net += nU * q;
+                      return a;
+                    },
+                    { net: 0, gross: 0 }
+                  );
+                  const vat = totals.gross - totals.net;
+                  return (
+                    <div className="inline-block text-left">
+                      <div>
+                        Razem netto: <b>{pl2(totals.net)}</b>
+                      </div>
+                      <div>
+                        Razem VAT: <b>{pl2(vat)}</b>
+                      </div>
+                      <div>
+                        Razem brutto: <b>{pl2(totals.gross)}</b>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
             </div>
 
-            <div className="mt-2">
+            <div className="mt-4 grid md:grid-cols-4 gap-3">
+              <div className="md:col-span-2">
+                <label className="block text-sm mb-1">Forma płatności</label>
+                <select
+                  className="input w-full"
+                  value={form.payment_method || "transfer"}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, payment_method: e.target.value }))
+                  }
+                >
+                  <option value="cash">Gotówka</option>
+                  <option value="transfer">Przelew</option>
+                  <option value="card">Karta</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="pt-4 flex gap-2">
+              <button type="button" className="btn-primary" onClick={saveForm}>
+                Zapisz fakturę
+              </button>
               <button
                 type="button"
                 className="btn-secondary"
-                onClick={addItemRow}
+                onClick={() => {
+                  setFormOpen(false);
+                  setEditingIndex(null);
+                  setEditingOriginalNumber(null);
+                  setEditingOriginalFilename(null);
+                }}
               >
-                ➕ Dodaj pozycję
+                Anuluj
               </button>
             </div>
+          </div>
+        </section>
+      )}
 
-            <div className="mt-3 text-right text-sm text-gray-700">
-              {(() => {
-                const totals = (form.items || []).reduce(
-                  (a, it) => {
-                    const q = Number(it.qty || 0);
-                    const gU = Number(it.price_gross || 0);
-                    const v = Number(it.vat_rate || 23);
-                    const nU = gU / (1 + v / 100);
-                    a.gross += gU * q;
-                    a.net += nU * q;
-                    return a;
-                  },
-                  { net: 0, gross: 0 }
-                );
-                const vat = totals.gross - totals.net;
-                return (
-                  <div className="inline-block">
-                    <div>
-                      Razem netto: <b>{to2(totals.net)}</b>
-                    </div>
-                    <div>
-                      Razem VAT: <b>{to2(vat)}</b>
-                    </div>
-                    <div>
-                      Razem brutto: <b>{to2(totals.gross)}</b>
-                    </div>
-                  </div>
-                );
-              })()}
+      <section className="psl-container psl-table-container">
+        <div className="card-lg min-w-0 w-full">
+          <div className="mb-2 flex items-center gap-3">
+            <label className="text-sm">Na stronę:</label>
+            <select
+              className="input w-24"
+              value={perPage}
+              onChange={(e) => {
+                setPerPage(Number(e.target.value) || 50);
+                setPage(1);
+              }}
+            >
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+              <option value={200}>200</option>
+            </select>
+            <div className="ml-auto text-sm text-gray-600">
+              Wyniki: {filtered.length} • Strona {pageSafe}/{totalPages}
             </div>
           </div>
 
-          <div className="pt-4 flex gap-2">
-            <button type="button" className="btn-primary" onClick={saveForm}>
-              Zapisz fakturę
-            </button>
+          <div className="mt-3 w-full">
+            <div className="psl-table-scroll">
+              <table className="hidden md:table table psl-table invoices-table w-full table-fixed [&_th]:align-middle [&_td]:align-middle">
+                <colgroup>
+                  <col style={{ width: "4%" }} />
+                  <col style={{ width: "12%" }} />
+                  <col style={{ width: "22%" }} />
+                  <col style={{ width: "10%" }} />
+                  <col style={{ width: "12%" }} />
+                  <col style={{ width: "10%" }} />
+                  <col style={{ width: "14%" }} />
+                  <col style={{ width: "16%" }} />
+                </colgroup>
+
+                <thead>
+                  <tr>
+                    <th className="text-center" scope="col">
+                      <input
+                        type="checkbox"
+                        checked={
+                          pageSlice.length > 0 &&
+                          pageSlice.every((i) => selected.includes(i.filename))
+                        }
+                        onChange={toggleSelectAllOnPage}
+                        aria-label="Zaznacz wszystkie na stronie"
+                      />
+                    </th>
+                    <th scope="col">#</th>
+                    <th className="whitespace-normal" scope="col">
+                      Klient
+                    </th>
+                    <th className="text-center" scope="col">
+                      Brutto
+                    </th>
+                    <th className="text-center" scope="col">
+                      Wystawiono
+                    </th>
+                    <th className="text-center" scope="col">
+                      Termin
+                    </th>
+                    <th className="text-center" scope="col">
+                      Status
+                    </th>
+                    <th className="text-center" scope="col">
+                      Akcje
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {pageSlice.map((inv, idx) => {
+                    const indexInAll = invoices.indexOf(inv);
+                    const eff = effectiveStatusOf(inv);
+
+                    return (
+                      <tr
+                        key={`${inv.number}-${idx}`}
+                        className="hover:bg-gray-50"
+                      >
+                        <td className="text-center">
+                          <input
+                            type="checkbox"
+                            checked={selected.includes(inv.filename)}
+                            onChange={() => {
+                              setSelected((prev) =>
+                                prev.includes(inv.filename)
+                                  ? prev.filter((f) => f !== inv.filename)
+                                  : [...prev, inv.filename]
+                              );
+                            }}
+                            aria-label={`Zaznacz ${inv.number}`}
+                          />
+                        </td>
+
+                        <td className="whitespace-nowrap overflow-hidden">
+                          <div className="truncate">{inv.number}</div>
+                        </td>
+
+                        <td className="min-w-0 overflow-hidden">
+                          <div className="break-words">{inv.client}</div>
+                        </td>
+
+                        <td className="text-right">{fmtPLN(inv.gross)}</td>
+                        <td className="text-center">{inv.issueDate}</td>
+                        <td className="text-center">{inv.dueDate}</td>
+
+                        <td className="text-center">
+                          <div className="flex justify-center min-w-0">
+                            <select
+                              className={`input w-full max-w-[9.5rem] mx-auto text-center font-medium rounded-md border ${
+                                eff === "paid"
+                                  ? "bg-green-100 text-green-800 border-green-200"
+                                  : eff === "overdue"
+                                  ? "bg-rose-100 text-rose-800 border-rose-200"
+                                  : "bg-amber-100 text-amber-900 border-amber-200"
+                              }`}
+                              value={inv.status || "issued"}
+                              onChange={(e) =>
+                                updateStatus(inv, e.target.value)
+                              }
+                              title={
+                                eff !== (inv.status || "issued")
+                                  ? "Status nadpisany automatycznie (przeterminowana)"
+                                  : "Zmień status"
+                              }
+                            >
+                              <option value="issued">wystawiona</option>
+                              <option value="paid">opłacona</option>
+                              <option value="overdue">przeterminowana</option>
+                            </select>
+                          </div>
+                        </td>
+
+                        <td className="text-center">
+                          <div className="inline-flex flex-wrap items-center justify-center gap-1">
+                            <IconButton
+                              title={`Edytuj ${inv.number}`}
+                              onClick={() => startEdit(inv, indexInAll)}
+                              variant="secondary"
+                            >
+                              <IconPencil />
+                            </IconButton>
+
+                            <IconButton
+                              title={`Podgląd ${inv.number}`}
+                              onClick={() => openPreviewNoCache(inv)}
+                              variant="secondary"
+                            >
+                              <IconEye />
+                            </IconButton>
+
+                            <IconButton
+                              title={`Pobierz ${inv.number}`}
+                              onClick={() => downloadInvoiceNoCache(inv)}
+                              variant="secondary"
+                            >
+                              <IconDownload />
+                            </IconButton>
+
+                            <IconButton
+                              title={`Usuń ${inv.number}`}
+                              onClick={() => askDelete(inv)}
+                              variant="danger"
+                            >
+                              <IconTrash />
+                            </IconButton>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+
+                  {pageSlice.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={8}
+                        className="text-center py-6 text-gray-500"
+                      >
+                        Brak wyników.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+
+              <table className="md:hidden table psl-table invoices-table w-full table-fixed [&_th]:align-middle [&_td]:align-middle">
+                <colgroup>
+                  <col style={{ width: "20%" }} />
+                  <col style={{ width: "46%" }} />
+                  <col style={{ width: "20%" }} />
+                  <col style={{ width: "14%" }} />
+                </colgroup>
+
+                <thead>
+                  <tr>
+                    <th scope="col">#</th>
+                    <th className="whitespace-normal" scope="col">
+                      Klient
+                    </th>
+                    <th className="text-center" scope="col">
+                      Status
+                    </th>
+                    <th className="text-center" scope="col">
+                      Akcje
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {pageSlice.map((inv, idx) => {
+                    const eff = effectiveStatusOf(inv);
+                    const indexInAll = invoices.indexOf(inv);
+
+                    return (
+                      <tr
+                        key={`${inv.number}-${idx}`}
+                        className="hover:bg-gray-50"
+                      >
+                        <td>{shortInvNumber(inv.number)}</td>
+                        <td className="whitespace-normal">{inv.client}</td>
+
+                        <td className="text-center">
+                          <StatusDotMenu
+                            value={inv.status || "issued"}
+                            effective={eff}
+                            onChange={(s) => updateStatus(inv, s)}
+                          />
+                        </td>
+
+                        <td className="text-center">
+                          <div className="inline-flex flex-col items-center justify-center gap-1">
+                            <IconButton
+                              title={`Pobierz ${inv.number}`}
+                              onClick={() => downloadInvoiceNoCache(inv)}
+                              variant="secondary"
+                            >
+                              <IconDownload />
+                            </IconButton>
+
+                            <IconButton
+                              title={`Edytuj ${inv.number}`}
+                              onClick={() => startEdit(inv, indexInAll)}
+                              variant="secondary"
+                            >
+                              <IconPencil />
+                            </IconButton>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+
+                  {pageSlice.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="text-center py-6 text-gray-500"
+                      >
+                        Brak wyników.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="mt-3 flex items-center justify-center gap-2">
             <button
               type="button"
               className="btn-secondary"
-              onClick={() => {
-                setFormOpen(false);
-                setEditingIndex(null);
-                setEditingOriginalNumber(null);
-              }}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={pageSafe <= 1}
             >
-              Anuluj
+              ←
+            </button>
+            <div className="text-sm">
+              Strona {pageSafe} z {totalPages}
+            </div>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={pageSafe >= totalPages}
+            >
+              →
             </button>
           </div>
         </div>
-      )}
+      </section>
 
-      {/* Table */}
-      <div className="card-lg overflow-x-auto min-w-0">
-        <div className="mb-2 flex items-center gap-3">
-          <label className="text-sm">Na stronę:</label>
-          <select
-            className="input w-24"
-            value={perPage}
-            onChange={(e) => {
-              setPerPage(Number(e.target.value) || 50);
-              setPage(1);
-            }}
-          >
-            <option value={50}>50</option>
-            <option value={100}>100</option>
-            <option value={200}>200</option>
-          </select>
-          <div className="ml-auto text-sm text-gray-600">
-            Wyniki: {filtered.length} • Strona {pageSafe}/{totalPages}
-          </div>
-        </div>
-
-        <table className="table w-full min-w-[720px]">
-          <thead>
-            <tr>
-              <th className="text-center" scope="col">
-                <input
-                  type="checkbox"
-                  checked={
-                    pageSlice.length > 0 &&
-                    pageSlice.every((i) => selected.includes(i.filename))
-                  }
-                  onChange={toggleSelectAllOnPage}
-                  aria-label="Zaznacz wszystkie na stronie"
-                />
-              </th>
-              <th className="whitespace-nowrap" scope="col">
-                #
-              </th>
-              <th className="whitespace-normal" scope="col">
-                Klient
-              </th>
-              <th className="whitespace-nowrap text-right" scope="col">
-                Brutto
-              </th>
-              <th className="whitespace-nowrap text-center" scope="col">
-                Wystawiono
-              </th>
-              <th className="whitespace-nowrap text-center" scope="col">
-                Termin
-              </th>
-              <th className="whitespace-nowrap text-center" scope="col">
-                Status
-              </th>
-              <th className="whitespace-nowrap text-center" scope="col">
-                Akcje
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {pageSlice.map((inv, idx) => {
-              const indexInAll = invoices.indexOf(inv);
-              const eff = effectiveStatusOf(inv);
-              return (
-                <tr key={`${inv.number}-${idx}`} className="hover:bg-gray-50">
-                  <td className="text-center">
-                    <input
-                      type="checkbox"
-                      checked={selected.includes(inv.filename)}
-                      onChange={() =>
-                        setSelected((prev) =>
-                          prev.includes(inv.filename)
-                            ? prev.filter((f) => f !== inv.filename)
-                            : [...prev, inv.filename]
-                        )
-                      }
-                      aria-label={`Zaznacz ${inv.number}`}
-                    />
-                  </td>
-                  <td className="whitespace-nowrap">{inv.number}</td>
-                  <td className="whitespace-normal">{inv.client}</td>
-                  <td className="text-right whitespace-nowrap">
-                    {fmtPLN(inv.gross)}
-                  </td>
-                  <td className="text-center whitespace-nowrap">
-                    {inv.issueDate}
-                  </td>
-                  <td className="text-center whitespace-nowrap">
-                    {inv.dueDate}
-                  </td>
-                  <td className="text-center whitespace-nowrap">
-                    <select
-                      className={`input w-40 text-center font-medium rounded-md border ${
-                        eff === "paid"
-                          ? "bg-green-100 text-green-800 border-green-200"
-                          : eff === "overdue"
-                          ? "bg-rose-100 text-rose-800 border-rose-200"
-                          : "bg-amber-100 text-amber-900 border-amber-200"
-                      }`}
-                      value={inv.status || "issued"}
-                      onChange={(e) => updateStatus(inv, e.target.value)}
-                      title={
-                        eff !== (inv.status || "issued")
-                          ? "Status nadpisany automatycznie (przeterminowana)"
-                          : "Zmień status"
-                      }
-                    >
-                      <option value="issued">wystawiona</option>
-                      <option value="paid">opłacona</option>
-                      <option value="overdue">przeterminowana</option>
-                    </select>
-                  </td>
-                  <td className="text-center whitespace-nowrap">
-                    <div className="inline-flex items-center gap-2">
-                      <IconButton
-                        title={`Edytuj ${inv.number}`}
-                        onClick={() => startEdit(inv, indexInAll)}
-                        variant="secondary"
-                      >
-                        <IconPencil />
-                      </IconButton>
-
-                      <IconButton
-                        title={`Podgląd ${inv.number}`}
-                        onClick={() => openPreviewNoCache(inv)}
-                        variant="secondary"
-                      >
-                        <IconEye />
-                      </IconButton>
-
-                      <IconButton
-                        title={`Pobierz ${inv.number}`}
-                        onClick={() => downloadInvoiceNoCache(inv)}
-                        variant="secondary"
-                      >
-                        <IconDownload />
-                      </IconButton>
-
-                      <IconButton
-                        title={`Usuń ${inv.number}`}
-                        onClick={() => askDelete(inv)}
-                        variant="danger"
-                      >
-                        <IconTrash />
-                      </IconButton>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-            {pageSlice.length === 0 && (
-              <tr>
-                <td colSpan={8} className="text-center py-6 text-gray-500">
-                  Brak wyników.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-
-        {/* Pagination */}
-        <div className="mt-3 flex items-center justify-center gap-2">
-          <button
-            type="button"
-            className="btn-secondary"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={pageSafe <= 1}
-          >
-            ←
-          </button>
-          <div className="text-sm">
-            Strona {pageSafe} z {totalPages}
-          </div>
-          <button
-            type="button"
-            className="btn-secondary"
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={pageSafe >= totalPages}
-          >
-            →
-          </button>
-        </div>
-      </div>
-
-      {/* Delete modal */}
       <ConfirmModal
         open={confirmOpen}
         title="Potwierdź usunięcie"
@@ -1927,7 +2395,6 @@ export default function SavedInvoicesPage() {
         onConfirm={confirmDelete}
       />
 
-      {/* Модальне прев’ю */}
       {USE_BUILTIN_PREVIEW_MODAL && (
         <PreviewModal
           open={preview.open}

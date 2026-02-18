@@ -45,6 +45,36 @@ const fmtPLYM = (ym) => {
 const to2 = (x) => Number(x || 0).toFixed(2);
 const uid = () => Math.random().toString(36).slice(2, 10);
 
+const todayISO = () => {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
+
+const fmtPLDate = (iso) => {
+  const s = String(iso || "");
+  if (!s) return "";
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return s;
+  return `${m[3]}.${m[2]}.${m[1]}`;
+};
+
+const normalizeISODate = (v) => {
+  if (!v) return "";
+  const s = String(v);
+  const m = s.match(/^(\d{4}-\d{2}-\d{2})/);
+  if (m) return m[1];
+  const d = new Date(s);
+  if (isNaN(d)) return "";
+  const y = d.getFullYear();
+  const mo = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${mo}-${day}`;
+};
+
+
 const isYm = (s) => typeof s === "string" && /^\d{4}-\d{2}$/.test(s);
 const clampYm = (s) => {
   if (isYm(s)) return s;
@@ -62,16 +92,43 @@ const COL_ORDER = ["client", "qty", "ship"];
 const LS_IDX = "PSL_SAVED_INDEX";
 const LS_DRAFT_KEY = (ym) => `PSL_DRAFT_${ym}`;
 const LS_ACTIVE_YM = "PSL_ACTIVE_YM";
+const LS_WORKSPACE_YM = "PSL_WORKSPACE_YM";
 
-/* ========= API helpers через apiFetch ========= */
+const DEFAULT_COL_PCTS = [5, 12, 33, 10, 15, 10, 15];
+
+const PSL_COL_PCTS = DEFAULT_COL_PCTS;
+
+
+const normalizeApiFetchPath = (u) => {
+  const s = String(u || "");
+  if (!s) return s;
+  if (/^https?:\/\//i.test(s)) return s;
+
+  let p = s;
+
+ 
+  p = p.replace(/^\/api\/api(\/|$)/, "/");
+
+
+  p = p.replace(/^\/api(\/|$)/, "/");
+
+
+  p = p.replace(/^api(\/|$)/, "/");
+
+  if (!p.startsWith("/")) p = `/${p}`;
+  return p;
+};
+
 const getJSON = async (u) => {
-  const r = await apiFetch(u, { method: "GET" });
+  const r = await apiFetch(normalizeApiFetchPath(u), { method: "GET" });
   return typeof r?.json === "function" ? await r.json() : r;
 };
+
 const sendJSON = async (u, method, body) => {
-  const r = await apiFetch(u, { method, json: body });
+  const r = await apiFetch(normalizeApiFetchPath(u), { method, json: body });
   return typeof r?.json === "function" ? await r.json() : r;
 };
+
 
 /* ========= Mini Confirm Dialog ========= */
 function ConfirmDialog({ open, title, message, onCancel, onConfirm }) {
@@ -96,9 +153,9 @@ function ConfirmDialog({ open, title, message, onCancel, onConfirm }) {
   );
 }
 
-/* ========= Row model ========= */
 const emptyRow = () => ({
   id: uid(),
+  date: todayISO(),
   clientId: "",
   clientName: "",
   qty: "",
@@ -120,6 +177,9 @@ const normalizeRow = (r) => {
     "";
   return {
     id: r?.id || uid(),
+    date: normalizeISODate(
+      r?.date ?? r?.rowDate ?? r?.day ?? r?.createdDate ?? ""
+    ),
     clientId: String(r?.clientId || r?.client_id || "").trim(),
     clientName: String(
       r?.clientName || r?.client || r?.name || r?.Klient || ""
@@ -135,8 +195,10 @@ const normalizeRow = (r) => {
 export default function PrivateSterilizationLog() {
   const [viewMode, setViewMode] = useState("workspace");
 
+  // refs для фокусу і навігації
   const inputRefs = useRef(new Map());
   const addBtnRef = useRef(null);
+  const workspaceSnapshotRef = useRef(null);
 
   const registerInputRef = (rowId, col) => (el) => {
     const key = `${rowId}:${col}`;
@@ -162,6 +224,7 @@ export default function PrivateSterilizationLog() {
     if (e.key !== "Enter") return;
     e.preventDefault();
 
+    // підтвердження підказки по клієнту
     if (col === "client") {
       const el = inputRefs.current.get(`${rowId}:client`);
       const typed = (el?.value || "").trim().toLowerCase();
@@ -180,16 +243,6 @@ export default function PrivateSterilizationLog() {
     if (nextCol) return focusCell(rowId, nextCol);
     if (addBtnRef.current) addBtnRef.current.focus();
   };
-
-  const cols = [
-    { key: "c1", width: "6ch" },
-    { key: "c2", width: "auto" },
-    { key: "c3", width: "12ch" },
-    { key: "c4", width: "16ch" },
-    { key: "c5", width: "14ch" },
-    { key: "c6", width: "16ch" },
-  ];
-
   /* Settings price (fallback 6) */
   const [pricePerPack, setPricePerPack] = useState(6);
   useEffect(() => {
@@ -233,11 +286,21 @@ export default function PrivateSterilizationLog() {
   // активний місяць
   const [activeYm, setActiveYm] = useState("");
   useEffect(() => {
-    if (activeYm) localStorage.setItem(LS_ACTIVE_YM, activeYm);
-  }, [activeYm]);
+    if (!activeYm) return;
+    localStorage.setItem(LS_ACTIVE_YM, activeYm);
+    if (viewMode === "workspace") {
+      localStorage.setItem(LS_WORKSPACE_YM, activeYm);
+    }
+  }, [activeYm, viewMode]);
 
   /* Rows in workspace */
   const [rows, setRows] = useState([{ ...emptyRow(), isNew: true }]);
+
+  useEffect(() => {
+    if (viewMode !== "workspace") return;
+    if (!activeYm) return;
+    workspaceSnapshotRef.current = { ym: activeYm, rows };
+  }, [viewMode, activeYm, rows]);
 
   const hasData = (r) =>
     String(r?.clientName || "").trim() !== "" ||
@@ -271,6 +334,7 @@ export default function PrivateSterilizationLog() {
   const [currentSavedId, setCurrentSavedId] = useState(null);
   const [toDelete, setToDelete] = useState(null);
 
+  // коалесінг автозбереження
   const lastPayloadRef = useRef(null);
   const draftLoadedRef = useRef(false);
   const suspendAutosaveRef = useRef(false);
@@ -284,6 +348,7 @@ export default function PrivateSterilizationLog() {
       const rowsClean = (payload.rows || []).map(({ isNew, ...rest }) => rest);
       await sendJSON(api(`/psl/workspace`), "PUT", { rows: rowsClean });
     } catch {
+      // тихо
     } finally {
       savingRef.current = false;
       if (pendingRef.current) {
@@ -324,7 +389,10 @@ export default function PrivateSterilizationLog() {
         if (cancelled) return;
 
         const ym = clampYm(
-          ws?.ym || localStorage.getItem(LS_ACTIVE_YM) || ymOf()
+          ws?.ym ||
+            localStorage.getItem(LS_WORKSPACE_YM) ||
+            localStorage.getItem(LS_ACTIVE_YM) ||
+            ymOf()
         );
 
         const arr = Array.isArray(ws?.rows) ? ws.rows : [];
@@ -346,6 +414,7 @@ export default function PrivateSterilizationLog() {
 
         draftLoadedRef.current = true;
       } catch {
+        // fallback LS
         try {
           const lsYm = localStorage.getItem(LS_ACTIVE_YM) || prevYm(ymOf());
           const raw = localStorage.getItem(LS_DRAFT_KEY(lsYm));
@@ -458,15 +527,30 @@ export default function PrivateSterilizationLog() {
   const removeRow = (id) => setRows((prev) => prev.filter((r) => r.id !== id));
 
   // зміна робочого місяця
+  const readDraftRows = (ym) => {
+    try {
+      const raw = localStorage.getItem(LS_DRAFT_KEY(ym));
+      const parsed = raw ? JSON.parse(raw) : null;
+      return Array.isArray(parsed?.rows) ? parsed.rows : [];
+    } catch {
+      return [];
+    }
+  };
+
   const setWorkspaceMonth = async (ym) => {
     const next = clampYm(ym);
+
     try {
       await sendJSON(api(`/settings`), "POST", { currentIssueMonth: next });
     } catch {}
+
     try {
       const ws = await getJSON(api(`/psl/workspace`));
       const newYm = String(ws?.ym || next);
-      const arr = Array.isArray(ws?.rows) ? ws.rows : [];
+      const arrServer = Array.isArray(ws?.rows) ? ws.rows : [];
+      const arrLocal = readDraftRows(newYm);
+      const arr = arrServer.length ? arrServer : arrLocal;
+
       setActiveYm(newYm);
       setRows(
         (arr.length ? arr : [{ ...emptyRow(), isNew: true }])
@@ -474,18 +558,32 @@ export default function PrivateSterilizationLog() {
           .map(recalc)
       );
       setViewMode("workspace");
-      localStorage.setItem(
-        LS_DRAFT_KEY(newYm),
-        JSON.stringify({ ym: newYm, rows: arr })
-      );
+
+      if (arr.length) {
+        localStorage.setItem(
+          LS_DRAFT_KEY(newYm),
+          JSON.stringify({ ym: newYm, rows: arr })
+        );
+      }
+      localStorage.setItem(LS_ACTIVE_YM, newYm);
     } catch {
+      const arrLocal = readDraftRows(next);
+
       setActiveYm(next);
-      setRows([{ ...emptyRow(), isNew: true }]);
-      setViewMode("workspace");
-      localStorage.setItem(
-        LS_DRAFT_KEY(next),
-        JSON.stringify({ ym: next, rows: [] })
+      setRows(
+        (arrLocal.length ? arrLocal : [{ ...emptyRow(), isNew: true }])
+          .map(normalizeRow)
+          .map(recalc)
       );
+      setViewMode("workspace");
+
+      if (arrLocal.length) {
+        localStorage.setItem(
+          LS_DRAFT_KEY(next),
+          JSON.stringify({ ym: next, rows: arrLocal })
+        );
+      }
+      localStorage.setItem(LS_ACTIVE_YM, next);
     }
   };
 
@@ -503,10 +601,6 @@ export default function PrivateSterilizationLog() {
 
     try {
       const saved = await sendJSON(api(`/psl/finalize`), "POST", snapshot);
-      localStorage.removeItem(LS_DRAFT_KEY(activeYm));
-
-      setRows([{ ...emptyRow(), isNew: true }]);
-
       const id = saved?.id || `${activeYm}-${Date.now()}`;
 
       try {
@@ -532,11 +626,16 @@ export default function PrivateSterilizationLog() {
     }
   };
 
-  // відкрити збережений місяць
   const openSaved = async (id) => {
     try {
+      if (viewMode === "workspace") {
+        workspaceSnapshotRef.current = { ym: activeYm, rows };
+        if (activeYm) localStorage.setItem(LS_WORKSPACE_YM, activeYm);
+      }
+
       const snap = await getJSON(api(`/psl/saved/${encodeURIComponent(id)}`));
-      if (!snap) return;
+      if (!snap) throw new Error("Brak danych");
+
       setCurrentSavedId(id);
 
       suspendAutosaveRef.current = true;
@@ -548,11 +647,12 @@ export default function PrivateSterilizationLog() {
       );
 
       setViewMode("saved");
-      localStorage.setItem(LS_ACTIVE_YM, snap.ym || "");
 
       draftLoadedRef.current = true;
       suspendAutosaveRef.current = false;
-    } catch {}
+    } catch (e) {
+      alert("Nie udało się otworzyć zapisanego miesiąca.");
+    }
   };
 
   const restoreFromSaved = async () => {
@@ -588,14 +688,66 @@ export default function PrivateSterilizationLog() {
     }
   };
 
+  // повернутися до робочого полотна
   const openWorkspace = async () => {
-    try {
-      suspendAutosaveRef.current = true;
-      draftLoadedRef.current = false;
+    suspendAutosaveRef.current = true;
+    draftLoadedRef.current = false;
 
+    try {
       const ws = await getJSON(api(`/psl/workspace`));
-      const ym = String(ws?.ym || "") || prevYm(ymOf());
-      const arr = Array.isArray(ws?.rows) ? ws.rows : [];
+      const ymFromServer = clampYm(ws?.ym || "");
+      const ymFallback =
+        localStorage.getItem(LS_WORKSPACE_YM) ||
+        workspaceSnapshotRef.current?.ym ||
+        prevYm(ymOf());
+      const ym = ymFromServer || ymFallback;
+
+      const arrServer = Array.isArray(ws?.rows) ? ws.rows : [];
+      const arrLocal = readDraftRows(ym);
+      const arrSnap =
+        workspaceSnapshotRef.current?.ym === ym
+          ? workspaceSnapshotRef.current?.rows
+          : null;
+
+      const arr = arrServer.length
+        ? arrServer
+        : arrLocal.length
+        ? arrLocal
+        : arrSnap || [];
+
+      setActiveYm(ym);
+      setRows(
+        (arr.length ? arr : [{ ...emptyRow(), isNew: true }])
+          .map(normalizeRow)
+          .map(recalc)
+      );
+
+      setViewMode("workspace");
+      setCurrentSavedId(null);
+
+      if (ym) {
+        localStorage.setItem(LS_WORKSPACE_YM, ym);
+        localStorage.setItem(LS_ACTIVE_YM, ym);
+      }
+
+      if (arr.length) {
+        localStorage.setItem(
+          LS_DRAFT_KEY(ym),
+          JSON.stringify({ ym, rows: arr })
+        );
+      }
+    } catch (e) {
+      const ym =
+        localStorage.getItem(LS_WORKSPACE_YM) ||
+        workspaceSnapshotRef.current?.ym ||
+        prevYm(ymOf());
+
+      const arrLocal = readDraftRows(ym);
+      const arrSnap =
+        workspaceSnapshotRef.current?.ym === ym
+          ? workspaceSnapshotRef.current?.rows
+          : null;
+      const arr = arrLocal.length ? arrLocal : arrSnap || [];
 
       setActiveYm(ym);
       setRows(
@@ -604,113 +756,111 @@ export default function PrivateSterilizationLog() {
           .map(recalc)
       );
       setViewMode("workspace");
-
-      if (arr.length) {
-        localStorage.setItem(
-          LS_DRAFT_KEY(ym),
-          JSON.stringify({ ym, rows: arr })
-        );
-      }
-
+      setCurrentSavedId(null);
+    } finally {
       draftLoadedRef.current = true;
       suspendAutosaveRef.current = false;
-    } catch {}
+    }
   };
 
+  /* мапа ім'я → id */
   const clientIdByName = (name) =>
     clients.find((c) => c.name === name)?.id || "";
 
   const inputsDisabled = viewMode === "saved";
 
   return (
-    <div className="w-full mx-auto px-3 sm:px-4 md:px-6 lg:px-8 space-y-4 psl-page overflow-x-hidden">
-      {/* Верхня панель: поточний місяць + збережені */}
-      <section className="psl-container space-y-3">
-        <div className="psl-top-wrapper grid gap-3 md:grid-cols-2">
-          <div className="card min-w-0">
-            <div className="font-semibold mb-2">Bieżący miesiąc</div>
-            <div className="text-sm text-gray-700">
-              <div className="mb-1">
-                <span className="text-gray-500">Miesiąc: </span>
-                <span className="font-medium">{fmtPLYM(activeYm)}</span>
-              </div>
-              <div className="text-xs text-gray-500">
-                Cena za pakiet: {to2(pricePerPack)} zł
-              </div>
+    <div className="container-app w-full max-w-full min-w-0 overflow-x-hidden grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)] gap-6">
+      <aside className="space-y-3 min-w-0">
+        <div className="card">
+          <div className="font-semibold mb-2">Bieżący miesiąc</div>
+          <div className="text-sm text-gray-700">
+            <div className="mb-1">
+              <span className="text-gray-500">Miesiąc: </span>
+              <span className="font-medium">{fmtPLYM(activeYm)}</span>
             </div>
-
-            <div className="mt-3 grid grid-cols-1 gap-2">
-              <label className="text-sm text-gray-600">
-                Wybierz miesiąc roboczy
-              </label>
-              <input
-                type="month"
-                className="input"
-                value={isYm(activeYm) ? activeYm : ""}
-                onChange={(e) => setWorkspaceMonth(e.target.value)}
-              />
-              <button
-                className="btn-secondary"
-                onClick={() => setWorkspaceMonth(ymOf())}
-                title="Przełącz на bieżący miesiąc roboczy"
-              >
-                Bieżący miesiąc
-              </button>
-            </div>
-
-            <div className="mt-3 flex flex-col gap-2">
-              <button
-                className="btn-primary"
-                onClick={finalizeMonth}
-                title="Zapisz jako zakończony miesiąc i dodaj do listy"
-                disabled={viewMode !== "workspace"}
-              >
-                Podsumuj i zapisz miesiąc
-              </button>
+            <div className="text-xs text-gray-500">
+              Cena za pakiet: {to2(pricePerPack)} zł
             </div>
           </div>
 
-          {/* Blok zapisane miesiące*/}
+          <div className="mt-3 grid grid-cols-1 gap-2">
+            <label className="text-sm text-gray-600">
+              Wybierz miesiąc roboczy
+            </label>
+            <input
+              type="month"
+              className="input"
+              value={isYm(activeYm) ? activeYm : ""}
+              onChange={(e) => setWorkspaceMonth(e.target.value)}
+              disabled={viewMode === "saved"}
+            />
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={openWorkspace}
+              disabled={viewMode !== "saved"}
+              title={
+                viewMode === "saved"
+                  ? "Wróć do roboczego"
+                  : "Dostępne tylko w podglądzie zapisanych"
+              }
+            >
+              Obecny miesiąc
+            </button>
+          </div>
 
-          <div className="card min-w-0">
-            <div className="font-semibold mb-2">Zapisane miesiące</div>
-            <div className="space-y-2 h-64 overflow-y-auto pr-1">
-              {savedIndex.length === 0 && (
-                <div className="text-sm text-gray-500">
-                  Brak zapisanych tabel.
-                </div>
-              )}
-              {savedIndex.map((it) => (
-                <div
-                  key={it.id}
-                  className="rounded border p-2 flex items-center justify-between"
-                >
-                  <button
-                    className="text-left btn-link"
-                    title="Otwórz zapisany miesiąc"
-                    onClick={() => openSaved(it.id)}
-                  >
-                    <div className="font-medium">{it.title}</div>
-                    <div className="text-xs text-gray-500">
-                      Razem: {to2(it.totals?.total)} zł • Pakiety:{" "}
-                      {it.totals?.qty ?? 0}
-                    </div>
-                  </button>
-                  <button
-                    className="inline-flex items-center justify-center rounded-lg p-2 border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"
-                    title="Usuń tabelę"
-                    onClick={() => setToDelete(it)}
-                  >
-                    🗑️
-                  </button>
-                </div>
-              ))}
-            </div>
+          <div className="mt-3 flex flex-col gap-2">
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={finalizeMonth}
+              title="Zapisz jako zakończony miesiąc i dodaj do listy"
+              disabled={viewMode !== "workspace"}
+            >
+              Podsumuj i zapisz miesiąc
+            </button>
           </div>
         </div>
-      </section>
 
-      <section className="psl-container">
+        <div className="card">
+          <div className="font-semibold mb-2">Zapisane miesiące</div>
+          <div className="space-y-2">
+            {savedIndex.length === 0 && (
+              <div className="text-sm text-gray-500">
+                Brak zapisanych tabel.
+              </div>
+            )}
+            {savedIndex.map((it) => (
+              <div
+                key={it.id}
+                className="rounded border p-2 flex items-center justify-between min-w-0"
+              >
+                <button
+                  type="button"
+                  className="text-left btn-link flex-1 min-w-0"
+                  title="Otwórz zapisany miesiąc"
+                  onClick={() => openSaved(it.id)}
+                >
+                  <div className="font-medium">{it.title}</div>
+                  <div className="text-xs text-gray-500">
+                    Razem: {to2(it.totals?.total)} zł • Pakiety:{" "}
+                    {it.totals?.qty ?? 0}
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center rounded-lg p-2 border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"
+                  title="Usuń tabelę"
+                  onClick={() => setToDelete(it)}
+                >
+                  🗑️
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {viewMode === "saved" && (
           <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900 space-y-2">
             <div>
@@ -718,34 +868,32 @@ export default function PrivateSterilizationLog() {
             </div>
             <div className="flex flex-wrap gap-2">
               <button
+                type="button"
                 className="btn-primary whitespace-normal max-w-full"
                 onClick={restoreFromSaved}
                 disabled={!currentSavedId}
-                title="Przywróć zawartość tego запisu do roboczego pola i włącz edycję"
+                title="Przywróć zawartość tego zapisu do roboczego pola i włącz edycję"
               >
                 Przywróć do roboczego
               </button>
             </div>
           </div>
         )}
-      </section>
+      </aside>
 
-      {/* Таблиця з горизонтальним скролом у власному контейнері */}
-      <section className="psl-container psl-table-container">
-        <div className="card-lg min-w-0 w-full">
+      <main className="space-y-3 min-w-0">
+        <div className="card-lg">
           <div className="flex flex-wrap items-end gap-3">
-            <div className="flex-1 min-w-[200px]">
+            <div className="flex-1">
               <div className="font-semibold">
                 Ewidencja sterylizacji prywatnej — {fmtPLYM(activeYm)}
                 {viewMode === "saved" ? " (zapisany)" : " (roboczy)"}
               </div>
             </div>
-            <div className="w-full sm:w-auto">
-              <label className="block text-sm mb-1">
-                Filtr: nazwa klienta
-              </label>
+            <div>
+              <label className="block text-sm mb-1">Filtr: nazwa klienta</label>
               <input
-                className="input no-spin w-full"
+                className="input no-spin"
                 placeholder="Wpisz nazwę klienta…"
                 value={nameFilter}
                 onChange={(e) => setNameFilter(e.target.value)}
@@ -753,145 +901,148 @@ export default function PrivateSterilizationLog() {
             </div>
           </div>
 
-          <div className="mt-3 w-full">
-            <div className="psl-table-scroll">
-              <table className="table psl-table">
-                <colgroup>
-                  {cols.map((c) => (
-                    <col key={c.key} style={{ width: c.width }} />
-                  ))}
-                </colgroup>
+          <div className="mt-3 w-full min-w-0 max-[999px]:overflow-x-auto min-[1000px]:overflow-x-hidden">
+            <table className="table table-fixed w-full min-w-0 max-[999px]:min-w-[760px]">
+              <colgroup>
+                <col style={{ width: `${PSL_COL_PCTS[0]}%` }} />
+                <col style={{ width: `${PSL_COL_PCTS[1]}%` }} />
+                <col style={{ width: `${PSL_COL_PCTS[2]}%` }} />
+                <col style={{ width: `${PSL_COL_PCTS[3]}%` }} />
+                <col style={{ width: `${PSL_COL_PCTS[4]}%` }} />
+                <col style={{ width: `${PSL_COL_PCTS[5]}%` }} />
+                <col style={{ width: `${PSL_COL_PCTS[6]}%` }} />
+              </colgroup>
 
-                <thead>
-                  <tr>
-                    <th className="w-[6ch] text-center">#</th>
-                    <th>Klient</th>
-                    <th className="w-[12ch] text-center">Pakiety</th>
-                    <th className="w-[16ch] text-center">Koszt sterylizacji</th>
-                    <th className="w-[14ch] text-center">Wysyłka</th>
-                    <th className="w-[16ch] text-center">Razem</th>
-                  </tr>
-                </thead>
+              <thead>
+                <tr>
+                  <th className="text-center">#</th>
+                  <th className="text-center">Data</th>
+                  <th>Klient</th>
+                  <th className="text-center">Pakiety</th>
+                  <th className="text-center">Koszt sterylizacji</th>
+                  <th className="text-center">Wysyłka</th>
+                  <th className="text-center">Razem</th>
+                </tr>
+              </thead>
 
-                <tbody>
-                  {rowsToRender.map((r, i) => (
-                    <tr key={r.id} className="hover:bg-gray-50">
-                      <td className="text-center">{i + 1}</td>
+              <tbody>
+                {rowsToRender.map((r, i) => (
+                  <tr key={r.id} className="hover:bg-gray-50">
+                    <td className="text-center">{i + 1}</td>
+                    <td className="text-center whitespace-nowrap">
+                      {fmtPLDate(r.date)}
+                    </td>
 
-                      <td className="max-w-0">
-                        <input
-                          list="clients-datalist"
-                          className="input w-full"
-                          value={r.clientName}
-                          onChange={(e) =>
-                            updateRow(r.id, {
-                              clientName: e.target.value,
-                              clientId: clientIdByName(e.target.value),
-                            })
-                          }
-                          placeholder="Wybierz klienta…"
-                          ref={registerInputRef(r.id, "client")}
-                          onKeyDown={handleEnter(r.id, "client")}
-                          disabled={inputsDisabled}
-                        />
-                      </td>
-
-                      <td className="text-right">
-                        <input
-                          className="input w-full text-right no-spin"
-                          type="number"
-                          min="0"
-                          step="1"
-                          inputMode="numeric"
-                          value={r.qty === "" ? "" : r.qty}
-                          onChange={(e) => {
-                            const v = e.target.value;
-                            updateRow(r.id, {
-                              qty: v === "" ? "" : Number(v),
-                            });
-                          }}
-                          title="Ilość pakietów"
-                          ref={registerInputRef(r.id, "qty")}
-                          onKeyDown={handleEnter(r.id, "qty")}
-                          disabled={inputsDisabled}
-                        />
-                      </td>
-
-                      <td className="text-right whitespace-nowrap">
-                        {to2(r.sterilCost)} zł
-                      </td>
-
-                      <td className="text-right">
-                        <input
-                          className="input w-full text-right no-spin"
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          inputMode="decimal"
-                          value={
-                            r.shipOrCourier === "" ? "" : r.shipOrCourier
-                          }
-                          onChange={(e) => {
-                            const v = e.target.value;
-                            updateRow(r.id, {
-                              shipOrCourier: v === "" ? "" : Number(v),
-                            });
-                          }}
-                          title="Kwota wysyłki lub dojazdu"
-                          ref={registerInputRef(r.id, "ship")}
-                          onKeyDown={handleEnter(r.id, "ship")}
-                          disabled={inputsDisabled}
-                        />
-                      </td>
-
-                      <td className="text-right whitespace-nowrap">
-                        {to2(r.total)} zł
-                      </td>
-                    </tr>
-                  ))}
-
-                  <tr>
-                    <td colSpan={6} className="text-right py-3">
-                      <button
-                        className="btn-primary"
-                        onClick={addRow}
-                        ref={addBtnRef}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            addRow();
-                          }
-                        }}
+                    <td className="max-w-0">
+                      <input
+                        list="clients-datalist"
+                        className="input w-full"
+                        value={r.clientName}
+                        onChange={(e) =>
+                          updateRow(r.id, {
+                            clientName: e.target.value,
+                            clientId: clientIdByName(e.target.value),
+                          })
+                        }
+                        placeholder="Wybierz klienta…"
+                        ref={registerInputRef(r.id, "client")}
+                        onKeyDown={handleEnter(r.id, "client")}
                         disabled={inputsDisabled}
-                      >
-                        + Dodaj wiersz
-                      </button>
+                      />
                     </td>
-                  </tr>
-                </tbody>
 
-                <tfoot>
-                  <tr className="bg-blue-50 font-semibold">
-                    <td colSpan={2} className="text-right">
-                      Razem:
+                    <td className="text-right">
+                      <input
+                        className="input w-full text-right no-spin"
+                        type="number"
+                        min="0"
+                        step="1"
+                        inputMode="numeric"
+                        value={r.qty === "" ? "" : r.qty}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          updateRow(r.id, { qty: v === "" ? "" : Number(v) });
+                        }}
+                        title="Ilość pakietów"
+                        ref={registerInputRef(r.id, "qty")}
+                        onKeyDown={handleEnter(r.id, "qty")}
+                        disabled={inputsDisabled}
+                      />
                     </td>
-                    <td className="text-right">{totals.qty}</td>
-                    <td className="text-right">{to2(totals.steril)} zł</td>
-                    <td className="text-right">{to2(totals.ship)} zł</td>
-                    <td className="text-right">{to2(totals.total)} zł</td>
+
+                    <td className="text-right whitespace-nowrap">
+                      {to2(r.sterilCost)} zł
+                    </td>
+
+                    <td className="text-right">
+                      <input
+                        className="input w-full text-right no-spin"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        inputMode="decimal"
+                        value={r.shipOrCourier === "" ? "" : r.shipOrCourier}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          updateRow(r.id, {
+                            shipOrCourier: v === "" ? "" : Number(v),
+                          });
+                        }}
+                        title="Kwota wysyłki lub dojazdu"
+                        ref={registerInputRef(r.id, "ship")}
+                        onKeyDown={handleEnter(r.id, "ship")}
+                        disabled={inputsDisabled}
+                      />
+                    </td>
+
+                    <td className="text-right whitespace-nowrap">
+                      {to2(r.total)} zł
+                    </td>
                   </tr>
-                </tfoot>
-              </table>
-            </div>
+                ))}
+
+                <tr>
+                  <td colSpan={7} className="text-right py-3">
+                    <button
+                      type="button"
+                      className="btn-primary"
+                      onClick={addRow}
+                      ref={addBtnRef}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addRow();
+                        }
+                      }}
+                      disabled={inputsDisabled}
+                    >
+                      + Dodaj wiersz
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+
+              <tfoot>
+                <tr className="bg-blue-50 font-semibold">
+                  <td colSpan={3} className="text-right">
+                    Razem:
+                  </td>
+                  <td className="text-right">{totals.qty}</td>
+                  <td className="text-right">{to2(totals.steril)} zł</td>
+                  <td className="text-right">{to2(totals.ship)} zł</td>
+                  <td className="text-right">{to2(totals.total)} zł</td>
+                </tr>
+              </tfoot>
+            </table>
           </div>
-
-          <datalist id="clients-datalist">
-            {clients.map((c) => (
-              <option key={c.id || c.name} value={c.name} />
-            ))}
-          </datalist>
         </div>
-      </section>
+
+        <datalist id="clients-datalist">
+          {clients.map((c) => (
+            <option key={c.id || c.name} value={c.name} />
+          ))}
+        </datalist>
+      </main>
 
       <ConfirmDialog
         open={!!toDelete}
@@ -907,7 +1058,7 @@ export default function PrivateSterilizationLog() {
           const id = toDelete.id;
           try {
             await apiFetch(
-              api(
+              normalizeApiFetchPath(
                 `/psl/saved/${encodeURIComponent(id)}?confirm=psl:delete-saved`
               ),
               {

@@ -44,7 +44,7 @@ const monthParts = (ym) => {
 
 // DocumentsProtocols.jsx — ДОДАЙ УТИЛІТУ ДЛЯ ЗАВАНТАЖЕННЯ ZIP
 async function downloadZip(apiUrl, pairs, zipNamePrefix = "protokoly") {
-  const r = await apiFetch(`/protocols/zip`, {
+  const r = await apiFetch(api(`/protocols/zip`), {
     method: "POST",
     body: JSON.stringify({ pairs }),
   });
@@ -82,12 +82,29 @@ const buildItemsFromServer = (protocols = [], clients = []) => {
         .filter((d) => typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d))
         .sort();
 
-      const lastEntryDate = dates.length
-        ? dates[dates.length - 1]
-        : `${p.month}-01`;
-      const createdAt = new Date(
-        `${lastEntryDate}T00:00:00.000Z`
-      ).toISOString();
+        const lastEntryDate = dates.length
+          ? dates[dates.length - 1]
+          : `${p.month}-01`;
+
+        const stampMs = (p.entries || [])
+          .map((e) => {
+            const v =
+              e?.createdAt ||
+              e?.created_at ||
+              e?.ts ||
+              e?.timestamp ||
+              e?.dateTime ||
+              e?.datetime;
+            const ms = v ? Date.parse(v) : NaN;
+            return Number.isFinite(ms) ? ms : null;
+          })
+          .filter((ms) => ms !== null)
+          .sort((a, b) => a - b);
+
+        const createdAt = stampMs.length
+          ? new Date(stampMs[stampMs.length - 1]).toISOString()
+          : new Date(`${lastEntryDate}T12:00:00`).toISOString();
+
 
       const clientName =
         String(
@@ -262,6 +279,36 @@ export default function DocumentsProtocols() {
       });
   }, [items, q, monthFilter]);
 
+  const groupedRows = useMemo(() => {
+    const out = [];
+    let lastYm = null;
+
+    for (let idx = 0; idx < filtered.length; idx++) {
+      const it = filtered[idx];
+      const ym = it.displayMonth;
+
+      if (ym !== lastYm) {
+        lastYm = ym;
+        const { year, monthWord } = monthParts(ym);
+        out.push({
+          kind: "group",
+          key: `group:${ym}`,
+          ym,
+          title: `${monthWord} ${year}`,
+        });
+      }
+
+      out.push({
+        kind: "item",
+        key: it.id,
+        it,
+        idx,
+      });
+    }
+
+    return out;
+  }, [filtered]);
+
   const allChecked =
     filtered.length > 0 &&
     filtered.every((it) => selectedProtocolIds.has(it.id));
@@ -398,6 +445,7 @@ export default function DocumentsProtocols() {
                         body: JSON.stringify({ summarized: true }),
                       }
                     );
+
                     if (!r.ok) {
                       const txt = await r.text();
                       console.warn(
@@ -478,7 +526,7 @@ export default function DocumentsProtocols() {
           <table className="table w-full table-fixed">
             <thead>
               <tr className="bg-gray-50">
-                <th className="w-[3.5rem] text-center">
+                <th className="w-[3.5rem] text-center max-[1000px]:hidden">
                   <input
                     type="checkbox"
                     checked={allChecked}
@@ -486,21 +534,63 @@ export default function DocumentsProtocols() {
                     aria-label="Zaznacz wszystkie"
                   />
                 </th>
-                <th className="w-[6ch] text-center">#</th>
-                <th>Nazwa protokołu</th>
-                <th className="w-[16ch] text-center">Miesiąc</th>
-                <th className="w-[10ch] text-center">Rok</th>
+
+                <th className="w-[6ch] text-center max-[1000px]:hidden">#</th>
+
+                <th className="w-full">
+                  <div className="w-full flex items-center gap-2">
+                    <div className="min-[1001px]:hidden w-[3.5rem] flex justify-center">
+                      <input
+                        type="checkbox"
+                        checked={allChecked}
+                        onChange={toggleAll}
+                        aria-label="Zaznacz wszystkie"
+                      />
+                    </div>
+
+                    <div className="flex-1 text-center min-[1001px]:text-left">
+                      Nazwa protokołu
+                    </div>
+
+                    <div className="min-[1001px]:hidden w-[4.5rem]" />
+                  </div>
+                </th>
+
+                <th className="w-[16ch] text-center max-[1000px]:hidden">
+                  Miesiąc
+                </th>
+                <th className="w-[10ch] text-center max-[1000px]:hidden">
+                  Rok
+                </th>
               </tr>
             </thead>
+
             <tbody>
-              {filtered.map((it, idx) => {
+              {groupedRows.map((row) => {
+                if (row.kind === "group") {
+                  return (
+                    <tr key={row.key} className="bg-blue-50">
+                      <td
+                        colSpan={5}
+                        className="px-3 py-2 text-sm text-gray-700 capitalize text-center min-[1001px]:text-left"
+                      >
+                        {row.title}
+                      </td>
+                    </tr>
+                  );
+                }
+
+                const it = row.it;
+                const idx = row.idx;
+
                 const { year, monthWord } = monthParts(it.displayMonth);
                 const protoName = `Protokół_${monthWord}_${year}_${
                   it.clientName || ""
                 }`;
+
                 return (
-                  <tr key={it.id} className="hover:bg-gray-50">
-                    <td className="text-center">
+                  <tr key={row.key} className="hover:bg-gray-50">
+                    <td className="text-center max-[1000px]:hidden">
                       <input
                         type="checkbox"
                         checked={selectedProtocolIds.has(it.id)}
@@ -508,45 +598,71 @@ export default function DocumentsProtocols() {
                         aria-label={`Zaznacz ${protoName}`}
                       />
                     </td>
-                    <td className="text-center">{idx + 1}</td>
-                    <td className="truncate">
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          className="text-blue-700 hover:underline"
-                          onClick={() => navigateToView(it)}
-                          title="Otwórz stronę protokołu"
-                        >
-                          {protoName}
-                        </button>
-                        {it.summarized ? (
-                          <span
-                            className="inline-flex items-center gap-1 text-green-700 text-xs border border-green-300 bg-green-50 px-2 py-0.5 rounded-full"
-                            title="Ten protokół jest podsumowany (pieczęć w PDF)"
-                          >
-                            <svg
-                              width="12"
-                              height="12"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="3"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
+
+                    <td className="text-center max-[1000px]:hidden">
+                      {idx + 1}
+                    </td>
+
+                    <td className="min-w-0">
+                      <div className="w-full flex items-start gap-2 min-w-0">
+                        <div className="min-[1001px]:hidden w-[4.5rem] pt-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-500 w-[3ch] text-right">
+                              {idx + 1}.
+                            </span>
+                            <input
+                              type="checkbox"
+                              checked={selectedProtocolIds.has(it.id)}
+                              onChange={() => toggleOneProtocol(it.id)}
+                              aria-label={`Zaznacz ${protoName}`}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-col gap-1 min-[1001px]:flex-row min-[1001px]:items-center min-[1001px]:gap-2 min-w-0">
+                            <button
+                              type="button"
+                              className="text-blue-700 hover:underline truncate text-left"
+                              onClick={() => navigateToView(it)}
+                              title="Otwórz stronę protokołu"
                             >
-                              <path d="M20 6L9 17l-5-5" />
-                            </svg>
-                            Podsumowany
-                          </span>
-                        ) : null}
-                      </div>
-                      <div className="text-[11px] text-gray-500">
-                        Utworzono: {humanDateTime(it.createdAt)}
+                              {protoName}
+                            </button>
+
+                            {it.summarized ? (
+                              <span
+                                className="inline-flex items-center gap-1 text-green-700 text-xs border border-green-300 bg-green-50 px-2 py-0.5 rounded-full self-start min-[1001px]:self-auto min-[1001px]:shrink-0"
+                                title="Ten protokół jest podsumowany (pieczęć w PDF)"
+                              >
+                                <svg
+                                  width="12"
+                                  height="12"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="3"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <path d="M20 6L9 17l-5-5" />
+                                </svg>
+                                Podsumowany
+                              </span>
+                            ) : null}
+                          </div>
+
+                          <div className="text-[11px] text-gray-500">
+                            Utworzono: {humanDateTime(it.createdAt)}
+                          </div>
+                        </div>
                       </div>
                     </td>
 
-                    <td className="text-center capitalize">{monthWord}</td>
-                    <td className="text-center">{year}</td>
+                    <td className="text-center capitalize max-[1000px]:hidden">
+                      {monthWord}
+                    </td>
+                    <td className="text-center max-[1000px]:hidden">{year}</td>
                   </tr>
                 );
               })}

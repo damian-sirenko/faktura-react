@@ -85,6 +85,10 @@ export async function apiFetch(path, opts = {}) {
   } else {
     url = api(path);
   }
+  // У продакшені всі /auth/... повинні йти через /api
+  if (!isDevVite && url.startsWith("/auth/")) {
+    url = "/api" + url;
+  }
 
   const headers = new Headers(opts.headers || {});
 
@@ -113,7 +117,8 @@ export async function apiFetch(path, opts = {}) {
   });
 
   const isLoginCall =
-    typeof path === "string" && path.startsWith("/auth/login");
+    typeof path === "string" &&
+    (path === "/auth/login" || path === "/api/auth/login");
 
   // автозбереження токена після логіну
   if (res.ok && isLoginCall) {
@@ -156,7 +161,10 @@ export async function apiFetch(path, opts = {}) {
       });
     } catch {}
 
-    if (typeof window !== "undefined" && location.pathname !== "/login") {
+    if (
+      typeof window !== "undefined" &&
+      !location.pathname.startsWith("/login")
+    ) {
       const back = encodeURIComponent(location.pathname + location.search);
       location.replace(`/login?back=${back}`);
     }

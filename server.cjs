@@ -976,7 +976,8 @@ app.post("/export-epp", async (req, res) => {
           )
         : all;
 
-    const buf = generateEPPBuffer(selected);
+    const buf = generateEPPBuffer(selected, { requireBuyerName: true });
+
     res.setHeader("Content-Type", "application/octet-stream");
     res.setHeader("Content-Disposition", 'attachment; filename="export.epp"');
     res.setHeader("Content-Transfer-Encoding", "binary");
@@ -2746,6 +2747,8 @@ app.use((err, _req, res, _next) => {
     path.join(__dirname, "frontend", "dist"),
     path.join(process.cwd(), "dist"),
     path.join(process.cwd(), "frontend", "dist"),
+    // головний фронт: /public_html/panel
+    path.join(__dirname, "..", "panel"),
   ];
   const FRONT_DIR = FRONT_DIR_CANDIDATES.find((p) => fs.existsSync(p));
 
@@ -2778,6 +2781,11 @@ app.use((err, _req, res, _next) => {
     app.use((req, res, next) => {
       if (req.method !== "GET") return next();
       if (API_PREFIXES.some((p) => req.path.startsWith(p))) return next();
+      // дозволяємо SPA віддавати index.html на /panel/*
+      if (req.path.startsWith("/panel")) {
+        return res.sendFile(path.join(FRONT_DIR, "index.html"));
+      }
+
       res.sendFile(path.join(FRONT_DIR, "index.html"));
     });
 

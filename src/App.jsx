@@ -108,7 +108,7 @@ function AuthGate({ children }) {
 
   if (state.loading) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center text-gray-500">
+      <div className="h-full flex items-center justify-center text-gray-500">
         Ładowanie…
       </div>
     );
@@ -126,10 +126,10 @@ export default function App() {
       <ScrollToTop />
       <RouteTitle />
 
-      <div className="flex flex-col min-h-screen">
+      <div className="flex flex-col min-h-dvh">
         <Header />
 
-        <main className="flex-1 max-w-6xl mx-auto p-4">
+        <main className="flex-1 min-h-0 max-w-6xl mx-auto w-full px-3 sm:px-4 md:px-6 py-2 sm:py-4">
           <Routes>
             {/* Публічний логін */}
             <Route path="/login" element={<LoginPage />} />

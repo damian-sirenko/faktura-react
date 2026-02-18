@@ -106,7 +106,7 @@ export default function DocumentsTools() {
 
   return (
     <div className="min-h-[70vh]">
-      <div className="max-w-6xl mx-auto w-full px-[20mm] py-6 md:px-6 space-y-3">
+      <div className="max-w-6xl mx-auto w-full px-3 py-6 md:px-6 space-y-3">
         <div className="text-lg font-semibold">Dokumenty → Narzędzia</div>
         <div className="text-sm text-gray-600">
           Razem: <b>{totalCount}</b>{" "}

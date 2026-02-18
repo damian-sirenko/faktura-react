@@ -249,19 +249,22 @@ export default function ClientCard({
     }
 
     return (
-      <div className="card p-0 overflow-hidden">
+      <div className="card p-0 overflow-hidden max-[999px]:overflow-visible">
         <div className="px-3 py-2 text-sm text-gray-600 bg-blue-50 border-b">
           Zapisane: {protoItems.length}
         </div>
-        <table className="table w-full">
+        <table className="table w-full table-auto">
           <thead>
             <tr className="bg-gray-50">
-              <th className="w-[6ch] text-center">#</th>
+              <th className="w-[6ch] text-center max-[999px]:hidden">#</th>
               <th>Nazwa protokołu</th>
-              <th className="w-[16ch] text-center">Miesiąc</th>
-              <th className="w-[10ch] text-center">Rok</th>
+              <th className="w-[16ch] text-center max-[999px]:hidden">
+                Miesiąc
+              </th>
+              <th className="w-[10ch] text-center max-[999px]:hidden">Rok</th>
             </tr>
           </thead>
+
           <tbody>
             {protoItems.map((it, idx) => {
               const { year, monthWord } = monthParts(it.month);
@@ -270,11 +273,12 @@ export default function ClientCard({
               }`;
               return (
                 <tr key={it.id} className="hover:bg-gray-50">
-                  <td className="text-center">{idx + 1}</td>
-                  <td className="truncate">
+                  <td className="text-center max-[999px]:hidden">{idx + 1}</td>
+
+                  <td className="!whitespace-normal !break-words !overflow-visible align-top">
                     <button
                       type="button"
-                      className="text-blue-700 hover:underline"
+                      className="text-blue-700 hover:underline block w-full text-left !whitespace-normal !break-words !overflow-visible"
                       onClick={() =>
                         navigate(
                           `/documents/protocols/${encodeURIComponent(
@@ -294,12 +298,16 @@ export default function ClientCard({
                     >
                       {title}
                     </button>
-                    <div className="text-[11px] text-gray-500">
+
+                    <div className="text-[11px] text-gray-500 !whitespace-normal !break-words !overflow-visible">
                       Utworzono: {humanDateTime(it.createdAt)}
                     </div>
                   </td>
-                  <td className="text-center capitalize">{monthWord}</td>
-                  <td className="text-center">{year}</td>
+
+                  <td className="text-center capitalize max-[999px]:hidden">
+                    {monthWord}
+                  </td>
+                  <td className="text-center max-[999px]:hidden">{year}</td>
                 </tr>
               );
             })}
