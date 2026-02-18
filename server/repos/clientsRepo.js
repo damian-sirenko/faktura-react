@@ -103,39 +103,66 @@ async function replaceAllClients(clientsArray) {
   try {
     await conn.beginTransaction();
 
-    await conn.execute("DELETE FROM clients");
-
     const sqlInsert = `
-      INSERT INTO clients (
-        id,
-        name,
-        address,
-        type,
-        nip,
-        pesel,
-        email,
-        phone,
-        agreementStart,
-        agreementEnd,
-        subscription,
-        subscriptionAmount,
-        notice,
-        comment,
-        billingMode,
-        logistics,
-        courierPriceMode,
-        courierPriceGross,
-        shippingPriceMode,
-        shippingPriceGross,
-        archived,
-        archivedAt
-      )
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-    `;
+    INSERT INTO clients (
+      id,
+      name,
+      address,
+      type,
+      nip,
+      pesel,
+      email,
+      phone,
+      agreementStart,
+      agreementEnd,
+      subscription,
+      subscriptionAmount,
+      notice,
+      comment,
+      billingMode,
+      logistics,
+      courierPriceMode,
+      courierPriceGross,
+      shippingPriceMode,
+      shippingPriceGross,
+      archived,
+      archivedAt
+    )
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    ON DUPLICATE KEY UPDATE
+      name = VALUES(name),
+      address = VALUES(address),
+      type = VALUES(type),
+      nip = VALUES(nip),
+      pesel = VALUES(pesel),
+      email = VALUES(email),
+      phone = VALUES(phone),
+      agreementStart = VALUES(agreementStart),
+      agreementEnd = VALUES(agreementEnd),
+      subscription = VALUES(subscription),
+      subscriptionAmount = VALUES(subscriptionAmount),
+      notice = VALUES(notice),
+      comment = VALUES(comment),
+      billingMode = VALUES(billingMode),
+      logistics = VALUES(logistics),
+      courierPriceMode = VALUES(courierPriceMode),
+      courierPriceGross = VALUES(courierPriceGross),
+      shippingPriceMode = VALUES(shippingPriceMode),
+      shippingPriceGross = VALUES(shippingPriceGross),
+      archived = VALUES(archived),
+      archivedAt = VALUES(archivedAt)
+  `;
+  
+
+    for (const c of arr) {
+      if (!c.id || !String(c.id).trim()) {
+        throw new Error("Client id is required");
+      }
+    }
 
     for (const c of arr) {
       await conn.execute(sqlInsert, [
-        toStr(c.id) || null, // якщо id текстове — збережеться як VARCHAR; якщо числове — MySQL сконвертує
+        toStr(c.id),
         toStr(c.name),
         toStr(c.address),
         toStr(c.type || "op"),

@@ -301,3 +301,23 @@ input[type="number"].no-spin {
     @apply w-full max-w-none px-6;
   }
 }
+
+@layer components {
+  .menu-link {
+    @apply inline-flex items-center whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold transition border border-white;
+    @apply bg-transparent text-white hover:bg-white hover:text-black;
+  }
+
+  .menu-link-active {
+    @apply bg-[#6faeaa] text-white border-[#6faeaa];
+  }
+
+  .dropdown-link {
+    @apply block px-3 py-2 rounded-md transition bg-white text-black;
+    @apply hover:bg-[#4e8580] hover:text-white;
+  }
+
+  .dropdown-link-active {
+    @apply bg-[#6faeaa] text-white;
+  }
+}

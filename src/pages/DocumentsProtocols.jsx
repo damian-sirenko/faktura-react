@@ -1,5 +1,6 @@
 // src/pages/DocumentsProtocols.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
+
 import { useNavigate } from "react-router-dom";
 import { humanDateTime } from "../utils/docStore.js";
 import ProtocolEntryModal from "../components/ProtocolEntryModal.jsx";
@@ -42,12 +43,12 @@ const monthParts = (ym) => {
   return { year, monthIndex: mi, monthWord: MONTHS_PL[mi] || m || "" };
 };
 
-// DocumentsProtocols.jsx — ДОДАЙ УТИЛІТУ ДЛЯ ЗАВАНТАЖЕННЯ ZIP
-async function downloadZip(apiUrl, pairs, zipNamePrefix = "protokoly") {
-  const r = await apiFetch(api(`/protocols/zip`), {
+async function downloadZip(_apiUrl, pairs, zipNamePrefix = "protokoly") {
+  const r = await apiFetch("/protocols/zip", {
     method: "POST",
-    body: JSON.stringify({ pairs }),
+    json: { pairs },
   });
+
   if (!r.ok) {
     const txt = await r.text();
     throw new Error(txt || `Błąd ZIP: ${r.status}`);
@@ -82,29 +83,28 @@ const buildItemsFromServer = (protocols = [], clients = []) => {
         .filter((d) => typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d))
         .sort();
 
-        const lastEntryDate = dates.length
-          ? dates[dates.length - 1]
-          : `${p.month}-01`;
+      const lastEntryDate = dates.length
+        ? dates[dates.length - 1]
+        : `${p.month}-01`;
 
-        const stampMs = (p.entries || [])
-          .map((e) => {
-            const v =
-              e?.createdAt ||
-              e?.created_at ||
-              e?.ts ||
-              e?.timestamp ||
-              e?.dateTime ||
-              e?.datetime;
-            const ms = v ? Date.parse(v) : NaN;
-            return Number.isFinite(ms) ? ms : null;
-          })
-          .filter((ms) => ms !== null)
-          .sort((a, b) => a - b);
+      const stampMs = (p.entries || [])
+        .map((e) => {
+          const v =
+            e?.createdAt ||
+            e?.created_at ||
+            e?.ts ||
+            e?.timestamp ||
+            e?.dateTime ||
+            e?.datetime;
+          const ms = v ? Date.parse(v) : NaN;
+          return Number.isFinite(ms) ? ms : null;
+        })
+        .filter((ms) => ms !== null)
+        .sort((a, b) => a - b);
 
-        const createdAt = stampMs.length
-          ? new Date(stampMs[stampMs.length - 1]).toISOString()
-          : new Date(`${lastEntryDate}T12:00:00`).toISOString();
-
+      const createdAt = stampMs.length
+        ? new Date(stampMs[stampMs.length - 1]).toISOString()
+        : new Date(`${lastEntryDate}T12:00:00`).toISOString();
 
       const clientName =
         String(
@@ -113,15 +113,35 @@ const buildItemsFromServer = (protocols = [], clients = []) => {
         p.clientName ||
         p.id;
 
+      const totalPackages = (p.entries || []).reduce(
+        (s, e) => s + Number(e.packages || 0),
+        0
+      );
+
+      const totalShipments = (p.entries || []).filter(
+        (e) => e.shipping === true || e.shipping === 1
+      ).length;
+
+      const courierTrips = (p.entries || []).reduce((s, e) => {
+        if (!e.delivery) return s;
+        if (e.delivery === "odbior" || e.delivery === "dowoz") return s + 1;
+        if (e.delivery === "odbior+dowoz") return s + 2;
+        return s;
+      }, 0);
+
       return {
         id: `${p.id}:${p.month}`,
         clientId: p.id,
         clientName,
-        month: p.month, // ключ бекенду (для навігації)
-        createdAt, // “Utworzono” = ostatnia data wpisu
+        month: p.month,
+        createdAt,
         summarized: !!p.summarized,
-        lastEntryDate, // YYYY-MM-DD (ostatnia data wpisu)
-        displayMonth: lastEntryDate.slice(0, 7), // YYYY-MM (miesiąc wg ostatniego wpisu)
+        lastEntryDate,
+        displayMonth: lastEntryDate.slice(0, 7),
+
+        totalPackages,
+        totalShipments,
+        courierTrips,
       };
     });
 };
@@ -137,6 +157,8 @@ export default function DocumentsProtocols() {
   const [q, setQ] = useState("");
   const [monthFilter, setMonthFilter] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const actionsRef = useRef(null);
 
   // === downloads helpers ===
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -251,6 +273,30 @@ export default function DocumentsProtocols() {
     load();
   }, []);
 
+  useEffect(() => {
+    if (!actionsOpen) return;
+
+    const handleClickOutside = (e) => {
+      if (actionsRef.current && !actionsRef.current.contains(e.target)) {
+        setActionsOpen(false);
+      }
+    };
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setActionsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [actionsOpen]);
+
   const filtered = useMemo(() => {
     const needle = normalizeSearch(q);
     return (items || [])
@@ -288,6 +334,19 @@ export default function DocumentsProtocols() {
       const ym = it.displayMonth;
 
       if (ym !== lastYm) {
+        if (lastYm !== null) {
+          const sumItems = filtered.filter((x) => x.displayMonth === lastYm);
+          out.push({
+            kind: "summary",
+            key: `summary:${lastYm}`,
+            sums: {
+              packages: sumItems.reduce((s, x) => s + x.totalPackages, 0),
+              shipments: sumItems.reduce((s, x) => s + x.totalShipments, 0),
+              courier: sumItems.reduce((s, x) => s + x.courierTrips, 0),
+            },
+          });
+        }
+
         lastYm = ym;
         const { year, monthWord } = monthParts(ym);
         out.push({
@@ -342,7 +401,131 @@ export default function DocumentsProtocols() {
 
   return (
     <div className="space-y-3">
-      <div className="text-lg font-semibold">Dokumenty → Protokoły</div>
+      {/* HEADER — unified style */}
+      <div className="card-lg border-2 border-blue-200 bg-blue-50/60">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <h1 className="text-2xl font-bold">Protokoły przekazania narzędzi</h1>
+        </div>
+        <div className="mt-3 flex items-end gap-3 flex-wrap">
+          <div>
+            <label className="block text-xs mb-1 text-gray-600">
+              Nazwa protokołu / klient
+            </label>
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              className="input w-72"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs mb-1 text-gray-600">Miesiąc</label>
+            <input
+              type="month"
+              value={monthFilter}
+              onChange={(e) => setMonthFilter(e.target.value)}
+              className="input w-48"
+            />
+          </div>
+
+          <div
+            className="ml-auto flex items-center gap-2 relative"
+            ref={actionsRef}
+          >
+            <button
+              className="btn-primary"
+              onClick={() => navigate("/protocol-entry")}
+            >
+              Dodaj wpis do protokołu
+            </button>
+
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => setActionsOpen((v) => !v)}
+            >
+              Akcje ▾
+            </button>
+
+            {actionsOpen && (
+              <div className="absolute right-0 mt-2 w-64 rounded-xl border bg-white shadow-lg z-50">
+                <button
+                  className="dropdown-link w-full text-left"
+                  onClick={() => {
+                    setActionsOpen(false);
+                    if (!selectedProtocolIds.size) {
+                      alert("Zaznacz protokoły.");
+                      return;
+                    }
+                    alert(
+                      "Usuwanie całych protokołów z serwera nie jest dostępne.\nUsuń wpisy ręcznie."
+                    );
+                  }}
+                >
+                  Usuń zaznaczone protokoły
+                </button>
+
+                <button
+                  className="dropdown-link w-full text-left"
+                  onClick={async () => {
+                    setActionsOpen(false);
+                    if (!selectedProtocolIds.size) {
+                      alert("Zaznacz protokoły.");
+                      return;
+                    }
+                    const pairs = Array.from(selectedProtocolIds).map((id) => {
+                      const [clientId, month] = id.split(":");
+                      return { clientId, month };
+                    });
+                    try {
+                      await downloadZip(null, pairs, "protokoly_zaznaczone");
+                    } catch {
+                      alert("Błąd ZIP.");
+                    }
+                  }}
+                >
+                  Pobierz zaznaczone (ZIP)
+                </button>
+
+                <button
+                  className="dropdown-link w-full text-left"
+                  onClick={async () => {
+                    setActionsOpen(false);
+                    if (!selectedProtocolIds.size) {
+                      alert("Zaznacz protokoły.");
+                      return;
+                    }
+                    if (!confirm("Oznaczyć jako podsumowane?")) return;
+
+                    try {
+                      const ids = Array.from(selectedProtocolIds.values());
+                      await Promise.all(
+                        ids.map(async (pair) => {
+                          const [cid, ym] = pair.split(":");
+                          await apiFetch(
+                            `/protocols/${encodeURIComponent(
+                              cid
+                            )}/${ym}/summarize`,
+                            {
+                              method: "POST",
+                              json: { summarized: true },
+                            }
+                          );
+                        })
+                      );
+                      await load();
+                    } catch {
+                      alert("Błąd sumowania.");
+                    }
+                  }}
+                >
+                  Zsumuj zaznaczone
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       {errorMsg ? (
         <div className="p-3 rounded-lg border border-amber-300 bg-amber-50 text-amber-800">
@@ -358,175 +541,23 @@ export default function DocumentsProtocols() {
         </div>
       ) : null}
 
-      {/* Фільтри + дії */}
-      <div className="card p-3">
-        <div className="flex flex-wrap items-end gap-3">
-          <div>
-            <label className="block text-xs mb-1 text-gray-600">
-              Nazwa protokołu / klient
-            </label>
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              className="input w-72"
-              aria-label="Filtruj po nazwie protokołu lub kliencie"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs mb-1 text-gray-600">Miesiąc</label>
-            <input
-              type="month"
-              value={monthFilter}
-              onChange={(e) => setMonthFilter(e.target.value)}
-              className="input w-48"
-              aria-label="Filtruj po miesiącu"
-            />
-          </div>
-
-          <div className="flex-1" />
-
-          <button
-            className="btn-primary px-3 py-2"
-            onClick={() => setAddOpen(true)}
-          >
-            <span className="inline-flex items-center gap-2">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="white"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-              <span>Dodaj wpis do protokołu</span>
-            </span>
-          </button>
-
-          <button
-            className="btn-danger"
-            onClick={() => {
-              if (!selectedProtocolIds.size) {
-                alert("Zaznacz co najmniej 1 protokół do usunięcia.");
-                return;
-              }
-              alert(
-                "Usuwanie całych протоколов з serwera nie jest dostępne.\nOtwórz протокол i usuń niepotrzebne wpisy ręcznie."
-              );
-            }}
-          >
-            Usuń zaznaczone
-          </button>
-
-          <button
-            className="btn-secondary"
-            onClick={async () => {
-              if (!selectedProtocolIds.size) {
-                alert("Zaznacz co najmniej 1 protokół do podsumowania.");
-                return;
-              }
-              if (!confirm("Oznaczyć wybrane protokoły jako PODSUMOWANE?"))
-                return;
-
-              try {
-                const ids = Array.from(selectedProtocolIds.values());
-                await Promise.all(
-                  ids.map(async (pair) => {
-                    const [cid, ym] = pair.split(":");
-                    const r = await apiFetch(
-                      `/protocols/${encodeURIComponent(cid)}/${ym}/summarize`,
-                      {
-                        method: "POST",
-                        body: JSON.stringify({ summarized: true }),
-                      }
-                    );
-
-                    if (!r.ok) {
-                      const txt = await r.text();
-                      console.warn(
-                        "Summarize failed:",
-                        cid,
-                        ym,
-                        txt || r.status
-                      );
-                    }
-                  })
-                );
-                await load();
-                alert("Gotowe. Wybrane protokoły oznaczono: PODSUMOWANE.");
-              } catch (e) {
-                alert(e?.message || "Nie udało się oznaczyć podsumowania.");
-              }
-            }}
-            title="Oznacz wybrane protokoły jako podsumowane (pieczęć w PDF)"
-          >
-            Zsumuj zaznaczone
-          </button>
-          <button
-            className="btn-primary"
-            onClick={async () => {
-              if (!selectedProtocolIds.size) {
-                alert("Zaznacz co najmniej 1 protokół.");
-                return;
-              }
-              const pairs = Array.from(selectedProtocolIds).map((id) => {
-                const [clientId, month] = id.split(":");
-                return { clientId, month };
-              });
-              try {
-                await downloadZip(api, pairs, "protokoly_zaznaczone");
-              } catch (e) {
-                alert(e?.message || "Nie udało się pobrać ZIP.");
-              }
-            }}
-            title="Pobierz zaznaczone protokoły jako ZIP"
-          >
-            Pobierz zaznaczone (ZIP)
-          </button>
-
-          <button
-            className="btn-secondary"
-            onClick={async () => {
-              if (!filtered.length) {
-                alert("Brak widocznych protokołów do pobrania.");
-                return;
-              }
-              const pairs = filtered.map((it) => ({
-                clientId: it.clientId,
-                month: it.month,
-              }));
-              try {
-                await downloadZip(api, pairs, "protokoly_widoczne");
-              } catch (e) {
-                alert(e?.message || "Nie udało się pobrać ZIP.");
-              }
-            }}
-            title="Pobierz wszystkie widoczne protokoły jako ZIP"
-          >
-            Pobierz widoczne (ZIP)
-          </button>
-        </div>
-      </div>
-
       {/* Список протоколів */}
       {filtered.length === 0 ? (
         <div className="card p-8 text-center text-gray-500">
           Brak zapisanych protokołów.
         </div>
       ) : (
-        <div className="card p-0 overflow-hidden">
+        <div className="card p-0">
           <div className="px-3 py-2 text-sm text-gray-600 bg-blue-50 border-b">
             Zapisane: {filtered.length}
           </div>
           <table className="table w-full table-fixed">
             <thead>
               <tr className="bg-gray-50">
-                <th className="w-[3.5rem] text-center max-[1000px]:hidden">
+                <th
+                  className="w-[3.5rem] text-center hidden sm:table-cell
+"
+                >
                   <input
                     type="checkbox"
                     checked={allChecked}
@@ -535,7 +566,12 @@ export default function DocumentsProtocols() {
                   />
                 </th>
 
-                <th className="w-[6ch] text-center max-[1000px]:hidden">#</th>
+                <th
+                  className="w-[6ch] text-center hidden sm:table-cell
+"
+                >
+                  #
+                </th>
 
                 <th className="w-full">
                   <div className="w-full flex items-center gap-2">
@@ -555,11 +591,26 @@ export default function DocumentsProtocols() {
                     <div className="min-[1001px]:hidden w-[4.5rem]" />
                   </div>
                 </th>
+                <th className="w-[9ch] text-center align-middle whitespace-nowrap hidden sm:table-cell">
+                  Pakiety
+                </th>
+                <th className="w-[9ch] text-center align-middle whitespace-nowrap hidden sm:table-cell">
+                  Wysyłki
+                </th>
+                <th className="w-[9ch] text-center align-middle whitespace-nowrap hidden sm:table-cell">
+                  Kurier
+                </th>
 
-                <th className="w-[16ch] text-center max-[1000px]:hidden">
+                <th
+                  className="w-[16ch] text-center hidden sm:table-cell
+"
+                >
                   Miesiąc
                 </th>
-                <th className="w-[10ch] text-center max-[1000px]:hidden">
+                <th
+                  className="w-[10ch] text-center hidden sm:table-cell
+"
+                >
                   Rok
                 </th>
               </tr>
@@ -571,7 +622,7 @@ export default function DocumentsProtocols() {
                   return (
                     <tr key={row.key} className="bg-blue-50">
                       <td
-                        colSpan={5}
+                        colSpan={8}
                         className="px-3 py-2 text-sm text-gray-700 capitalize text-center min-[1001px]:text-left"
                       >
                         {row.title}
@@ -579,6 +630,28 @@ export default function DocumentsProtocols() {
                     </tr>
                   );
                 }
+
+                if (row.kind === "summary") {
+                  return (
+                    <tr
+                      key={row.key}
+                      className="bg-gray-50 font-bold border-t-2 border-b-2 border-gray-400"
+                    >
+                      <td colSpan={3} className="text-right px-3">
+                        Razem:
+                      </td>
+                      <td className="text-center">
+                        {row.sums.packages || "–"}
+                      </td>
+                      <td className="text-center">
+                        {row.sums.shipments || "–"}
+                      </td>
+                      <td className="text-center">{row.sums.courier || "–"}</td>
+                      <td colSpan={2}></td>
+                    </tr>
+                  );
+                }
+                
 
                 const it = row.it;
                 const idx = row.idx;
@@ -589,8 +662,8 @@ export default function DocumentsProtocols() {
                 }`;
 
                 return (
-                  <tr key={row.key} className="hover:bg-gray-50">
-                    <td className="text-center max-[1000px]:hidden">
+                  <tr key={row.key} className="hover:bg-gray-50 h-12">
+                    <td className="text-center hidden sm:table-cell h-full">
                       <input
                         type="checkbox"
                         checked={selectedProtocolIds.has(it.id)}
@@ -598,13 +671,12 @@ export default function DocumentsProtocols() {
                         aria-label={`Zaznacz ${protoName}`}
                       />
                     </td>
-
-                    <td className="text-center max-[1000px]:hidden">
+                    <td className="text-center hidden sm:table-cell h-full">
                       {idx + 1}
                     </td>
 
-                    <td className="min-w-0">
-                      <div className="w-full flex items-start gap-2 min-w-0">
+                    <td className="min-w-0 align-middle">
+                      <div className="w-full flex items-center gap-2 min-w-0 h-full">
                         <div className="min-[1001px]:hidden w-[4.5rem] pt-1">
                           <div className="flex items-center gap-2">
                             <span className="text-xs text-gray-500 w-[3ch] text-right">
@@ -659,10 +731,32 @@ export default function DocumentsProtocols() {
                       </div>
                     </td>
 
-                    <td className="text-center capitalize max-[1000px]:hidden">
+                    <td className="hidden sm:table-cell relative">
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        {it.totalPackages}
+                      </div>
+                    </td>
+                    <td className="hidden sm:table-cell relative">
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        {it.totalShipments > 0 ? it.totalShipments : "–"}
+                      </div>
+                    </td>
+                    <td className="hidden sm:table-cell relative">
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        {it.courierTrips > 0 ? it.courierTrips : "–"}
+                      </div>
+                    </td>
+
+                    <td
+                      className="text-center capitalize hidden sm:table-cell
+"
+                    >
                       {monthWord}
                     </td>
-                    <td className="text-center max-[1000px]:hidden">{year}</td>
+
+                    <td className="text-center hidden sm:table-cell h-full">
+                      {year}
+                    </td>
                   </tr>
                 );
               })}

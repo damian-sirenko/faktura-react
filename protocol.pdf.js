@@ -10,33 +10,18 @@ async function loadClientById(id) {
   return row || null;
 }
 
-// вставити перед loadProtocolFull
-function parseJSON(val, fallback) {
-  try {
-    if (val == null) return fallback;
-    if (Buffer.isBuffer(val)) val = val.toString("utf8");
-    if (typeof val === "object") return val ?? fallback; // mysql2 може вже парсити JSON
-    const s = String(val || "").trim();
-    if (!s) return fallback;
-    return JSON.parse(s);
-  } catch {
-    return fallback;
+const ISO_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+function toISO10(v) {
+  if (!v) return "";
+  if (v instanceof Date && !isNaN(v)) {
+    const Y = v.getFullYear();
+    const M = String(v.getMonth() + 1).padStart(2, "0");
+    const D = String(v.getDate()).padStart(2, "0");
+    return `${Y}-${M}-${D}`;
   }
-}
-function normalizeToolsArray(raw) {
-  if (!Array.isArray(raw)) return [];
-  return raw
-    .map((t) => {
-      if (typeof t === "string") return { name: t.trim(), count: 0 };
-      if (t && typeof t === "object") {
-        return {
-          name: String(t.name || t.nazwa || "").trim(),
-          count: Number(t.count || t.ilosc || 0) || 0,
-        };
-      }
-      return null;
-    })
-    .filter(Boolean);
+  const s = String(v).slice(0, 10);
+  return ISO_RE.test(s) ? s : "";
 }
 
 async function loadProtocolFull(clientId, month) {
@@ -260,27 +245,12 @@ function findClientById(clients, id) {
   );
 }
 
-// допоміжне: нормалізувати в YYYY-MM-DD із Date або рядка
-function toISO10(v) {
-  if (!v) return "";
-  if (v instanceof Date && !isNaN(v)) {
-    const Y = v.getFullYear();
-    const M = String(v.getMonth() + 1).padStart(2, "0");
-    const D = String(v.getDate()).padStart(2, "0");
-    return `${Y}-${M}-${D}`;
-  }
-  const s = String(v).slice(0, 10);
-  return ISO_RE.test(s) ? s : "";
-}
-
 function plDate(v) {
   const iso = toISO10(v);
   if (!iso) return "";
   const [y, m, d] = iso.split("-");
   return `${d}.${m}.${y}`;
 }
-
-const ISO_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 function parseISO(iso) {
   if (typeof iso !== "string" || !ISO_RE.test(iso)) return null;
@@ -339,17 +309,32 @@ const SIZE_SEAL = 9; // (було 10)
 /* ✅ Санітизація та шлях для збереження PDF */
 function safeSeg(s) {
   return String(s || "")
-    .toLowerCase()
-    .replace(/[^a-z0-9._-]+/g, "-")
+    .toUpperCase()
+    .replace(/[^A-Z0-9._-]+/g, "-")
     .replace(/(^-|-$)/g, "");
 }
+
 function protocolOutPath(clientId, month, onlySigned = false) {
-  const dir = path.join(GENERATED_DIR, "protocols", safeSeg(month));
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  const fn = `protokol_${safeSeg(clientId)}_${safeSeg(month)}${
-    onlySigned ? "_podpisane" : ""
+  const { year } = monthWord(month);
+
+  const todayISO = new Date().toISOString().slice(0, 10);
+  const baseDirName = month;
+
+  const finalDir = path.join(GENERATED_DIR, "protocols", baseDirName);
+
+  if (!fs.existsSync(finalDir)) {
+    fs.mkdirSync(finalDir, { recursive: true });
+  }
+
+  const safeClientId = String(clientId || "")
+    .trim()
+    .toUpperCase();
+
+  const fileName = `PROTOKOL_${safeClientId}_${month}${
+    onlySigned ? "_PODPISANE" : ""
   }.pdf`;
-  return path.join(dir, fn);
+
+  return path.join(finalDir, fileName);
 }
 
 /* ✅ Коректне отримання абсолютного шляху підпису із публічного URL */
@@ -624,6 +609,21 @@ function ensurePageSpace(doc, needed, drawHeader) {
   if (doc.y + needed > bottom) {
     doc.addPage();
     if (typeof drawHeader === "function") drawHeader();
+  }
+}
+function ensureUniqueDir(basePath) {
+  if (!fs.existsSync(basePath)) {
+    fs.mkdirSync(basePath, { recursive: true });
+    return basePath;
+  }
+  let i = 2;
+  while (true) {
+    const candidate = `${basePath} (${i})`;
+    if (!fs.existsSync(candidate)) {
+      fs.mkdirSync(candidate, { recursive: true });
+      return candidate;
+    }
+    i++;
   }
 }
 
@@ -1204,7 +1204,12 @@ async function createProtocolPDF(arg1, arg2) {
         proto || { id: "", month: "", entries: [] },
         !!onlySigned
       );
+
+      doc.info.Producer = "pdfkit";
       doc.end();
+      if (typeof doc.flushPages === "function") {
+        doc.flushPages();
+      }
     } catch (e) {
       console.error("protocol pdf error:", e);
       try {
@@ -1228,8 +1233,8 @@ async function createProtocolPDF(arg1, arg2) {
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader(
         "Content-Disposition",
-        `inline; filename="protokol_${clientId}_${month}${
-          onlySigned ? "_podpisane" : ""
+        `inline; filename="PROTOKOL_${clientId}_${month}${
+          onlySigned ? "_PODPISANE" : ""
         }.pdf"`
       );
 
@@ -1266,53 +1271,74 @@ async function createProtocolPDF(arg1, arg2) {
 }
 
 /* --- ZIP за місяць (залишено як було) + ✅ паралельне збереження кожного PDF --- */
-function createProtocolZip(req, res) {
+async function createProtocolZip(req, res) {
   if (!PDFDocument)
     return res.status(500).send("Brak modułu pdfkit. npm i pdfkit");
-  try {
-    const { month } = req.params;
-    const onlySigned = String(req.query.onlySigned || "") === "1";
-    const clients = readClients();
-    const all = readProtocols().filter((p) => p.month === month);
 
-    const archive = archiver("zip", { zlib: { level: 9 } });
-    res.attachment(`protokoły_${month}${onlySigned ? "_podpisane" : ""}.zip`);
-    archive.on("error", (err) => {
-      console.error("zip error:", err);
-      try {
-        res.status(500).end();
-      } catch {}
-    });
-    archive.pipe(res);
+  const { month } = req.params;
+  const onlySigned = String(req.query.onlySigned || "") === "1";
 
-    for (const proto of all) {
-      const client = findClientById(clients, proto.id);
-      const stream = new PassThrough();
-      const fn = `protokol_${proto.id}_${month}${
-        onlySigned ? "_podpisane" : ""
-      }.pdf`;
-      archive.append(stream, { name: fn });
+  const archive = archiver("zip", { zlib: { level: 9 } });
+  res.attachment(`protokoły_${month}${onlySigned ? "_podpisane" : ""}.zip`);
 
+  archive.on("error", (err) => {
+    console.error("zip error:", err);
+    try {
+      res.status(500).end();
+    } catch {}
+  });
+
+  archive.pipe(res);
+
+  const clients = readClients();
+  const all = readProtocols().filter((p) => p.month === month);
+
+  const pdfToBuffer = (client, proto, onlySignedFlag) =>
+    new Promise((resolve, reject) => {
       const doc = new PDFDocument({
         size: "A4",
         layout: "landscape",
         margin: 28,
       });
 
-      // ✅ паралельне локальне збереження кожного PDF
-      const savePath = protocolOutPath(proto.id, month, onlySigned);
-      const ws = fs.createWriteStream(savePath);
-      doc.pipe(ws);
+      const chunks = [];
+      doc.on("data", (c) => chunks.push(c));
+      doc.on("end", () => resolve(Buffer.concat(chunks)));
+      doc.on("error", reject);
 
-      doc.pipe(stream);
-      renderProtocol(doc, client, proto, onlySigned);
-      doc.end();
+      try {
+        renderProtocol(doc, client, proto, onlySignedFlag);
+
+        doc.info.Producer = "pdfkit";
+        doc.end();
+        if (typeof doc.flushPages === "function") {
+          doc.flushPages();
+        }
+      } catch (e) {
+        reject(e);
+      }
+    });
+
+  for (const proto of all) {
+    try {
+      const client = findClientById(clients, proto.id);
+      const fn = `PROTOKOL_${String(proto.id).trim().toUpperCase()}_${month}${
+        onlySigned ? "_PODPISANE" : ""
+      }.pdf`;
+
+      const buf = await pdfToBuffer(client, proto, onlySigned);
+
+      if (buf && buf.length > 8) {
+        archive.append(buf, { name: fn });
+      } else {
+        console.warn("Skip empty PDF:", proto.id, month);
+      }
+    } catch (e) {
+      console.warn("PDF build failed:", proto?.id, month, e?.message || e);
     }
-    archive.finalize();
-  } catch (e) {
-    console.error("protocols export zip error:", e);
-    res.status(500).send("Failed to export protocols zip");
   }
+
+  await archive.finalize();
 }
 
 module.exports = { createProtocolPDF, createProtocolZip };

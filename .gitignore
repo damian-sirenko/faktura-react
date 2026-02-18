@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Gmail OAuth secrets
+server/secrets/gmail-oauth.json
+server/secrets/gmail-token.json
+

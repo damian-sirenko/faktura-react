@@ -6,11 +6,6 @@ const fs = require("fs");
 const path = require("path");
 const PDFDocument = require("pdfkit");
 
-// --- Rendering defaults (повертаємо як було) ---
-const FORCE_BLACK_STROKES = false; // рамки знову світло-сірі
-const HEADER_SHADE = true; // шапка таблиці з сірим фоном, як було раніше
-const SELLER_BOX_SHADE = false; // НОВЕ: вимкнути сірий фон у блоці "Sprzedawca" (щоб не давав «зерно»)
-
 // ---------- Utils ----------
 function findFirst(paths) {
   for (const p of paths) if (p && fs.existsSync(p)) return p;
@@ -25,6 +20,12 @@ function safeName(s) {
     .normalize("NFKD")
     .replace(/[^\w.-]+/g, "_");
 }
+function normalizeIdentifier(v) {
+  return String(v || "")
+    .trim()
+    .toUpperCase();
+}
+
 function to2(n) {
   const v = Number(String(n ?? 0).replace(",", "."));
   return Number.isFinite(v) ? v.toFixed(2) : "0.00";
@@ -50,6 +51,16 @@ function cleanPercent(v) {
     out = out.replace(/\.0+$/, "").replace(/(\.\d*[1-9])0+$/, "$1");
   }
   return out + "%";
+}
+function normalizePaymentMethod(v) {
+  const s = String(v ?? "").trim();
+  const low = s.toLowerCase();
+
+  if (!s) return "";
+  if (low === "cash") return "Gotówka";
+  if (low === "card") return "Karta płatnicza";
+  if (low === "transfer" || low === "przelew") return "Przelew";
+  return s;
 }
 
 // --- amount-in-words fallback (PL) ---
@@ -144,9 +155,7 @@ function _intWords(n) {
   return parts.join(" ").replace(/\s+/g, " ").trim();
 }
 function amountInWordsPL(amount) {
-  const s = String(amount ?? "")
-    .replace(/\./g, "")
-    .replace(",", ".");
+  const s = String(amount ?? "").replace(",", ".");
   const v = Number(s);
   if (!isFinite(v)) return "";
   const totalGr = Math.round(v * 100);
@@ -182,6 +191,31 @@ function cssPxNum(v, fallbackNum) {
   return m ? Number(m[1]) : fallbackNum;
 }
 
+const MONTHS_PL = [
+  "styczeń",
+  "luty",
+  "marzec",
+  "kwiecień",
+  "maj",
+  "czerwiec",
+  "lipiec",
+  "sierpień",
+  "wrzesień",
+  "październik",
+  "listopad",
+  "grudzień",
+];
+
+function monthWordFromISO(iso) {
+  if (!iso || typeof iso !== "string") return { word: "", year: "" };
+  const [y, m] = iso.slice(0, 7).split("-");
+  const idx = Number(m) - 1;
+  return {
+    year: y || "",
+    word: MONTHS_PL[idx] || "",
+  };
+}
+
 // ---------- Fonts ----------
 const FONT_REGULAR = findFirst([
   path.join(process.cwd(), "public", "fonts", "DejaVuSans.ttf"),
@@ -196,7 +230,24 @@ const FONT_BOLD = findFirst([
 ]);
 
 // ---------- Main ----------
-async function generateInvoicePDF(input, outputPath) {
+function ensureUniqueDir(basePath) {
+  if (!fs.existsSync(basePath)) {
+    fs.mkdirSync(basePath, { recursive: true });
+    return basePath;
+  }
+
+  let i = 2;
+  while (true) {
+    const candidate = `${basePath} (${i})`;
+    if (!fs.existsSync(candidate)) {
+      fs.mkdirSync(candidate, { recursive: true });
+      return candidate;
+    }
+    i++;
+  }
+}
+
+async function generateInvoicePDF(input) {
   if (!FONT_REGULAR) throw new Error("Brak DejaVuSans.ttf (public/fonts)");
   // де лежать ваші шаблони/стилі
   const TPL_DIR = path.join(__dirname, "templates");
@@ -251,6 +302,7 @@ async function generateInvoicePDF(input, outputPath) {
     sale_date: val(input.sale_date, input.date_of_sale, input.data_sprzedazy),
     due_date: val(
       input.due_date,
+      input.dueDate,
       input.termin_platnosci,
       input.payment_due,
       input.termin
@@ -277,7 +329,16 @@ async function generateInvoicePDF(input, outputPath) {
       input.slownie
     ),
     paid_amount: val(input.paid_amount, input.paidAmount, input.zaplacono),
-    payment_method: val(input.payment_method, input.paymentMethod, "Przelew"),
+    payment_method: val(
+      input.payment_method,
+      input.paymentMethod,
+      input.paymentMethodName,
+      input.payment_method_name,
+      input.paymentMethodLabel,
+      input.payment_method_label,
+      input.payment
+    ),
+
     bank: val(
       input.bank,
       input.bank_name,
@@ -302,6 +363,28 @@ async function generateInvoicePDF(input, outputPath) {
 
     items: Array.isArray(input.items) ? input.items : [],
   };
+  // === AUTO RECALC TOTALS FROM ITEMS ===
+  const calc = data.items.reduce(
+    (acc, it) => {
+      const net = Number(String(it.net_total ?? 0).replace(",", ".")) || 0;
+      const gross = Number(String(it.gross_total ?? 0).replace(",", ".")) || 0;
+      acc.net += net;
+      acc.gross += gross;
+      acc.vat += gross - net;
+      return acc;
+    },
+    { net: 0, vat: 0, gross: 0 }
+  );
+
+  data.net_sum = to2(calc.net);
+  data.vat_sum = to2(calc.vat);
+  data.gross_sum = to2(calc.gross);
+  data.amount_due = data.gross_sum;
+
+  data.payment_method = normalizePaymentMethod(
+    data.payment_method || input.payment_method || input.payment || "transfer"
+  );
+
   // дефолт для місця виставлення, якщо його немає в даних
   if (!data.place) data.place = "Kraków";
 
@@ -321,14 +404,53 @@ async function generateInvoicePDF(input, outputPath) {
     // якщо користувач передав слова без PLN — додамо PLN
     data.amount_in_words = `${String(data.amount_in_words).trim()} PLN`;
   }
+  const isoYM = String(input.month || data.issue_date || "").slice(0, 7);
 
-  // вихідний шлях
-  const numSafe = safeName(data.number || "Faktura");
-  const finalPath = path.join(
-    path.dirname(outputPath),
-    `Faktura_${numSafe}.pdf`
+  if (!/^\d{4}-\d{2}$/.test(isoYM)) {
+    throw new Error("Invalid month for invoice PDF generation");
+  }
+
+  const [issueYear, issueMonth] = isoYM.split("-");
+
+  if (!issueYear || !issueMonth) {
+    throw new Error("Invalid issue_date for invoice PDF generation");
+  }
+
+  const GENERATED_ROOT = path.join(
+    process.cwd(),
+    "generated",
+    "faktury",
+    `${issueYear}-${issueMonth}`
   );
-  ensureDir(finalPath);
+
+  if (!fs.existsSync(GENERATED_ROOT)) {
+    fs.mkdirSync(GENERATED_ROOT, { recursive: true });
+  }
+
+  // дата фактичної генерації
+  const todayISO = new Date().toISOString().slice(0, 10);
+
+  const finalDir = GENERATED_ROOT;
+
+  const identifier = normalizeIdentifier(
+    input.clientId || input.client_id || input.id
+  );
+  if (!identifier) {
+    throw new Error("Missing client identifier for invoice filename");
+  }
+
+  if (!identifier) {
+    throw new Error("Missing identifier for invoice filename");
+  }
+
+  const safeNumber = String(data.number || "")
+    .replaceAll("/", "-")
+    .toUpperCase();
+
+  const finalPath = path.join(
+    finalDir,
+    `FAKTURA_${safeNumber}_${identifier}.pdf`
+  );
 
   // PDF
   const doc = new PDFDocument({
@@ -405,9 +527,32 @@ async function generateInvoicePDF(input, outputPath) {
   doc.text("Sprzedawca:", xL + 8, yTop, { width: colW - 16, align: "left" });
   doc.text("Nabywca:", xR + 8, yTop, { width: colW - 16, align: "left" });
 
+  const buyerIdLine =
+    data.buyer_identifier || (data.buyer_nip ? `NIP: ${data.buyer_nip}` : "");
+
   // boxes
   const boxY = yTop + 16;
-  const boxH = 80;
+
+  // --- dynamic height calculation for buyer box ---
+  doc.font("Bold").fontSize(10);
+  const hName = doc.heightOfString(data.buyer_name || "", {
+    width: colW - 16,
+    lineGap: 4,
+  });
+
+  doc.font("Regular").fontSize(10);
+  const hAddr = doc.heightOfString(data.buyer_address || "", {
+    width: colW - 16,
+    lineGap: 4,
+  });
+
+  const hId = doc.heightOfString(buyerIdLine || "", {
+    width: colW - 16,
+    lineGap: 4,
+  });
+
+  const boxH = Math.max(80, hName + hAddr + hId + 16);
+
   // seller box gray
   doc.save().fillColor("#e0e0e0").rect(xL, boxY, colW, boxH).fill().restore();
   doc.rect(xL, boxY, colW, boxH).stroke("#e0e0e0");
@@ -443,8 +588,7 @@ async function generateInvoicePDF(input, outputPath) {
     .font("Regular")
     .fontSize(10)
     .text(data.buyer_address || "", { width: colW - 16, lineGap: 4 });
-  const buyerIdLine =
-    data.buyer_identifier || (data.buyer_nip ? `NIP: ${data.buyer_nip}` : "");
+
   doc.text(buyerIdLine, { width: colW - 16, lineGap: 4 });
 
   doc.y = boxY + boxH + 16;
@@ -793,10 +937,9 @@ async function generateInvoicePDF(input, outputPath) {
       lineBreak: false, // без переносу
     });
 
-    // 4) НАМАЛЮВАТИ ПІДПИС — НИЖНІМ КРАЄМ ДО РЯДКА ЗНАЧЕННЯ
-    const labelY = valueY + (valueH - labelH);
-    doc.font("Bold").fontSize(labelFontSize).text(label, labelStartX, labelY, {
-      lineBreak: false, // без переносу
+    // 4) ПІДПИС НА ОДНІЙ ЛІНІЇ ЗІ ЗНАЧЕННЯМ
+    doc.font("Bold").fontSize(labelFontSize).text(label, labelStartX, valueY, {
+      lineBreak: false,
     });
 
     // 5) ПЕРЕХІД НА НАСТУПНИЙ РЯДОК

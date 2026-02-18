@@ -22,6 +22,8 @@ export default function LoginPage() {
   const [err, setErr] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [welcomeName, setWelcomeName] = useState("");
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -49,8 +51,14 @@ export default function LoginPage() {
         setAuthToken(j.token);
       }
 
+      setWelcomeName(j.clientName || j.name || j.user?.name || email.trim());      
+      setShowWelcome(true);
+
       const from = (loc.state && loc.state.from) || "/";
-      nav(from, { replace: true });
+      setTimeout(() => {
+        nav(from, { replace: true });
+      }, 2000);
+      
     } catch (e) {
       let message =
         e?.message ||
@@ -84,6 +92,15 @@ export default function LoginPage() {
       }}
     >
       <div className="w-full max-w-lg px-4">
+        {showWelcome && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+            <div className="bg-white rounded-2xl shadow-xl px-10 py-8 text-center min-w-[320px]">
+              <div className="text-lg font-semibold mb-2">Zalogowano pomyślnie</div>
+              <div className="text-sm text-gray-600">Witaj, {welcomeName}</div>
+            </div>
+          </div>
+        )}
+
         <div className="bg-white/80 backdrop-blur-sm shadow-lg rounded-2xl p-5 border border-gray-100 max-h-full overflow-auto">
           <h1 className="text-2xl font-semibold text-center mb-1">
             Witaj w panelu Steryl Serwis

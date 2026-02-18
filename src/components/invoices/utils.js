@@ -1,7 +1,7 @@
 // src/lib/invoices/utils.js
 
 /* ===== API base (prod/dev) ===== */
-export const API = import.meta.env.VITE_API_URL || "";
+export const API = import.meta.env.DEV ? "" : "/api";
 export const api = (p) => (API ? `${API}${p}` : p);
 
 /* ===== ВСПОМОГАТЕЛЬНО: ключ кешу для інвойсу ===== */

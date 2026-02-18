@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiFetch } from "../utils/api"; // перевірка сесії (401 → /login)
-import ProtocolEntryModal from "../components/ProtocolEntryModal.jsx";
 
 /* === Inline white vector icons (no deps) === */
 const IconInvoice = ({ className = "" }) => (
@@ -132,7 +131,6 @@ const IconTable = ({ className = "" }) => (
 );
 
 export default function HomePage() {
-  const [addOpen, setAddOpen] = useState(false);
   const [clients, setClients] = useState([]);
 
   // м'яка перевірка авторизації при вході на головну:
@@ -156,31 +154,14 @@ export default function HomePage() {
     };
   }, []);
 
-  // підвантаження клієнтів для модального вікна протоколу
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      try {
-        const r = await apiFetch("/clients");
-        if (!r.ok) return;
-        const arr = await r.json().catch(() => []);
-        if (alive && Array.isArray(arr)) {
-          setClients(arr);
-        }
-      } catch {}
-    })();
-    return () => {
-      alive = false;
-    };
-  }, []);
-
   return (
-    <div className="min-h-[70vh] flex items-center">
+    <div className="min-h-[70vh] flex items-center md:pt-6 lg:pt-10">
       <div className="w-full flex justify-center">
-        <div className="inline-grid grid-cols-2 md:grid-cols-3 gap-1">
+        <div className="inline-grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">
           <Link
             to="/clients"
-            className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl shadow-soft w-[150px] sm:w-[180px] md:w-[220px] aspect-square flex items-center justify-center text-center px-2 py-2 sm:px-4 sm:py-4 transition"
+            className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl shadow-soft w-[142px] sm:w-[170px] md:w-[210px]
+ aspect-square flex items-center justify-center text-center px-2 py-2 sm:px-4 sm:py-4 transition"
           >
             <div>
               <IconUsers className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 text-white mx-auto mb-2 sm:mb-3" />
@@ -192,7 +173,8 @@ export default function HomePage() {
 
           <Link
             to="/clients/prywatni/ewidencja"
-            className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl shadow-soft w-[150px] sm:w-[180px] md:w-[220px] aspect-square flex items-center justify-center text-center px-2 py-2 sm:px-4 sm:py-4 transition"
+            className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl shadow-soft w-[142px] sm:w-[170px] md:w-[210px]
+ aspect-square flex items-center justify-center text-center px-2 py-2 sm:px-4 sm:py-4 transition"
           >
             <div>
               <IconPackages className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 text-white mx-auto mb-2 sm:mb-3" />
@@ -204,7 +186,8 @@ export default function HomePage() {
 
           <Link
             to="/saved"
-            className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl shadow-soft w-[150px] sm:w-[180px] md:w-[220px] aspect-square flex items-center justify-center text-center px-2 py-2 sm:px-4 sm:py-4 transition"
+            className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl shadow-soft w-[142px] sm:w-[170px] md:w-[210px]
+ aspect-square flex items-center justify-center text-center px-2 py-2 sm:px-4 sm:py-4 transition"
           >
             <div>
               <IconArchive className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 text-white mx-auto mb-2 sm:mb-3" />
@@ -216,7 +199,8 @@ export default function HomePage() {
 
           <Link
             to="/documents/protocols"
-            className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl shadow-soft w-[150px] sm:w-[180px] md:w-[220px] aspect-square flex items-center justify-center text-center px-2 py-2 sm:px-4 sm:py-4 transition"
+            className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl shadow-soft w-[142px] sm:w-[170px] md:w-[210px]
+ aspect-square flex items-center justify-center text-center px-2 py-2 sm:px-4 sm:py-4 transition"
             title="Lista zapisanych protokołów"
           >
             <div>
@@ -227,10 +211,10 @@ export default function HomePage() {
             </div>
           </Link>
 
-          <button
-            type="button"
-            onClick={() => setAddOpen(true)}
-            className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl shadow-soft w-[150px] sm:w-[180px] md:w-[220px] aspect-square flex items-center justify-center text-center px-2 py-2 sm:px-4 sm:py-4 transition"
+          <Link
+            to="/protocol-entry"
+            className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl shadow-soft w-[142px] sm:w-[170px] md:w-[210px]
+ aspect-square flex items-center justify-center text-center px-2 py-2 sm:px-4 sm:py-4 transition"
           >
             <div>
               <IconTable className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 text-white mx-auto mb-2 sm:mb-3" />
@@ -238,11 +222,12 @@ export default function HomePage() {
                 Dodaj wpis do protokołu
               </div>
             </div>
-          </button>
+          </Link>
 
           <Link
             to="/sign-queue?type=courier"
-            className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl shadow-soft w-[150px] sm:w-[180px] md:w-[220px] aspect-square flex items-center justify-center text-center px-2 py-2 sm:px-4 sm:py-4 transition"
+            className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl shadow-soft w-[142px] sm:w-[170px] md:w-[210px]
+ aspect-square flex items-center justify-center text-center px-2 py-2 sm:px-4 sm:py-4 transition"
             title="Protokoły oczekujące на podpis"
           >
             <div>
@@ -253,13 +238,6 @@ export default function HomePage() {
             </div>
           </Link>
         </div>
-
-        <ProtocolEntryModal
-          isOpen={addOpen}
-          onClose={() => setAddOpen(false)}
-          clients={clients}
-          preselect={null}
-        />
       </div>
     </div>
   );

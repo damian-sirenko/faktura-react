@@ -74,7 +74,6 @@ const normalizeISODate = (v) => {
   return `${y}-${mo}-${day}`;
 };
 
-
 const isYm = (s) => typeof s === "string" && /^\d{4}-\d{2}$/.test(s);
 const clampYm = (s) => {
   if (isYm(s)) return s;
@@ -84,9 +83,13 @@ const clampYm = (s) => {
   } catch {}
   return ymOf();
 };
+const isPastYm = (ym) => {
+  if (!isYm(ym)) return false;
+  return ym < ymOf();
+};
 
 // порядок навігації Enter
-const COL_ORDER = ["client", "qty", "ship"];
+const COL_ORDER = ["date", "client", "qty", "ship"];
 
 /* ========= LocalStorage keys ========= */
 const LS_IDX = "PSL_SAVED_INDEX";
@@ -94,10 +97,9 @@ const LS_DRAFT_KEY = (ym) => `PSL_DRAFT_${ym}`;
 const LS_ACTIVE_YM = "PSL_ACTIVE_YM";
 const LS_WORKSPACE_YM = "PSL_WORKSPACE_YM";
 
-const DEFAULT_COL_PCTS = [5, 12, 33, 10, 15, 10, 15];
+const DEFAULT_COL_PCTS = [5, 18, 30, 10, 15, 10, 12];
 
 const PSL_COL_PCTS = DEFAULT_COL_PCTS;
-
 
 const normalizeApiFetchPath = (u) => {
   const s = String(u || "");
@@ -106,12 +108,9 @@ const normalizeApiFetchPath = (u) => {
 
   let p = s;
 
- 
   p = p.replace(/^\/api\/api(\/|$)/, "/");
 
-
   p = p.replace(/^\/api(\/|$)/, "/");
-
 
   p = p.replace(/^api(\/|$)/, "/");
 
@@ -129,6 +128,14 @@ const sendJSON = async (u, method, body) => {
   return typeof r?.json === "function" ? await r.json() : r;
 };
 
+const checkServer = async () => {
+  try {
+    await getJSON(api(`/psl/workspace`));
+    return true;
+  } catch {
+    return false;
+  }
+};
 
 /* ========= Mini Confirm Dialog ========= */
 function ConfirmDialog({ open, title, message, onCancel, onConfirm }) {
@@ -155,7 +162,7 @@ function ConfirmDialog({ open, title, message, onCancel, onConfirm }) {
 
 const emptyRow = () => ({
   id: uid(),
-  date: todayISO(),
+  date: "",
   clientId: "",
   clientName: "",
   qty: "",
@@ -175,11 +182,16 @@ const normalizeRow = (r) => {
     r?.deliveryCost ??
     r?.wysylka ??
     "";
+
+  const hasAnyData =
+    String(r?.clientName || r?.client || r?.name || "").trim() !== "" ||
+    qty !== "" ||
+    ship !== "";
+
   return {
-    id: r?.id || uid(),
-    date: normalizeISODate(
-      r?.date ?? r?.rowDate ?? r?.day ?? r?.createdDate ?? ""
-    ),
+    id: String(r?.id || r?._id || "").trim() ? String(r.id || r._id) : uid(),
+
+    date: normalizeISODate(r?.date ?? r?.rowDate ?? r?.day ?? r?.createdDate),
     clientId: String(r?.clientId || r?.client_id || "").trim(),
     clientName: String(
       r?.clientName || r?.client || r?.name || r?.Klient || ""
@@ -194,6 +206,7 @@ const normalizeRow = (r) => {
 
 export default function PrivateSterilizationLog() {
   const [viewMode, setViewMode] = useState("workspace");
+  const [serverOnline, setServerOnline] = useState(true);
 
   // refs для фокусу і навігації
   const inputRefs = useRef(new Map());
@@ -228,13 +241,15 @@ export default function PrivateSterilizationLog() {
     if (col === "client") {
       const el = inputRefs.current.get(`${rowId}:client`);
       const typed = (el?.value || "").trim().toLowerCase();
-      if (typed) {
-        const best =
-          clients.find((c) => c.name.toLowerCase().startsWith(typed)) ||
-          clients.find((c) => c.name.toLowerCase().includes(typed));
-        if (best) {
-          updateRow(rowId, { clientName: best.name, clientId: best.id });
-        }
+      const matches = clients.filter((c) =>
+        c.name.toLowerCase().includes(typed)
+      );
+
+      if (matches.length) {
+        const picked = matches[activeSuggestIndex] || matches[0];
+        updateRow(rowId, { clientName: picked.name, clientId: picked.id });
+        setActiveSuggestRow(null);
+        setActiveSuggestIndex(0);
       }
     }
 
@@ -268,6 +283,9 @@ export default function PrivateSterilizationLog() {
 
   /* Clients (for autocomplete) */
   const [clients, setClients] = useState([]);
+  const [activeSuggestRow, setActiveSuggestRow] = useState(null);
+  const [activeSuggestIndex, setActiveSuggestIndex] = useState(0);
+
   useEffect(() => {
     (async () => {
       try {
@@ -294,7 +312,8 @@ export default function PrivateSterilizationLog() {
   }, [activeYm, viewMode]);
 
   /* Rows in workspace */
-  const [rows, setRows] = useState([{ ...emptyRow(), isNew: true }]);
+  const [rows, setRows] = useState([]);
+  const [loadingWorkspace, setLoadingWorkspace] = useState(true);
 
   useEffect(() => {
     if (viewMode !== "workspace") return;
@@ -302,32 +321,53 @@ export default function PrivateSterilizationLog() {
     workspaceSnapshotRef.current = { ym: activeYm, rows };
   }, [viewMode, activeYm, rows]);
 
-  const hasData = (r) =>
-    String(r?.clientName || "").trim() !== "" ||
-    r?.qty !== "" ||
-    r?.shipOrCourier !== "";
+  const hasData = (r) => {
+    const name = String(r?.clientName || "").trim();
+    const qtyRaw = r?.qty;
+    const shipRaw = r?.shipOrCourier;
+
+    const qty = qtyRaw === "" || qtyRaw == null ? 0 : Number(qtyRaw) || 0;
+    const ship = shipRaw === "" || shipRaw == null ? 0 : Number(shipRaw) || 0;
+
+    return name !== "" || qty > 0 || ship > 0;
+  };
+
+  const sanitizeWorkspaceRows = (arr) => {
+    return (Array.isArray(arr) ? arr : [])
+      .map(normalizeRow)
+      .map(recalc)
+      .filter((r) => hasData(r));
+  };
 
   // фільтр
   const [nameFilter, setNameFilter] = useState("");
-  const filteredRows = useMemo(() => {
+
+  const visibleRows = useMemo(() => {
     const nf = nameFilter.trim().toLowerCase();
-    if (!nf) return rows;
-    return rows.filter((r) =>
+
+    if (viewMode === "saved") {
+      if (!nf) return rows;
+      return rows.filter((r) =>
+        String(r.clientName || "")
+          .toLowerCase()
+          .includes(nf)
+      );
+    }
+
+    const base = rows.filter((r) => hasData(r) || r.isNew);
+
+    if (!nf) return base;
+
+    return base.filter((r) =>
       String(r.clientName || "")
         .toLowerCase()
         .includes(nf)
     );
-  }, [rows, nameFilter]);
+  }, [rows, nameFilter, viewMode]);
 
-  const visibleRows = useMemo(() => {
-    const base = filteredRows;
-    if (viewMode === "saved") return base;
-    return base.filter((r) => r.isNew || hasData(r));
-  }, [filteredRows, viewMode]);
-
-  const rowsToRender = visibleRows.length
-    ? visibleRows
-    : [{ ...emptyRow(), isNew: true }];
+  const rowsToRender = useMemo(() => {
+    return visibleRows;
+  }, [visibleRows]);
 
   /* Saved index (sidebar) */
   const [savedIndex, setSavedIndex] = useState([]);
@@ -377,30 +417,48 @@ export default function PrivateSterilizationLog() {
     })();
   }, []);
 
-  // завантажити workspace
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      setLoadingWorkspace(true);
       suspendAutosaveRef.current = true;
       draftLoadedRef.current = false;
+
+      const online = await checkServer();
+      if (!online) {
+        setServerOnline(false);
+        setActiveYm(ymOf());
+        setRows([{ ...emptyRow(), isNew: true }]);
+        setLoadingWorkspace(false);
+        setViewMode("workspace");
+        draftLoadedRef.current = true;
+        suspendAutosaveRef.current = false;
+        return;
+      }
+
+      setServerOnline(true);
 
       try {
         const ws = await getJSON(api(`/psl/workspace`));
         if (cancelled) return;
+        const currentYm = ymOf();
 
-        const ym = clampYm(
-          ws?.ym ||
-            localStorage.getItem(LS_WORKSPACE_YM) ||
-            localStorage.getItem(LS_ACTIVE_YM) ||
-            ymOf()
-        );
+        let ym = clampYm(ws?.ym || currentYm);
+
+        // якщо з localStorage прийшов старий місяць — ігноруємо
+        if (ym < currentYm) {
+          ym = currentYm;
+        }
+
+        if (isPastYm(ym)) {
+          ym = ymOf();
+        }
 
         const arr = Array.isArray(ws?.rows) ? ws.rows : [];
         setActiveYm(ym);
-        const normalized = arr.length
-          ? arr.map(normalizeRow)
-          : [{ ...emptyRow(), isNew: true }];
-        setRows(normalized.map(recalc));
+        const clean = sanitizeWorkspaceRows(arr);
+
+        setRows(clean);
 
         setViewMode("workspace");
 
@@ -414,33 +472,15 @@ export default function PrivateSterilizationLog() {
 
         draftLoadedRef.current = true;
       } catch {
-        // fallback LS
-        try {
-          const lsYm = localStorage.getItem(LS_ACTIVE_YM) || prevYm(ymOf());
-          const raw = localStorage.getItem(LS_DRAFT_KEY(lsYm));
-          const parsed = raw ? JSON.parse(raw) : null;
-          const arr = Array.isArray(parsed?.rows) ? parsed.rows : [];
-
-          if (!cancelled) {
-            setActiveYm(lsYm);
-            const normalized = arr.length
-              ? arr.map((r) => ({ ...r, isNew: false }))
-              : [{ ...emptyRow(), isNew: true }];
-            setRows(normalized);
-
-            setViewMode("workspace");
-            draftLoadedRef.current = true;
-          }
-        } catch {
-          if (!cancelled) {
-            const ym = prevYm(ymOf());
-            setActiveYm(ym);
-            setRows([{ ...emptyRow(), isNew: true }]);
-            setViewMode("workspace");
-            draftLoadedRef.current = true;
-          }
+        if (!cancelled) {
+          const ym = ymOf();
+          setActiveYm(ym);
+          setRows([{ ...emptyRow(), isNew: true }]);
+          setViewMode("workspace");
+          draftLoadedRef.current = true;
         }
       } finally {
+        setLoadingWorkspace(false);
         suspendAutosaveRef.current = false;
       }
     })();
@@ -454,9 +494,9 @@ export default function PrivateSterilizationLog() {
     if (!draftLoadedRef.current) return;
     if (suspendAutosaveRef.current) return;
     if (viewMode !== "workspace") return;
+    if (!serverOnline) return;
 
     const payload = { ym: activeYm, rows };
-    localStorage.setItem(LS_DRAFT_KEY(activeYm), JSON.stringify(payload));
     lastPayloadRef.current = payload;
 
     if (savingRef.current) {
@@ -464,7 +504,7 @@ export default function PrivateSterilizationLog() {
     } else {
       saveWorkspaceNow(payload);
     }
-  }, [activeYm, rows, viewMode]);
+  }, [activeYm, rows, viewMode, serverOnline]);
 
   // аварійне збереження
   useEffect(() => {
@@ -507,23 +547,41 @@ export default function PrivateSterilizationLog() {
     };
   };
   useEffect(() => {
-    setRows((prev) => prev.map(recalc));
+    setRows((prev) => prev.map((r) => (hasData(r) ? recalc(r) : r)));
   }, [pricePerPack]);
 
   const updateRow = (id, patch) => {
     setRows((prev) =>
-      prev.map((r) => (r.id === id ? recalc({ ...r, ...patch }) : r))
+      prev.map((r) => {
+        if (r.id !== id) return r;
+
+        const next = { ...r, ...patch };
+        const nextWithDate = next;
+
+        const nextHasData = hasData(nextWithDate);
+
+        return recalc({
+          ...nextWithDate,
+          isNew: nextHasData ? false : nextWithDate.isNew,
+        });
+      })
     );
   };
+
   const addRow = () => {
-    const newR = { ...emptyRow(), isNew: true };
-    setRows((prev) => [...prev, newR]);
+    const newRow = {
+      ...emptyRow(),
+      date: todayISO(),
+      isNew: true,
+    };
+
+    setRows((prev) => [...prev, newRow]);
+
     setTimeout(() => {
-      focusCell(newR.id, "client");
-      const el = inputRefs.current.get(`${newR.id}:client`);
-      if (el?.scrollIntoView) el.scrollIntoView({ block: "nearest" });
+      focusCell(newRow.id, "date");
     }, 0);
   };
+
   const removeRow = (id) => setRows((prev) => prev.filter((r) => r.id !== id));
 
   // зміна робочого місяця
@@ -548,47 +606,20 @@ export default function PrivateSterilizationLog() {
       const ws = await getJSON(api(`/psl/workspace`));
       const newYm = String(ws?.ym || next);
       const arrServer = Array.isArray(ws?.rows) ? ws.rows : [];
-      const arrLocal = readDraftRows(newYm);
-      const arr = arrServer.length ? arrServer : arrLocal;
 
       setActiveYm(newYm);
-      setRows(
-        (arr.length ? arr : [{ ...emptyRow(), isNew: true }])
-          .map(normalizeRow)
-          .map(recalc)
-      );
+      setRows(sanitizeWorkspaceRows(arrServer));
       setViewMode("workspace");
-
-      if (arr.length) {
-        localStorage.setItem(
-          LS_DRAFT_KEY(newYm),
-          JSON.stringify({ ym: newYm, rows: arr })
-        );
-      }
-      localStorage.setItem(LS_ACTIVE_YM, newYm);
     } catch {
-      const arrLocal = readDraftRows(next);
-
       setActiveYm(next);
-      setRows(
-        (arrLocal.length ? arrLocal : [{ ...emptyRow(), isNew: true }])
-          .map(normalizeRow)
-          .map(recalc)
-      );
+      setRows([{ ...emptyRow(), isNew: true }]);
       setViewMode("workspace");
-
-      if (arrLocal.length) {
-        localStorage.setItem(
-          LS_DRAFT_KEY(next),
-          JSON.stringify({ ym: next, rows: arrLocal })
-        );
-      }
-      localStorage.setItem(LS_ACTIVE_YM, next);
     }
   };
 
   // фіналізація місяця
   const finalizeMonth = async () => {
+    suspendAutosaveRef.current = true;
     const title = fmtPLYM(activeYm);
     const snapshot = {
       ym: activeYm,
@@ -618,7 +649,16 @@ export default function PrivateSterilizationLog() {
         localStorage.setItem(LS_IDX, JSON.stringify(newIdx));
       }
 
+      await sendJSON(api(`/psl/workspace`), "PUT", {
+        ym: nextYm(activeYm),
+        rows: [],
+      });
+
+      lastPayloadRef.current = { ym: activeYm, rows: [] };
+
       setRows([{ ...emptyRow(), isNew: true }]);
+
+      suspendAutosaveRef.current = false;
     } catch {
       alert(
         "⚠️ Serwer niedostępny — zapisano tylko lokalną kopię. Spróbuj później."
@@ -695,66 +735,20 @@ export default function PrivateSterilizationLog() {
 
     try {
       const ws = await getJSON(api(`/psl/workspace`));
-      const ymFromServer = clampYm(ws?.ym || "");
-      const ymFallback =
-        localStorage.getItem(LS_WORKSPACE_YM) ||
-        workspaceSnapshotRef.current?.ym ||
-        prevYm(ymOf());
-      const ym = ymFromServer || ymFallback;
+      const ym = clampYm(ws?.ym || ymOf());
 
       const arrServer = Array.isArray(ws?.rows) ? ws.rows : [];
-      const arrLocal = readDraftRows(ym);
-      const arrSnap =
-        workspaceSnapshotRef.current?.ym === ym
-          ? workspaceSnapshotRef.current?.rows
-          : null;
-
-      const arr = arrServer.length
-        ? arrServer
-        : arrLocal.length
-        ? arrLocal
-        : arrSnap || [];
+      const arr = arrServer;
 
       setActiveYm(ym);
-      setRows(
-        (arr.length ? arr : [{ ...emptyRow(), isNew: true }])
-          .map(normalizeRow)
-          .map(recalc)
-      );
+      setRows(sanitizeWorkspaceRows(arr));
 
       setViewMode("workspace");
       setCurrentSavedId(null);
-
-      if (ym) {
-        localStorage.setItem(LS_WORKSPACE_YM, ym);
-        localStorage.setItem(LS_ACTIVE_YM, ym);
-      }
-
-      if (arr.length) {
-        localStorage.setItem(
-          LS_DRAFT_KEY(ym),
-          JSON.stringify({ ym, rows: arr })
-        );
-      }
-    } catch (e) {
-      const ym =
-        localStorage.getItem(LS_WORKSPACE_YM) ||
-        workspaceSnapshotRef.current?.ym ||
-        prevYm(ymOf());
-
-      const arrLocal = readDraftRows(ym);
-      const arrSnap =
-        workspaceSnapshotRef.current?.ym === ym
-          ? workspaceSnapshotRef.current?.rows
-          : null;
-      const arr = arrLocal.length ? arrLocal : arrSnap || [];
-
+    } catch {
+      const ym = ymOf();
       setActiveYm(ym);
-      setRows(
-        (arr.length ? arr : [{ ...emptyRow(), isNew: true }])
-          .map(normalizeRow)
-          .map(recalc)
-      );
+      setRows([{ ...emptyRow(), isNew: true }]);
       setViewMode("workspace");
       setCurrentSavedId(null);
     } finally {
@@ -767,282 +761,342 @@ export default function PrivateSterilizationLog() {
   const clientIdByName = (name) =>
     clients.find((c) => c.name === name)?.id || "";
 
-  const inputsDisabled = viewMode === "saved";
+  const inputsDisabled = (row) => viewMode === "saved" || !serverOnline;
 
   return (
-    <div className="container-app w-full max-w-full min-w-0 overflow-x-hidden grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)] gap-6">
-      <aside className="space-y-3 min-w-0">
-        <div className="card">
-          <div className="font-semibold mb-2">Bieżący miesiąc</div>
-          <div className="text-sm text-gray-700">
-            <div className="mb-1">
-              <span className="text-gray-500">Miesiąc: </span>
-              <span className="font-medium">{fmtPLYM(activeYm)}</span>
-            </div>
-            <div className="text-xs text-gray-500">
-              Cena za pakiet: {to2(pricePerPack)} zł
-            </div>
-          </div>
-
-          <div className="mt-3 grid grid-cols-1 gap-2">
-            <label className="text-sm text-gray-600">
-              Wybierz miesiąc roboczy
-            </label>
-            <input
-              type="month"
-              className="input"
-              value={isYm(activeYm) ? activeYm : ""}
-              onChange={(e) => setWorkspaceMonth(e.target.value)}
-              disabled={viewMode === "saved"}
-            />
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={openWorkspace}
-              disabled={viewMode !== "saved"}
-              title={
-                viewMode === "saved"
-                  ? "Wróć do roboczego"
-                  : "Dostępne tylko w podglądzie zapisanych"
-              }
-            >
-              Obecny miesiąc
-            </button>
-          </div>
-
-          <div className="mt-3 flex flex-col gap-2">
-            <button
-              type="button"
-              className="btn-primary"
-              onClick={finalizeMonth}
-              title="Zapisz jako zakończony miesiąc i dodaj do listy"
-              disabled={viewMode !== "workspace"}
-            >
-              Podsumuj i zapisz miesiąc
-            </button>
-          </div>
+    <div className="container-app w-full max-w-full min-w-0 overflow-x-hidden space-y-4">
+      {/* HEADER — ЗАВЖДИ ЗВЕРХУ */}
+      <div className="card-lg border-2 border-blue-200 bg-blue-50/60">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <h1 className="text-2xl font-bold">
+            Ewidencja sterylizacji prywatnej
+          </h1>
         </div>
 
-        <div className="card">
-          <div className="font-semibold mb-2">Zapisane miesiące</div>
-          <div className="space-y-2">
-            {savedIndex.length === 0 && (
-              <div className="text-sm text-gray-500">
-                Brak zapisanych tabel.
-              </div>
-            )}
-            {savedIndex.map((it) => (
-              <div
-                key={it.id}
-                className="rounded border p-2 flex items-center justify-between min-w-0"
-              >
-                <button
-                  type="button"
-                  className="text-left btn-link flex-1 min-w-0"
-                  title="Otwórz zapisany miesiąc"
-                  onClick={() => openSaved(it.id)}
-                >
-                  <div className="font-medium">{it.title}</div>
-                  <div className="text-xs text-gray-500">
-                    Razem: {to2(it.totals?.total)} zł • Pakiety:{" "}
-                    {it.totals?.qty ?? 0}
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  className="inline-flex items-center justify-center rounded-lg p-2 border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"
-                  title="Usuń tabelę"
-                  onClick={() => setToDelete(it)}
-                >
-                  🗑️
-                </button>
-              </div>
-            ))}
-          </div>
+        <div className="mt-3 flex items-center gap-2 flex-wrap">
+          <input
+            type="search"
+            placeholder="Szukaj klienta…"
+            className="input w-full sm:w-60"
+            value={nameFilter}
+            onChange={(e) => setNameFilter(e.target.value)}
+          />
         </div>
+      </div>
 
-        {viewMode === "saved" && (
-          <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900 space-y-2">
-            <div>
-              Przeglądasz zapisany miesiąc. Edycja i autozapis wyłączone.
+      {!serverOnline && (
+        <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800">
+          ⚠️ Brak połączenia z serwerem. Edycja danych jest tymczasowo
+          zablokowana.
+        </div>
+      )}
+
+      {/* GRID: SIDEBAR + TABLE */}
+      <div className="grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)] gap-6">
+        <aside className="space-y-3 min-w-0">
+          <div className="card">
+            <div className="font-semibold mb-2">Bieżący miesiąc</div>
+            <div className="text-sm text-gray-700">
+              <div className="mb-1">
+                <span className="text-gray-500">Miesiąc: </span>
+                <span className="font-medium">{fmtPLYM(activeYm)}</span>
+              </div>
+              <div className="text-xs text-gray-500">
+                Cena za pakiet: {to2(pricePerPack)} zł
+              </div>
             </div>
-            <div className="flex flex-wrap gap-2">
+
+            <div className="mt-3 grid grid-cols-1 gap-2">
+              <label className="text-sm text-gray-600">
+                Wybierz miesiąc roboczy
+              </label>
+              <input
+                type="month"
+                className="input"
+                value={isYm(activeYm) ? activeYm : ""}
+                onChange={(e) => setWorkspaceMonth(e.target.value)}
+                disabled={viewMode === "saved"}
+              />
               <button
                 type="button"
-                className="btn-primary whitespace-normal max-w-full"
-                onClick={restoreFromSaved}
-                disabled={!currentSavedId}
-                title="Przywróć zawartość tego zapisu do roboczego pola i włącz edycję"
+                className="btn-secondary"
+                onClick={() => setWorkspaceMonth(ymOf())}
+                disabled={viewMode !== "saved"}
+                title={
+                  viewMode === "saved"
+                    ? "Wróć do roboczego"
+                    : "Dostępne tylko w podglądzie zapisanych"
+                }
               >
-                Przywróć do roboczego
+                Obecny miesiąc
+              </button>
+            </div>
+
+            <div className="mt-3 flex flex-col gap-2">
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={finalizeMonth}
+                title="Zapisz jako zakończony miesiąc i dodaj do listy"
+                disabled={viewMode !== "workspace"}
+              >
+                Podsumuj i zapisz miesiąc
               </button>
             </div>
           </div>
-        )}
-      </aside>
 
-      <main className="space-y-3 min-w-0">
-        <div className="card-lg">
-          <div className="flex flex-wrap items-end gap-3">
-            <div className="flex-1">
-              <div className="font-semibold">
-                Ewidencja sterylizacji prywatnej — {fmtPLYM(activeYm)}
-                {viewMode === "saved" ? " (zapisany)" : " (roboczy)"}
+          <div className="card">
+            <div className="font-semibold mb-2">Zapisane miesiące</div>
+            <div className="space-y-2">
+              {savedIndex.length === 0 && (
+                <div className="text-sm text-gray-500">
+                  Brak zapisanych tabel.
+                </div>
+              )}
+              {savedIndex.map((it) => (
+                <div
+                  key={it.id}
+                  className="rounded border p-2 flex items-center justify-between min-w-0"
+                >
+                  <button
+                    type="button"
+                    className="text-left btn-link flex-1 min-w-0"
+                    title="Otwórz zapisany miesiąc"
+                    onClick={() => openSaved(it.id)}
+                  >
+                    <div className="font-medium">{it.title}</div>
+                    <div className="text-xs text-gray-500">
+                      Razem: {to2(it.totals?.total)} zł • Pakiety:{" "}
+                      {it.totals?.qty ?? 0}
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    className="inline-flex items-center justify-center rounded-lg p-2 border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"
+                    title="Usuń tabelę"
+                    onClick={() => setToDelete(it)}
+                  >
+                    🗑️
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {viewMode === "saved" && (
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900 space-y-2">
+              <div>
+                Przeglądasz zapisany miesiąc. Edycja i autozapis wyłączone.
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="btn-primary whitespace-normal max-w-full"
+                  onClick={restoreFromSaved}
+                  disabled={!currentSavedId}
+                  title="Przywróć zawartość tego zapisu do roboczego pola i włącz edycję"
+                >
+                  Przywróć do roboczego
+                </button>
               </div>
             </div>
-            <div>
-              <label className="block text-sm mb-1">Filtr: nazwa klienta</label>
-              <input
-                className="input no-spin"
-                placeholder="Wpisz nazwę klienta…"
-                value={nameFilter}
-                onChange={(e) => setNameFilter(e.target.value)}
-              />
+          )}
+        </aside>
+
+        <main className="space-y-3 min-w-0">
+          <div className="card-lg">
+            <div className="w-full min-w-0 max-[999px]:overflow-x-auto min-[1000px]:overflow-x-hidden">
+              <table className="table table-fixed w-full min-w-0 max-[999px]:min-w-[760px]">
+                <colgroup>
+                  <col style={{ width: `${PSL_COL_PCTS[0]}%` }} />
+                  <col style={{ width: `${PSL_COL_PCTS[1]}%` }} />
+                  <col style={{ width: `${PSL_COL_PCTS[2]}%` }} />
+                  <col style={{ width: `${PSL_COL_PCTS[3]}%` }} />
+                  <col style={{ width: `${PSL_COL_PCTS[4]}%` }} />
+                  <col style={{ width: `${PSL_COL_PCTS[5]}%` }} />
+                  <col style={{ width: `${PSL_COL_PCTS[6]}%` }} />
+                </colgroup>
+
+                <thead>
+                  <tr>
+                    <th className="text-center">#</th>
+                    <th className="text-center">Data</th>
+                    <th>Klient</th>
+                    <th className="text-center">Pakiety</th>
+                    <th className="text-center">Koszt sterylizacji</th>
+                    <th className="text-center">Wysyłka</th>
+                    <th className="text-center">Razem</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {rowsToRender.map((r, i) => (
+                    <tr key={r.id} className="hover:bg-gray-50 align-middle">
+                      <td className="text-center">
+                        <div className="flex items-center justify-center h-full">
+                          {i + 1}
+                        </div>
+                      </td>
+                      <td className="text-center whitespace-nowrap">
+                        <input
+                          type="date"
+                          className="input w-full text-center"
+                          value={r.date || ""}
+                          onChange={(e) =>
+                            updateRow(r.id, {
+                              date: normalizeISODate(e.target.value),
+                            })
+                          }
+                          ref={registerInputRef(r.id, "date")}
+                          onKeyDown={handleEnter(r.id, "date")}
+                          disabled={inputsDisabled(r)}
+                        />
+                      </td>
+
+                      <td className="max-w-0 relative">
+                        <input
+                          className="input w-full"
+                          value={r.clientName}
+                          onChange={(e) => {
+                            updateRow(r.id, {
+                              clientName: e.target.value,
+                              clientId: "",
+                            });
+                            setActiveSuggestRow(r.id);
+                          }}
+                          onFocus={() => setActiveSuggestRow(r.id)}
+                          onBlur={() =>
+                            setTimeout(() => setActiveSuggestRow(null), 150)
+                          }
+                          placeholder="Wybierz klienta…"
+                          ref={registerInputRef(r.id, "client")}
+                          onKeyDown={(e) => {
+                            if (e.key === "ArrowDown") {
+                              e.preventDefault();
+                              setActiveSuggestIndex((i) => i + 1);
+                              return;
+                            }
+                            if (e.key === "ArrowUp") {
+                              e.preventDefault();
+                              setActiveSuggestIndex((i) => Math.max(0, i - 1));
+                              return;
+                            }
+                            handleEnter(r.id, "client")(e);
+                          }}
+                          disabled={inputsDisabled(r)}
+                          autoComplete="off"
+                        />
+
+                        {activeSuggestRow === r.id && r.clientName && (
+                          <div className="absolute z-30 bottom-full mb-1 w-full max-h-48 overflow-auto rounded-md border bg-white shadow">
+                            {clients
+                              .filter((c) =>
+                                c.name
+                                  .toLowerCase()
+                                  .includes(r.clientName.toLowerCase())
+                              )
+                              .slice(0, 20)
+                              .map((c, idx) => (
+                                <button
+                                  key={c.id}
+                                  type="button"
+                                  className={`block w-full px-3 py-2 text-left text-sm ${
+                                    idx === activeSuggestIndex
+                                      ? "bg-blue-100"
+                                      : "hover:bg-blue-50"
+                                  }`}
+                                  onMouseDown={() => {
+                                    updateRow(r.id, {
+                                      clientName: c.name,
+                                      clientId: c.id,
+                                    });
+                                    setActiveSuggestRow(null);
+                                  }}
+                                >
+                                  {c.name}
+                                </button>
+                              ))}
+                          </div>
+                        )}
+                      </td>
+                      <td className="text-right">
+                        <input
+                          className="input w-full text-right no-spin"
+                          type="number"
+                          min="0"
+                          step="1"
+                          inputMode="numeric"
+                          value={r.qty === "" ? "" : r.qty}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            updateRow(r.id, { qty: v === "" ? "" : Number(v) });
+                          }}
+                          title="Ilość pakietów"
+                          ref={registerInputRef(r.id, "qty")}
+                          onKeyDown={handleEnter(r.id, "qty")}
+                          disabled={inputsDisabled(r)}
+                        />
+                      </td>
+                      <td className="text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end h-full">
+                          {to2(r.sterilCost)} zł
+                        </div>
+                      </td>
+                      <td className="text-right">
+                        <input
+                          className="input w-full text-right no-spin"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          inputMode="decimal"
+                          value={r.shipOrCourier === "" ? "" : r.shipOrCourier}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            updateRow(r.id, {
+                              shipOrCourier: v === "" ? "" : Number(v),
+                            });
+                          }}
+                          title="Kwota wysyłki lub dojazdu"
+                          ref={registerInputRef(r.id, "ship")}
+                          onKeyDown={handleEnter(r.id, "ship")}
+                          disabled={inputsDisabled(r)}
+                        />
+                      </td>
+                      <td className="text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end h-full">
+                          {to2(r.total)} zł
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+
+                <tfoot>
+                  <tr className="bg-blue-50 font-semibold">
+                    <td colSpan={3} className="text-right">
+                      Razem:
+                    </td>
+                    <td className="text-right">{totals.qty}</td>
+                    <td className="text-right">{to2(totals.steril)} zł</td>
+                    <td className="text-right">{to2(totals.ship)} zł</td>
+                    <td className="text-right">{to2(totals.total)} zł</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+            <div className="mt-3 flex justify-end">
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={addRow}
+                ref={addBtnRef}
+              >
+                + Dodaj wiersz
+              </button>
             </div>
           </div>
-
-          <div className="mt-3 w-full min-w-0 max-[999px]:overflow-x-auto min-[1000px]:overflow-x-hidden">
-            <table className="table table-fixed w-full min-w-0 max-[999px]:min-w-[760px]">
-              <colgroup>
-                <col style={{ width: `${PSL_COL_PCTS[0]}%` }} />
-                <col style={{ width: `${PSL_COL_PCTS[1]}%` }} />
-                <col style={{ width: `${PSL_COL_PCTS[2]}%` }} />
-                <col style={{ width: `${PSL_COL_PCTS[3]}%` }} />
-                <col style={{ width: `${PSL_COL_PCTS[4]}%` }} />
-                <col style={{ width: `${PSL_COL_PCTS[5]}%` }} />
-                <col style={{ width: `${PSL_COL_PCTS[6]}%` }} />
-              </colgroup>
-
-              <thead>
-                <tr>
-                  <th className="text-center">#</th>
-                  <th className="text-center">Data</th>
-                  <th>Klient</th>
-                  <th className="text-center">Pakiety</th>
-                  <th className="text-center">Koszt sterylizacji</th>
-                  <th className="text-center">Wysyłka</th>
-                  <th className="text-center">Razem</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {rowsToRender.map((r, i) => (
-                  <tr key={r.id} className="hover:bg-gray-50">
-                    <td className="text-center">{i + 1}</td>
-                    <td className="text-center whitespace-nowrap">
-                      {fmtPLDate(r.date)}
-                    </td>
-
-                    <td className="max-w-0">
-                      <input
-                        list="clients-datalist"
-                        className="input w-full"
-                        value={r.clientName}
-                        onChange={(e) =>
-                          updateRow(r.id, {
-                            clientName: e.target.value,
-                            clientId: clientIdByName(e.target.value),
-                          })
-                        }
-                        placeholder="Wybierz klienta…"
-                        ref={registerInputRef(r.id, "client")}
-                        onKeyDown={handleEnter(r.id, "client")}
-                        disabled={inputsDisabled}
-                      />
-                    </td>
-
-                    <td className="text-right">
-                      <input
-                        className="input w-full text-right no-spin"
-                        type="number"
-                        min="0"
-                        step="1"
-                        inputMode="numeric"
-                        value={r.qty === "" ? "" : r.qty}
-                        onChange={(e) => {
-                          const v = e.target.value;
-                          updateRow(r.id, { qty: v === "" ? "" : Number(v) });
-                        }}
-                        title="Ilość pakietów"
-                        ref={registerInputRef(r.id, "qty")}
-                        onKeyDown={handleEnter(r.id, "qty")}
-                        disabled={inputsDisabled}
-                      />
-                    </td>
-
-                    <td className="text-right whitespace-nowrap">
-                      {to2(r.sterilCost)} zł
-                    </td>
-
-                    <td className="text-right">
-                      <input
-                        className="input w-full text-right no-spin"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        inputMode="decimal"
-                        value={r.shipOrCourier === "" ? "" : r.shipOrCourier}
-                        onChange={(e) => {
-                          const v = e.target.value;
-                          updateRow(r.id, {
-                            shipOrCourier: v === "" ? "" : Number(v),
-                          });
-                        }}
-                        title="Kwota wysyłki lub dojazdu"
-                        ref={registerInputRef(r.id, "ship")}
-                        onKeyDown={handleEnter(r.id, "ship")}
-                        disabled={inputsDisabled}
-                      />
-                    </td>
-
-                    <td className="text-right whitespace-nowrap">
-                      {to2(r.total)} zł
-                    </td>
-                  </tr>
-                ))}
-
-                <tr>
-                  <td colSpan={7} className="text-right py-3">
-                    <button
-                      type="button"
-                      className="btn-primary"
-                      onClick={addRow}
-                      ref={addBtnRef}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          addRow();
-                        }
-                      }}
-                      disabled={inputsDisabled}
-                    >
-                      + Dodaj wiersz
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-
-              <tfoot>
-                <tr className="bg-blue-50 font-semibold">
-                  <td colSpan={3} className="text-right">
-                    Razem:
-                  </td>
-                  <td className="text-right">{totals.qty}</td>
-                  <td className="text-right">{to2(totals.steril)} zł</td>
-                  <td className="text-right">{to2(totals.ship)} zł</td>
-                  <td className="text-right">{to2(totals.total)} zł</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        </div>
-
-        <datalist id="clients-datalist">
-          {clients.map((c) => (
-            <option key={c.id || c.name} value={c.name} />
-          ))}
-        </datalist>
-      </main>
+        </main>
+      </div>
 
       <ConfirmDialog
         open={!!toDelete}

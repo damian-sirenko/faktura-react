@@ -317,8 +317,28 @@ async function getProtocol(clientId, month) {
   };
 }
 
+async function getProtocolsForClientsAndMonth(clientIds, month) {
+  if (!Array.isArray(clientIds) || !clientIds.length) return [];
+
+  const placeholders = clientIds.map(() => "?").join(",");
+
+  const rows = await query(
+    `
+    SELECT clientId
+    FROM protocols
+    WHERE month = ?
+      AND clientId IN (${placeholders})
+    `,
+    [month, ...clientIds]
+  );
+
+  return rows;
+}
+
+
 module.exports = {
   upsertProtocolHeader,
   replaceProtocolEntries,
   getProtocol,
+  getProtocolsForClientsAndMonth,
 };

@@ -49,8 +49,6 @@ module.exports = function mountToolsRoutes(app) {
         m: data.medical.length,
       });
 
-      console.log("[/tools] send ->", { c: data.cosmetic.length, m: data.medical.length });
-
       res.json(data);
     } catch (e) {
       console.error("GET /tools error:", e);
@@ -61,8 +59,12 @@ module.exports = function mountToolsRoutes(app) {
   // POST /tools -> перезапис bulk
   app.post("/tools", (req, res) => {
     try {
-      const body = req.body || {};
-      writeToolsJson({ cosmetic: body.cosmetic, medical: body.medical });
+      const body = req.body && typeof req.body === "object" ? req.body : {};
+      writeToolsJson({
+        cosmetic: Array.isArray(body.cosmetic) ? body.cosmetic : [],
+        medical: Array.isArray(body.medical) ? body.medical : [],
+      });
+      
       res.json({ ok: true });
     } catch (e) {
       console.error("POST /tools error:", e);
@@ -73,8 +75,12 @@ module.exports = function mountToolsRoutes(app) {
   // Аліас на сумісність зі старим фронтом
   app.post("/tools/save", (req, res) => {
     try {
-      const body = req.body || {};
-      writeToolsJson({ cosmetic: body.cosmetic, medical: body.medical });
+      const body = req.body && typeof req.body === "object" ? req.body : {};
+      writeToolsJson({
+        cosmetic: Array.isArray(body.cosmetic) ? body.cosmetic : [],
+        medical: Array.isArray(body.medical) ? body.medical : [],
+      });
+
       res.json({ ok: true });
     } catch (e) {
       console.error("POST /tools/save error:", e);

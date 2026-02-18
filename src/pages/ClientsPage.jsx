@@ -4,6 +4,7 @@ import ClientList from "../components/clients/ClientList";
 import ClientCard from "../components/clients/ClientCard";
 import Modal from "../components/ui/Modal";
 import { jsPDF } from "jspdf";
+import { useNavigate } from "react-router-dom";
 import { apiFetch, api } from "../utils/api";
 
 // ▼ Довідник абонементів (назви мають збігатися з тим, що у вас у базі)
@@ -91,6 +92,14 @@ function pick(row, keys) {
   return "";
 }
 const todayISO = () => new Date().toISOString().slice(0, 10);
+
+function addDaysISO(dateISO, days) {
+  const d = new Date(dateISO);
+  if (Number.isNaN(d.getTime())) return "";
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
 // === bool parser: true/1/"true"/"1"/"yes"/"tak" -> true
 function boolish(v) {
   if (typeof v === "boolean") return v;
@@ -250,6 +259,15 @@ export default function ClientsPage({
   pageTitle,
 } = {}) {
   const [clients, setClients] = useState([]);
+  const clientsMap = useMemo(() => {
+    const map = {};
+    for (const c of clients) {
+      map[getId(c)] = c;
+    }
+    return map;
+  }, [clients]);
+
+  const navigate = useNavigate();
   const [selectedClient, setSelectedClient] = useState(null);
   const [scrollYBeforeOpen, setScrollYBeforeOpen] = useState(0);
 
@@ -283,11 +301,20 @@ export default function ClientsPage({
     currentIssueMonth: new Date().toISOString().slice(0, 7),
   });
 
+  const [emailModal, setEmailModal] = useState({
+    open: false,
+    month: new Date().toISOString().slice(0, 7),
+  });
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const actionsRef = useRef(null);
+
   const [genModal, setGenModal] = useState({
     open: false,
     issueDate: todayISO(),
+    dueDate: "",
     month: new Date().toISOString().slice(0, 7),
   });
+
   const [invoiceNumbers, setInvoiceNumbers] = useState({
     loading: false,
     month: "",
@@ -368,6 +395,31 @@ export default function ClientsPage({
       } catch {}
     })();
   }, []);
+
+  useEffect(() => {
+    if (!actionsOpen) return;
+
+    const onClick = (e) => {
+      if (!actionsRef.current) return;
+      if (!actionsRef.current.contains(e.target)) {
+        setActionsOpen(false);
+      }
+    };
+
+    const onKey = (e) => {
+      if (e.key === "Escape") {
+        setActionsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [actionsOpen]);
 
   // load clients
   useEffect(() => {
@@ -712,8 +764,17 @@ export default function ClientsPage({
       });
       return sorted;
     }
+    const sorted = [...afterSearch].sort((a, b) => {
+      const na = idNumericValue(a);
+      const nb = idNumericValue(b);
+      if (na !== nb) return nb - na; // DESC: 166,165,164...
+      return (a.name || "").localeCompare(b.name || "", "pl", {
+        sensitivity: "base",
+        numeric: true,
+      });
+    });
 
-    return afterSearch;
+    return sorted;
   }, [
     q,
     clients,
@@ -842,10 +903,12 @@ export default function ClientsPage({
     } catch {
       setInvoiceNumbers((prev) => ({ ...prev, loading: false }));
     }
+    const issue = todayISO();
 
     setGenModal({
       open: true,
-      issueDate: todayISO(),
+      issueDate: issue,
+      dueDate: addDaysISO(issue, 7),
       month: ym,
     });
   };
@@ -853,6 +916,25 @@ export default function ClientsPage({
   const openKartoteka = React.useCallback(() => {
     window.open(api("/clients/kartoteka.pdf"), "_blank", "noopener,noreferrer");
   }, []);
+
+  const openKartotekaSelected = React.useCallback(() => {
+    if (!checkedIds.length) {
+      alert("Zaznacz klientów.");
+      return;
+    }
+
+    fetch(api("/clients/kartoteka-selected.pdf"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ clientIds: checkedIds }),
+    })
+      .then((r) => r.blob())
+      .then((blob) => {
+        const url = URL.createObjectURL(blob);
+        window.open(url, "_blank", "noopener,noreferrer");
+        URL.revokeObjectURL(url);
+      });
+  }, [checkedIds]);
 
   // [REPLACE WHOLE FUNCTION generateLabelsPDF]
   const generateLabelsPDF = async () => {
@@ -991,14 +1073,18 @@ export default function ClientsPage({
         }
       }
 
+      const finalDueDate =
+        genModal.dueDate && genModal.dueDate.trim()
+          ? genModal.dueDate
+          : addDaysISO(genModal.issueDate, 7);
+
       await postForDownload(
         api("/gen/from-clients"),
         {
           clientIds: checkedIds,
-          ids: checkedIds,
           issueDate: genModal.issueDate,
+          dueDate: finalDueDate,
           month: genModal.month,
-          mode: tab,
         },
         "faktury.zip"
       );
@@ -1011,6 +1097,7 @@ export default function ClientsPage({
         setGenModal({
           open: false,
           issueDate: todayISO(),
+          dueDate: "",
           month:
             settings.currentIssueMonth || new Date().toISOString().slice(0, 7),
         });
@@ -1022,6 +1109,7 @@ export default function ClientsPage({
           manualStart: "",
         });
         alert("✅ Wygenerowano paczkę faktur (ZIP) i pobrano plik.");
+        navigate("/documents/invoices");
       }, 600);
     } catch (e) {
       if (genProgTimerRef.current) clearInterval(genProgTimerRef.current);
@@ -1074,7 +1162,7 @@ export default function ClientsPage({
       <div className="card-lg border-2 border-blue-200 bg-blue-50/60">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <h1 className="text-2xl font-bold">
-            {pageTitle || "Klienci abonamrntowi"}
+            {pageTitle || "Klienci abonamentowi"}
           </h1>
         </div>
 
@@ -1102,40 +1190,84 @@ export default function ClientsPage({
             {showAdd ? "Anuluj" : "Dodaj klienta"}
           </button>
 
-          <div className="ml-auto flex items-center gap-2 flex-wrap">
+          <div
+            className="ml-auto flex items-center gap-2 relative"
+            ref={actionsRef}
+          >
             <button
-              className="btn-primary"
-              onClick={bulkDelete}
-              disabled={!checkedIds.length}
-              title="Przenieś zaznaczonych klientów do archiwum"
-            >
-              Archiwizuj zaznaczone
-            </button>
-
-            <button
-              className="btn-primary"
-              onClick={openGen}
-              disabled={!checkedIds.length}
-              title="Generuj faktury z zaznaczonych klientów"
-            >
-              Generuj faktury
-            </button>
-
-            <button
+              type="button"
               className="btn-primary"
               onClick={openKartoteka}
-              title="Generuj PDF kartoteki klientów abonamentowych"
+              title="Generuj PDF kartoteki klientów"
             >
-              Generuj kartotekę
+              Kartoteka PDF
             </button>
 
             <button
+              type="button"
               className="btn-primary"
-              onClick={generateLabelsPDF}
-              title="Generuj PDF z etykietami (3×7 na A4)"
+              disabled={!checkedIds.length}
+              onClick={() => setActionsOpen((v) => !v)}
             >
-              Generuj etykiety
+              Działania ▾
             </button>
+
+            {actionsOpen && (
+              <div className="absolute right-0 mt-2 w-64 rounded-xl border bg-white shadow-lg z-50">
+                <button
+                  className="dropdown-link w-full text-left"
+                  onClick={() => {
+                    setActionsOpen(false);
+                    bulkDelete();
+                  }}
+                >
+                  Archiwizuj zaznaczone
+                </button>
+
+                <button
+                  className="dropdown-link w-full text-left"
+                  onClick={() => {
+                    setActionsOpen(false);
+                    setEmailModal({
+                      open: true,
+                      month: new Date().toISOString().slice(0, 7),
+                    });
+                  }}
+                >
+                  Wyślij email
+                </button>
+
+                <button
+                  className="dropdown-link w-full text-left"
+                  onClick={() => {
+                    setActionsOpen(false);
+                    openGen();
+                  }}
+                >
+                  Generuj faktury
+                </button>
+
+                <button
+                  className="dropdown-link w-full text-left"
+                  onClick={() => {
+                    setActionsOpen(false);
+                    generateLabelsPDF();
+                  }}
+                >
+                  Generuj etykiety
+                </button>
+
+                <button
+                  className="dropdown-link w-full text-left"
+                  onClick={() => {
+                    setActionsOpen(false);
+                    openKartotekaSelected();
+                  }}
+                >
+                  Kartoteka PDF (z zaznaczonych)
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -1385,20 +1517,36 @@ export default function ClientsPage({
         isNarrowTable ? (
           <div className="card-lg w-full">
             <div className="divide-y">
-              {filtered.map((c) => (
-                <div key={getId(c)} className="py-3 flex items-center gap-3">
-                  <div className="min-w-0 flex-1 break-words">
-                    {c.name || "—"}
+              {filtered.map((c) => {
+                const id = getId(c);
+                const checked = checkedIds.includes(id);
+
+                return (
+                  <div key={id} className="py-3 flex items-center gap-3">
+                    {/* CHECKBOX ЗЛІВА */}
+                    <input
+                      type="checkbox"
+                      className="shrink-0"
+                      checked={checked}
+                      onChange={(e) => onToggleCheck(id, e.target.checked)}
+                    />
+
+                    {/* ІМʼЯ КЛІЄНТА */}
+                    <div className="min-w-0 flex-1 break-words">
+                      {c.name || "—"}
+                    </div>
+
+                    {/* КНОПКА */}
+                    <button
+                      type="button"
+                      className="btn-primary btn-sm shrink-0"
+                      onClick={() => handleSelectClient(c)}
+                    >
+                      Szczegóły
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    className="btn-primary btn-sm shrink-0"
-                    onClick={() => handleSelectClient(c)}
-                  >
-                    Szczegóły
-                  </button>
-                </div>
-              ))}
+                );
+              })}
 
               {!filtered.length && (
                 <div className="py-6 text-center text-sm text-gray-600">
@@ -1473,13 +1621,17 @@ export default function ClientsPage({
         open={genModal.open}
         title="Generuj faktury z zaznaczonych"
         onClose={() => {
+          const issue = todayISO();
+
           setGenModal({
             open: false,
-            issueDate: todayISO(),
+            issueDate: issue,
+            dueDate: addDaysISO(issue, 7),
             month:
               settings.currentIssueMonth ||
               new Date().toISOString().slice(0, 7),
           });
+
           setInvoiceNumbers({
             loading: false,
             month: "",
@@ -1549,10 +1701,31 @@ export default function ClientsPage({
             type="date"
             className="input w-full"
             value={genModal.issueDate}
+            onChange={(e) => {
+              const issue = e.target.value;
+
+              setGenModal((s) => ({
+                ...s,
+                issueDate: issue,
+                dueDate: addDaysISO(issue, 7),
+              }));
+            }}
+          />
+
+          <label className="block text-sm mt-2">
+            Termin płatności (opcjonalnie)
+          </label>
+          <input
+            type="date"
+            className="input w-full"
+            value={genModal.dueDate}
             onChange={(e) =>
-              setGenModal((s) => ({ ...s, issueDate: e.target.value }))
+              setGenModal((s) => ({ ...s, dueDate: e.target.value }))
             }
           />
+          <div className="text-xs text-gray-500">
+            Jeśli puste — termin zostanie ustawiony automatycznie (+7 dni)
+          </div>
 
           <input
             type="month"
@@ -1606,6 +1779,41 @@ export default function ClientsPage({
                 }
               })();
             }}
+          />
+        </div>
+      </Modal>
+
+      <Modal
+        open={emailModal.open}
+        title="Wysyłka email — wybierz miesiąc"
+        onClose={() => setEmailModal({ open: false, month: emailModal.month })}
+        onConfirm={() => {
+          if (!checkedIds.length) return;
+
+          setEmailModal({ ...emailModal, open: false });
+
+          navigate(
+            `/email/preview?month=${emailModal.month}&clients=${checkedIds.join(
+              ","
+            )}`
+          );
+        }}
+        confirmText="Dalej"
+        cancelText="Anuluj"
+      >
+        <div className="space-y-3">
+          <div className="text-sm">Wybrano klientów: {checkedIds.length}</div>
+
+          <label className="block text-sm">Miesiąc dokumentów</label>
+
+          <input
+            type="month"
+            className="input w-full"
+            value={emailModal.month}
+            min={`${new Date().getFullYear() - 5}-01`}
+            onChange={(e) =>
+              setEmailModal((s) => ({ ...s, month: e.target.value }))
+            }
           />
         </div>
       </Modal>

@@ -1,0 +1,25 @@
+:root {
+    /* page */
+    --page-width-mm: 210;
+    --page-height-mm: 148.5;
+    --page-padding-mm: 10;
+  
+    /* fonts */
+    --font-base-px: 12;
+    --font-title-px: 20;
+    --font-bold-px: 14;
+  
+    /* columns */
+    --left-col-width-px: 180;
+    --right-col-gap-px: 10;
+  
+    /* blocks */
+    --left-col-height-px: 300;
+    --report-placeholder-height-px: 180;
+    --clients-height-px: 110;
+    --indicator-row-height-px: 60;
+  
+    /* colors */
+    --gray-bg: #e5e5e5;
+    --client-bg: #d9d9d9;
+  }

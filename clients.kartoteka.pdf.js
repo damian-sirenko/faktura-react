@@ -121,12 +121,29 @@ function trunc(doc, text, width, fontName, fontSize) {
 }
 
 /* ===== main ===== */
-async function createClientsKartotekaPDF(_req, res) {
+async function createClientsKartotekaPDF(req, res) {
   const all = (await loadClientsFromDB()).map(normClient);
 
-  const rows = all.filter(
+  // 👉 якщо передали список clientIds — працюємо тільки з ними
+  const pickedIds = Array.isArray(req.body?.clientIds)
+    ? req.body.clientIds.map(String)
+    : null;
+
+  let rows = all.filter(
     (c) => !c.archived && (c.billingMode === "abonament" || c.hasAbon)
   );
+
+  if (pickedIds && pickedIds.length) {
+    rows = rows.filter((c) => pickedIds.includes(String(c.id)));
+
+    // ✅ сортування ТІЛЬКИ для вибраних клієнтів — за назвою
+    rows.sort((a, b) =>
+      String(a.name || "").localeCompare(String(b.name || ""), "pl", {
+        sensitivity: "base",
+        numeric: true,
+      })
+    );
+  }
 
   if (!rows.length) {
     return res
@@ -137,7 +154,7 @@ async function createClientsKartotekaPDF(_req, res) {
   res.setHeader("Content-Type", "application/pdf");
   res.setHeader(
     "Content-Disposition",
-    'inline; filename="kartoteka_klientow.pdf"'
+    `inline; filename="kartoteka_${pickedIds ? "wybrani" : "wszyscy"}.pdf"`
   );
 
   const doc = new PDFDocument({ size: "A4", layout: "landscape", margin: 32 });

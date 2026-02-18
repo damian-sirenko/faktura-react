@@ -1,7 +1,6 @@
 // src/pages/SavedInvoicesPage.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { api, apiFetch } from "../utils/api";
-import servicesSeed from "../../data/services.json";
 
 /* ===== ВСПОМОГАТЕЛЬНО: ключ кешу для інвойсу ===== */
 const cacheKeyOf = (inv) =>
@@ -199,6 +198,35 @@ const parsePL = (s) => {
 
 const fmtPLN = (n) => `${pl2(n)} PLN`;
 
+const normKey = (s) =>
+  String(s ?? "")
+    .trim()
+    .toLowerCase();
+
+const pickFirstOption = (typed, options) => {
+  const list = Array.isArray(options) ? options : [];
+  if (!list.length) return null;
+
+  const t = normKey(typed);
+  if (!t) return list[0] || null;
+
+  const exact = list.find((o) => normKey(o) === t);
+  if (exact) return exact;
+
+  const starts = list.find((o) => normKey(o).startsWith(t));
+  if (starts) return starts;
+
+  const includes = list.find((o) => normKey(o).includes(t));
+  return includes || null;
+};
+
+const paymentMethodLabel = (code) => {
+  const v = String(code || "transfer");
+  if (v === "cash") return "Gotówka";
+  if (v === "card") return "Karta";
+  return "Przelew";
+};
+
 /* ====== перерахунок позиції ====== */
 const computeItem = (it) => {
   const qty = Number(it.qty || 0);
@@ -232,36 +260,14 @@ function parseBuyerIdentifier(str) {
 }
 
 /* ====== уніфікація шляхів до файлів ====== */
-const fileSrcFor = (inv) => {
-  const v = cacheKeyOf(inv) || Date.now();
-  if (inv.folder && inv.filename) {
-    return api(
-      `/generated/${encodeURIComponent(inv.folder)}/${encodeURIComponent(
-        inv.filename
-      )}?v=${v}`
-    );
-  }
-  return api(`/generated/${encodeURIComponent(inv.filename || "")}?v=${v}`);
-};
-const downloadHrefFor = (inv) => {
-  const v = cacheKeyOf(inv) || Date.now();
-  return api(
-    `/download-invoice/${encodeURIComponent(inv.filename || "")}?v=${v}`
-  );
-};
-const previewSrcFor = (inv) => {
-  const v = cacheKeyOf(inv) || Date.now();
-  if (inv.folder && inv.filename) {
-    return api(
-      `/generated/${encodeURIComponent(inv.folder)}/${encodeURIComponent(
-        inv.filename
-      )}?v=${v}`
-    );
-  }
-  return api(
-    `/download-invoice/${encodeURIComponent(inv.filename || "")}?v=${v}`
-  );
-};
+const fileSrcFor = (inv) =>
+  api(`/generated/${encodeURIComponent(inv.filename || "")}`);
+
+const downloadHrefFor = (inv) =>
+  api(`/download-invoice/${encodeURIComponent(inv.filename || "")}`);
+
+const previewSrcFor = (inv) =>
+  api(`/generated/${encodeURIComponent(inv.filename || "")}`);
 
 const USE_BUILTIN_PREVIEW_MODAL = true;
 
@@ -441,6 +447,85 @@ function StatusDotMenu({ value, effective, onChange }) {
     </div>
   );
 }
+function BulkActionsMenu({ disabled, onZip, onEpp, onDelete }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const onDoc = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    const onKey = (e) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+
+    document.addEventListener("mousedown", onDoc);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative inline-block">
+      <button
+        type="button"
+        className={`btn-primary ${
+          disabled ? "opacity-60 cursor-not-allowed" : ""
+        }`}
+        onClick={() => setOpen((v) => !v)}
+      >
+        Akcje ▾
+      </button>
+
+      {open && (
+        <div className="absolute right-0 mt-1 w-56 rounded-xl border bg-white shadow-lg z-50">
+          <button
+            type="button"
+            disabled={disabled}
+            className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${
+              disabled ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            onClick={() => {
+              if (disabled) return;
+              onZip();
+              setOpen(false);
+            }}
+          >
+            Pobierz archiwum ZIP
+          </button>
+
+          <button
+            type="button"
+            className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
+            onClick={() => {
+              onEpp();
+              setOpen(false);
+            }}
+          >
+            Eksport EPP + lista PDF
+          </button>
+
+          <button
+            type="button"
+            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+            onClick={() => {
+              onDelete();
+              setOpen(false);
+            }}
+          >
+            Usuń zaznaczone faktury
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function SavedInvoicesPage() {
   const [invoices, setInvoices] = useState([]);
@@ -461,8 +546,16 @@ export default function SavedInvoicesPage() {
   const [page, setPage] = useState(1);
 
   const [selected, setSelected] = useState([]);
+  const [breakdown, setBreakdown] = useState(null);
+  const [breakdownLoading, setBreakdownLoading] = useState(false);
 
   const [formOpen, setFormOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  const [activeServiceSuggest, setActiveServiceSuggest] = useState(null);
+  const [activeClientSuggest, setActiveClientSuggest] = useState(false);
+
   const [editingIndex, setEditingIndex] = useState(null);
   const [editingOriginalNumber, setEditingOriginalNumber] = useState(null);
   const [editingOriginalFilename, setEditingOriginalFilename] = useState(null);
@@ -481,7 +574,7 @@ export default function SavedInvoicesPage() {
     dueDate: plusDaysISO(todayISO(), 7),
     status: "issued",
     payment_method: "transfer",
-    items: [{ name: "", qty: 1, price_gross: 0, vat_rate: 23 }],
+    items: [{ name: "", qty: "", price_gross: 0, vat_rate: 23 }],
   });
 
   const [duePreset, setDuePreset] = useState("7");
@@ -507,8 +600,9 @@ export default function SavedInvoicesPage() {
     const a = issueISO ? new Date(issueISO) : null;
     const b = dueISO ? new Date(dueISO) : null;
     if (!a || !b || Number.isNaN(a.getTime()) || Number.isNaN(b.getTime())) {
-      setDuePreset("7");
-      setDueCustomDays(7);
+      setDuePreset("1");
+      setDueCustomDays(1);
+
       return;
     }
     const diff = Math.round((b.getTime() - a.getTime()) / 86400000);
@@ -531,22 +625,27 @@ export default function SavedInvoicesPage() {
       try {
         const r = await apiFetch("/invoices");
         const data = await r.json();
-        const arr = Array.isArray(data) ? data : [];
+
+        const arr = (Array.isArray(data) ? data : []).map((inv) => ({
+          ...inv,
+          items: Array.isArray(inv.items) ? inv.items : [],
+          payment_method: inv.payment_method ?? inv.paymentMethod ?? "transfer",
+        }));
+
         arr.sort(sortByNumberDesc);
         setInvoices(arr);
+        const sr = await apiFetch("/services", { cache: "no-store" });
+        const slist = await sr.json();
 
-        let catalog = {};
-        try {
-          const list = Array.isArray(servicesSeed) ? servicesSeed : [];
-          for (const s of list) {
-            const name = String(s?.name || "").trim();
-            if (!name) continue;
-            catalog[name] = {
-              price_gross: Number(s?.price_gross ?? 0) || 0,
-              vat_rate: Number(s?.vat_rate ?? 23) || 23,
-            };
-          }
-        } catch {}
+        const catalog = {};
+        for (const s of Array.isArray(slist) ? slist : []) {
+          const name = String(s?.name || "").trim();
+          if (!name) continue;
+          catalog[name] = {
+            price_gross: Number(s?.price_gross || 0),
+            vat_rate: Number(s?.vat_rate || 23),
+          };
+        }
 
         setServicesCatalog(catalog);
         setServicesDict(Object.keys(catalog).sort());
@@ -660,7 +759,6 @@ export default function SavedInvoicesPage() {
       from = customFrom ? new Date(customFrom) : null;
       to = customTo ? new Date(customTo) : null;
       if (to) to.setDate(to.getDate() + 1);
-
     }
     return invoices.filter((inv) => {
       const rawDate =
@@ -772,6 +870,42 @@ export default function SavedInvoicesPage() {
       alert(e?.message || "Nie udało się wyeksportować (.epp + PDF).");
     }
   };
+  const loadBreakdownForSelected = async () => {
+    if (!selected.length) {
+      alert("Nie wybrano faktur.");
+      return;
+    }
+
+    const invoiceFiles = invoices
+      .filter((i) => selected.includes(i.filename))
+      .map((i) => i.filename)
+      .filter(Boolean);
+
+    if (!invoiceFiles.length) {
+      alert("Nie znaleziono faktur.");
+      return;
+    }
+
+    setBreakdownLoading(true);
+    setBreakdown(null);
+
+    try {
+      const r = await apiFetch("/reports/invoices-breakdown", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ files: invoiceFiles }),
+      });
+
+      if (!r.ok) throw new Error("HTTP " + r.status);
+
+      const data = await r.json();
+      setBreakdown(data);
+    } catch {
+      alert("Błąd pobierania zestawienia.");
+    } finally {
+      setBreakdownLoading(false);
+    }
+  };
 
   const openPreviewNoCache = (inv) => {
     const base = previewSrcFor(inv);
@@ -783,32 +917,43 @@ export default function SavedInvoicesPage() {
     try {
       const base = downloadHrefFor(inv);
       const url = `${base}${base.includes("?") ? "&" : "?"}r=${Date.now()}`;
-      const resp = await apiFetch(url, {
+
+      const resp = await fetch(url, {
         method: "GET",
         cache: "no-store",
+        credentials: "include",
         headers: {
           "Cache-Control": "no-cache, no-store, must-revalidate",
           Pragma: "no-cache",
           Expires: "0",
         },
       });
+
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
       const blob = await resp.blob();
       const objectUrl = URL.createObjectURL(blob);
+
       const a = document.createElement("a");
       a.href = objectUrl;
       a.download = inv.filename || "faktura.pdf";
       document.body.appendChild(a);
       a.click();
       a.remove();
-      URL.revokeObjectURL(objectUrl);
+
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
     } catch (e) {
-      const fallback = `${downloadHrefFor(inv)}&r=${Date.now()}`;
+      const base = downloadHrefFor(inv);
+      const fallback = `${base}${
+        base.includes("?") ? "&" : "?"
+      }r=${Date.now()}`;
       window.open(fallback, "_blank", "noopener,noreferrer");
     }
   };
 
   const startEdit = (inv, idxInAll) => {
+    console.log("EDIT INVOICE items =", inv.items);
+
     setEditingIndex(idxInAll);
     setEditingOriginalNumber(inv.number || "");
     setEditingOriginalFilename(inv.filename || "");
@@ -862,6 +1007,12 @@ export default function SavedInvoicesPage() {
       }
     }
 
+    let sourceItems = Array.isArray(inv.items) ? inv.items : [];
+    if (!sourceItems.length) {
+      alert("Faktura nie zawiera pozycji i nie może być edytowana");
+      return;
+    }
+
     const clone = {
       number: inv.number || "",
       client: inv.client || "",
@@ -875,24 +1026,17 @@ export default function SavedInvoicesPage() {
       buyer_city: buyerCity,
       issueDate: inv.issueDate || todayISO(),
       dueDate: inv.dueDate || plusDaysISO(inv.issueDate || todayISO(), 7),
-      payment_method: inv.payment_method || inv.paymentMethod || "transfer",
+      payment_method: inv.payment_method ?? inv.paymentMethod ?? "transfer",
       status: inv.status || "issued",
-      items: (inv.items || []).map((it) => ({
+      items: sourceItems.map((it) => ({
+        serviceKey: it.serviceKey || "",
         name: it.name || "",
-        qty: Number(it.quantity || it.qty || 1),
-        price_gross: Number(
-          it.price_gross ??
-            (it.gross_price ? String(it.gross_price).replace(",", ".") : 0)
-        ),
-        vat_rate: Number(
-          typeof it.vat_rate === "string"
-            ? it.vat_rate.replace("%", "")
-            : it.vat_rate ?? 23
-        ),
+        qty: Number(it.quantity ?? it.qty ?? 1),
+        price_gross: parsePL(it.gross_price ?? it.price_gross ?? 0),
+        vat_rate: Number(String(it.vat_rate || "23").replace("%", "")),
       })),
     };
-    if (!clone.items.length)
-      clone.items = [{ name: "", qty: 1, price_gross: 0, vat_rate: 23 }];
+
     inferDuePresetFromDates(clone.issueDate, clone.dueDate);
     setForm(clone);
     setFormOpen(true);
@@ -924,7 +1068,6 @@ export default function SavedInvoicesPage() {
           method: "DELETE",
           headers: { "x-confirm-action": "delete-invoice" },
         });
-        
       }
     } catch (e) {
       alert("Błąd usuwania faktury.");
@@ -978,6 +1121,13 @@ export default function SavedInvoicesPage() {
       return { ...f, items };
     });
 
+  const setQtyFromInput = (idx, raw) => {
+    const s = String(raw ?? "");
+    if (s === "") return updateItemField(idx, "qty", "");
+    const n = Number(s);
+    updateItemField(idx, "qty", Number.isFinite(n) ? n : "");
+  };
+
   const updateItemNameAndAutofill = (idx, name) => {
     setForm((f) => {
       const items = [...f.items];
@@ -995,14 +1145,10 @@ export default function SavedInvoicesPage() {
   const addItemRow = () =>
     setForm((f) => ({
       ...f,
-      items: [...f.items, { name: "", qty: 1, price_gross: 0, vat_rate: 23 }],
+      items: [...f.items, { name: "", qty: "", price_gross: 0, vat_rate: 23 }],
     }));
   const removeItemRow = (idx) =>
     setForm((f) => ({ ...f, items: f.items.filter((_, i) => i !== idx) }));
-
-  const onFormKeyDown = (e) => {
-    if (e.key === "Enter") e.preventDefault();
-  };
 
   const saveForm = async () => {
     const requiredTop = ["number", "client", "issueDate", "dueDate"];
@@ -1020,6 +1166,9 @@ export default function SavedInvoicesPage() {
       if (!(Number(it.price_gross) >= 0))
         return alert("Pozycja: cena brutto ≥ 0.");
     }
+    form.items.forEach((it) => {
+      delete it._priceInput;
+    });
 
     const itemsAdjusted = adjustExtrasPricingBySubscription(form.items);
     const computed = itemsAdjusted.map(computeItem);
@@ -1054,6 +1203,12 @@ export default function SavedInvoicesPage() {
       net: Number(to2(totals.net)),
       gross: Number(to2(totals.gross)),
     };
+
+    console.log("SAVE PAYLOAD items =", payload.items);
+
+    payload.payment_method = form.payment_method;
+    delete payload.paymentMethod;
+    delete payload.paymentMethodLabel;
 
     const conflict = invoices.some((inv) => {
       const sameNumber =
@@ -1093,35 +1248,103 @@ export default function SavedInvoicesPage() {
           },
           body: JSON.stringify(payload),
         });
-
-        const r = await apiFetch("/invoices", { cache: "no-store" });
-        const data = await r.json();
-        const arr = Array.isArray(data) ? data : [];
-        arr.sort(sortByNumberDesc);
-        setInvoices(arr);
+        setInvoices((prev) =>
+          prev
+            .map((inv) =>
+              inv.number === oldNo
+                ? {
+                    ...inv,
+                    ...payload,
+                    payment_method: payload.payment_method,
+                  }
+                : inv
+            )
+            .sort(sortByNumberDesc)
+        );
 
         setFormOpen(false);
         setEditingIndex(null);
         setEditingOriginalNumber(null);
         setEditingOriginalFilename(null);
       } else {
-        const n = payload.number || suggestNextNumber(payload.issueDate);
-        payload.number = n;
-        payload.filename = `Faktura_${String(n).replaceAll("/", "_")}.pdf`;
+        try {
+          setSaving(true);
+          setSaveSuccess(false);
 
-        const next = [payload, ...invoices].sort(sortByNumberDesc);
-        setInvoices(next);
+          const n = payload.number || suggestNextNumber(payload.issueDate);
+          payload.number = n;
+          payload.filename = `Faktura_${String(n).replaceAll("/", "_")}.pdf`;
 
-        await apiFetch("/save-invoices", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(next),
-        });
+          const foundClient = clients.find(
+            (c) =>
+              String(c.name || c.Klient || "").trim() ===
+              String(payload.client || "").trim()
+          );
 
-        setFormOpen(false);
-        setEditingIndex(null);
-        setEditingOriginalNumber(null);
-        setEditingOriginalFilename(null);
+          if (!foundClient || !foundClient.id) {
+            alert("Nie znaleziono klienta (brak clientId).");
+            return;
+          }
+
+          payload.clientId = foundClient.id;
+
+          await apiFetch("/invoices", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+
+          setInvoices((prev) => {
+            const nextList = [{ ...payload }, ...prev].sort(sortByNumberDesc);
+
+            const d = payload.issueDate || todayISO();
+            const y = new Date(d).getFullYear();
+            const m = String(new Date(d).getMonth() + 1).padStart(2, "0");
+
+            const nums = nextList
+              .filter((inv) => (inv.number || "").endsWith(`/${m}/${y}`))
+              .map((inv) => {
+                const m2 = String(inv.number || "").match(
+                  /^ST-(\d{3})\/\d{2}\/\d{4}$/
+                );
+                return m2 ? parseInt(m2[1], 10) : null;
+              })
+              .filter((n) => n != null);
+
+            const nextSeq = (nums.length ? Math.max(...nums) + 1 : 1)
+              .toString()
+              .padStart(3, "0");
+
+            const nextNo = `ST-${nextSeq}/${m}/${y}`;
+
+            setForm({
+              number: nextNo,
+              client: "",
+              buyer_nip: "",
+              buyer_pesel: "",
+              buyer_kind: "firma",
+              buyer_address: "",
+              buyer_street: "",
+              buyer_postal: "",
+              buyer_city: "",
+              issueDate: todayISO(),
+              dueDate: plusDaysISO(todayISO(), 1),
+              payment_method: "transfer",
+              status: "issued",
+              items: [{ name: "", qty: "", price_gross: 0, vat_rate: 23 }],
+            });
+
+            return nextList;
+          });
+
+          setSaveSuccess(true);
+
+          setEditingIndex(null);
+          setEditingOriginalNumber(null);
+          setEditingOriginalFilename(null);
+        } finally {
+          setSaving(false);
+        }
       }
     } catch (e) {
       alert("Nie udało się zapisać faktury.");
@@ -1138,8 +1361,8 @@ export default function SavedInvoicesPage() {
 
   const openNewForm = () => {
     const baseDate = todayISO();
-    setDuePreset("7");
-    setDueCustomDays(7);
+    setDuePreset("1");
+    setDueCustomDays(1);
     const suggestedNo = suggestNextNumber(baseDate);
     setEditingIndex(null);
     setEditingOriginalNumber(null);
@@ -1155,10 +1378,10 @@ export default function SavedInvoicesPage() {
       buyer_postal: "",
       buyer_city: "",
       issueDate: baseDate,
-      dueDate: plusDaysISO(baseDate, 7),
+      dueDate: plusDaysISO(baseDate, 1),
       payment_method: "transfer",
       status: "issued",
-      items: [{ name: "", qty: 1, price_gross: 0, vat_rate: 23 }],
+      items: [{ name: "", qty: "", price_gross: 0, vat_rate: 23 }],
     });
     setFormOpen(true);
     setTimeout(() => {
@@ -1279,57 +1502,30 @@ export default function SavedInvoicesPage() {
                 )}
               </div>
 
-              <div className="flex flex-wrap gap-2">
+              <div className="flex justify-between gap-2">
                 <button
-                  className="btn-primary flex-1 min-w-[140px]"
+                  type="button"
+                  className="btn-primary"
                   onClick={toggleNewForm}
                 >
-                  {formOpen ? "Zamknij formularz" : "Dodaj fakturę"}
+                  Dodaj fakturę
                 </button>
 
+                <BulkActionsMenu
+                  disabled={!selected.length}
+                  onZip={bulkDownloadZip}
+                  onEpp={bulkExportEPPAndListPDF}
+                  onDelete={bulkDelete}
+                />
                 <button
-                  className="btn-primary flex-1 min-w-[140px]"
-                  onClick={editSelected}
-                  disabled={selected.length !== 1}
-                  title={
-                    selected.length === 1
-                      ? "Edytuj zaznaczoną fakturę"
-                      : "Zaznacz dokładnie jedną fakturę na liście"
-                  }
+                  type="button"
+                  className="btn-secondary"
+                  disabled={!selected.length}
+                  onClick={loadBreakdownForSelected}
                 >
-                  Edytuj zaznaczoną
+                  Zestawienie usług
                 </button>
               </div>
-            </div>
-
-            <div className="flex flex-col gap-2 w-full sm:w-auto sm:items-end min-w-0">
-              <div className="flex gap-2 w-full">
-                <button
-                  className="btn-primary flex-1 basis-1/2 justify-center"
-                  title="Pobierz wybrane (ZIP)"
-                  onClick={bulkDownloadZip}
-                  disabled={!selected.length}
-                >
-                  ZIP
-                </button>
-                <button
-                  className="btn-primary flex-1 basis-1/2 justify-center"
-                  onClick={bulkExportEPPAndListPDF}
-                  disabled={!selected.length}
-                  title="Eksport .epp + PDF lista"
-                  aria-label="Eksport EPP + PDF"
-                >
-                  .epp + PDF
-                </button>
-              </div>
-              <button
-                className="btn-danger w-full justify-center"
-                title="Usuń zaznaczone"
-                onClick={bulkDelete}
-                disabled={!selected.length}
-              >
-                Usuń zaznaczone
-              </button>
             </div>
           </div>
 
@@ -1432,44 +1628,20 @@ export default function SavedInvoicesPage() {
             </button>
 
             <div className="flex items-center gap-2 flex-wrap justify-end ml-auto min-w-0">
-              <button
-                className="btn-primary justify-center"
-                onClick={editSelected}
-                disabled={selected.length !== 1}
-                title={
-                  selected.length === 1
-                    ? "Edytuj zaznaczoną fakturę"
-                    : "Zaznacz dokładnie jedną fakturę na liście"
-                }
-              >
-                Edytuj zaznaczoną
-              </button>
-
               <div className="flex gap-2 flex-wrap items-center justify-end min-w-0">
-                <button
-                  className="btn-primary justify-center"
-                  title="Pobierz wybrane (ZIP)"
-                  onClick={bulkDownloadZip}
+                <BulkActionsMenu
                   disabled={!selected.length}
-                >
-                  ZIP
-                </button>
+                  onZip={bulkDownloadZip}
+                  onEpp={bulkExportEPPAndListPDF}
+                  onDelete={bulkDelete}
+                />
                 <button
-                  className="btn-primary justify-center"
-                  onClick={bulkExportEPPAndListPDF}
+                  type="button"
+                  className="btn-secondary"
                   disabled={!selected.length}
-                  title="Eksport .epp + PDF lista"
-                  aria-label="Eksport EPP + PDF"
+                  onClick={loadBreakdownForSelected}
                 >
-                  .epp + PDF
-                </button>
-                <button
-                  className="btn-danger justify-center"
-                  title="Usuń zaznaczone"
-                  onClick={bulkDelete}
-                  disabled={!selected.length}
-                >
-                  Usuń zaznaczone
+                  Zestawienie usług
                 </button>
               </div>
             </div>
@@ -1479,7 +1651,7 @@ export default function SavedInvoicesPage() {
 
       {formOpen && (
         <section className="psl-container" ref={formRef}>
-          <div className="card-lg" onKeyDown={onFormKeyDown}>
+          <div className="card-lg">
             <div className="grid md:grid-cols-4 gap-3">
               <div className="md:col-span-2">
                 <label className="block text-sm mb-1">Numer *</label>
@@ -1492,19 +1664,58 @@ export default function SavedInvoicesPage() {
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm mb-1">Klient *</label>
-                <input
-                  className="input w-full"
-                  list="clients-list"
-                  value={form.client}
-                  onChange={(e) => handleClientChange(e.target.value)}
-                  required
-                  placeholder="Zacznij pisać, aby wybrać..."
-                />
-                <datalist id="clients-list">
-                  {clientNames.map((n) => (
-                    <option key={n} value={n} />
-                  ))}
-                </datalist>
+                <div className="relative">
+                  <input
+                    className="input w-full"
+                    value={form.client}
+                    onChange={(e) => {
+                      handleClientChange(e.target.value);
+                      setActiveClientSuggest(true);
+                    }}
+                    onFocus={() => setActiveClientSuggest(true)}
+                    onBlur={() =>
+                      setTimeout(() => setActiveClientSuggest(false), 150)
+                    }
+                    onKeyDown={(e) => {
+                      if (e.key !== "Enter") return;
+
+                      e.preventDefault();
+                      e.stopPropagation();
+
+                      const picked = pickFirstOption(form.client, clientNames);
+                      if (picked) {
+                        handleClientChange(picked);
+                        setActiveClientSuggest(false);
+                      }
+                    }}
+                    required
+                    placeholder="Zacznij pisać, aby wybrać…"
+                    autoComplete="off"
+                  />
+
+                  {activeClientSuggest && form.client && (
+                    <div className="absolute z-30 top-full mt-1 w-full max-h-48 overflow-auto rounded-md border bg-white shadow">
+                      {clientNames
+                        .filter((n) =>
+                          n.toLowerCase().includes(form.client.toLowerCase())
+                        )
+                        .slice(0, 20)
+                        .map((n) => (
+                          <button
+                            key={n}
+                            type="button"
+                            className="block w-full px-3 py-2 text-left text-sm hover:bg-blue-50"
+                            onMouseDown={() => {
+                              handleClientChange(n);
+                              setActiveClientSuggest(false);
+                            }}
+                          >
+                            {n}
+                          </button>
+                        ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3 md:col-span-2">
@@ -1615,14 +1826,14 @@ export default function SavedInvoicesPage() {
                 </div>
               </div>
 
-              <div className="md:col-span-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="md:col-span-4 grid grid-cols-1 sm:grid-cols-3 gap-3 min-w-0">
                 <div>
                   <label className="block text-sm mb-1">
                     Data wystawienia *
                   </label>
                   <input
                     type="date"
-                    className="input w-full"
+                    className="input w-full min-w-0"
                     value={form.issueDate}
                     onChange={(e) => {
                       const v = e.target.value;
@@ -1642,7 +1853,7 @@ export default function SavedInvoicesPage() {
                     Termin płatności (dni)
                   </label>
                   <select
-                    className="input w-full"
+                    className="input w-full min-w-0"
                     value={duePreset}
                     onChange={(e) => {
                       const v = e.target.value;
@@ -1696,7 +1907,7 @@ export default function SavedInvoicesPage() {
                   </label>
                   <input
                     type="date"
-                    className="input w-full"
+                    className="input w-full min-w-0"
                     value={form.dueDate}
                     onChange={(e) => {
                       const v = e.target.value;
@@ -1754,16 +1965,74 @@ export default function SavedInvoicesPage() {
                         <label className="block text-sm mb-1">
                           Nazwa towaru / usługi *
                         </label>
-                        <input
-                          className="input w-full"
-                          list="services-list"
-                          value={it.name}
-                          onChange={(e) =>
-                            updateItemNameAndAutofill(idx, e.target.value)
-                          }
-                          placeholder="Zacznij pisać, aby wybrać…"
-                          required
-                        />
+                        <div className="relative">
+                          <input
+                            className="input w-full"
+                            value={it.name}
+                            onChange={(e) => {
+                              updateItemNameAndAutofill(idx, e.target.value);
+                              setActiveServiceSuggest(idx);
+                            }}
+                            onFocus={() => setActiveServiceSuggest(idx)}
+                            onBlur={() =>
+                              setTimeout(
+                                () => setActiveServiceSuggest(null),
+                                150
+                              )
+                            }
+                            placeholder="Zacznij pisać, aby wybrać…"
+                            onKeyDown={(e) => {
+                              if (e.key !== "Enter") return;
+
+                              e.preventDefault();
+                              e.stopPropagation();
+
+                              const picked = pickFirstOption(
+                                it.name,
+                                servicesDict
+                              );
+                              if (picked) {
+                                updateItemNameAndAutofill(idx, picked);
+                              }
+
+                              requestAnimationFrame(() => {
+                                const row =
+                                  e.currentTarget.closest(".rounded-xl");
+                                const qtyInput = row?.querySelector(
+                                  'input[type="number"]'
+                                );
+                                qtyInput?.focus();
+                              });
+                            }}
+                            required
+                            autoComplete="off"
+                          />
+
+                          {activeServiceSuggest === idx && it.name && (
+                            <div className="absolute z-30 top-full mt-1 w-full max-h-48 overflow-auto rounded-md border bg-white shadow">
+                              {servicesDict
+                                .filter((s) =>
+                                  s
+                                    .toLowerCase()
+                                    .includes(it.name.toLowerCase())
+                                )
+                                .slice(0, 20)
+                                .map((s) => (
+                                  <button
+                                    key={s}
+                                    type="button"
+                                    className="block w-full px-3 py-2 text-left text-sm hover:bg-blue-50"
+                                    onMouseDown={() => {
+                                      updateItemNameAndAutofill(idx, s);
+                                      setActiveServiceSuggest(null);
+                                    }}
+                                  >
+                                    {s}
+                                  </button>
+                                ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-2">
@@ -1773,13 +2042,9 @@ export default function SavedInvoicesPage() {
                             type="number"
                             min="1"
                             className="input w-full min-w-0 text-center"
-                            value={it.qty}
+                            value={it.qty === "" ? "" : it.qty}
                             onChange={(e) =>
-                              updateItemField(
-                                idx,
-                                "qty",
-                                Number(e.target.value) || 1
-                              )
+                              setQtyFromInput(idx, e.target.value)
                             }
                             required
                           />
@@ -1816,14 +2081,19 @@ export default function SavedInvoicesPage() {
                             type="text"
                             inputMode="decimal"
                             className="input w-full text-center"
-                            value={pl2(it.price_gross)}
-                            onChange={(e) =>
-                              updateItemField(
-                                idx,
-                                "price_gross",
-                                parsePL(e.target.value)
-                              )
-                            }
+                            value={it._priceInput ?? pl2(it.price_gross)}
+                            onChange={(e) => {
+                              const raw = e.target.value;
+                              setForm((f) => {
+                                const items = [...f.items];
+                                items[idx] = {
+                                  ...items[idx],
+                                  _priceInput: raw,
+                                  price_gross: parsePL(raw),
+                                };
+                                return { ...f, items };
+                              });
+                            }}
                             required
                           />
                         </div>
@@ -1867,7 +2137,7 @@ export default function SavedInvoicesPage() {
                 })}
               </div>
 
-              <div className="hidden md:block overflow-x-auto">
+              <div className="hidden md:block overflow-visible">
                 <table className="table w-full table-fixed [&_th]:align-middle [&_td]:align-middle">
                   <colgroup>
                     <col style={{ width: "26%" }} />
@@ -1905,17 +2175,78 @@ export default function SavedInvoicesPage() {
 
                       return (
                         <tr key={idx}>
-                          <td className="align-middle min-w-0 overflow-hidden">
-                            <input
-                              className="input w-full min-w-0"
-                              list="services-list"
-                              value={it.name}
-                              onChange={(e) =>
-                                updateItemNameAndAutofill(idx, e.target.value)
-                              }
-                              placeholder="Zacznij pisać, aby wybrać…"
-                              required
-                            />
+                          <td className="align-middle min-w-0 overflow-visible relative">
+                            <div className="relative">
+                              <input
+                                className="input w-full"
+                                value={it.name}
+                                onChange={(e) => {
+                                  updateItemNameAndAutofill(
+                                    idx,
+                                    e.target.value
+                                  );
+                                  setActiveServiceSuggest(idx);
+                                }}
+                                onFocus={() => setActiveServiceSuggest(idx)}
+                                onBlur={() =>
+                                  setTimeout(
+                                    () => setActiveServiceSuggest(null),
+                                    150
+                                  )
+                                }
+                                placeholder="Zacznij pisać, aby wybrać…"
+                                onKeyDown={(e) => {
+                                  if (e.key !== "Enter") return;
+
+                                  e.preventDefault();
+                                  e.stopPropagation();
+
+                                  const picked = pickFirstOption(
+                                    it.name,
+                                    servicesDict
+                                  );
+                                  if (picked) {
+                                    updateItemNameAndAutofill(idx, picked);
+                                  }
+
+                                  requestAnimationFrame(() => {
+                                    const row =
+                                      e.currentTarget.closest(".rounded-xl");
+                                    const qtyInput = row?.querySelector(
+                                      'input[type="number"]'
+                                    );
+                                    qtyInput?.focus();
+                                  });
+                                }}
+                                required
+                                autoComplete="off"
+                              />
+
+                              {activeServiceSuggest === idx && it.name && (
+                                <div className="absolute z-30 top-full mt-1 w-full max-h-48 overflow-auto rounded-md border bg-white shadow">
+                                  {servicesDict
+                                    .filter((s) =>
+                                      s
+                                        .toLowerCase()
+                                        .includes(it.name.toLowerCase())
+                                    )
+                                    .slice(0, 20)
+                                    .map((s) => (
+                                      <button
+                                        key={s}
+                                        type="button"
+                                        className="block w-full px-3 py-2 text-left text-sm hover:bg-blue-50"
+                                        onMouseDown={() => {
+                                          updateItemNameAndAutofill(idx, s);
+                                          setActiveServiceSuggest(null);
+                                        }}
+                                      >
+                                        {s}
+                                      </button>
+                                    ))}
+                                </div>
+                              )}
+                            </div>
                           </td>
 
                           <td className="text-center align-middle overflow-hidden">
@@ -1923,13 +2254,9 @@ export default function SavedInvoicesPage() {
                               type="number"
                               min="1"
                               className="input w-full min-w-0 text-right"
-                              value={it.qty}
+                              value={it.qty === "" ? "" : it.qty}
                               onChange={(e) =>
-                                updateItemField(
-                                  idx,
-                                  "qty",
-                                  Number(e.target.value) || 1
-                                )
+                                setQtyFromInput(idx, e.target.value)
                               }
                               required
                             />
@@ -1940,14 +2267,19 @@ export default function SavedInvoicesPage() {
                               type="text"
                               inputMode="decimal"
                               className="input w-full min-w-0 text-center"
-                              value={pl2(it.price_gross)}
-                              onChange={(e) =>
-                                updateItemField(
-                                  idx,
-                                  "price_gross",
-                                  parsePL(e.target.value)
-                                )
-                              }
+                              value={it._priceInput ?? pl2(it.price_gross)}
+                              onChange={(e) => {
+                                const raw = e.target.value;
+                                setForm((f) => {
+                                  const items = [...f.items];
+                                  items[idx] = {
+                                    ...items[idx],
+                                    _priceInput: raw,
+                                    price_gross: parsePL(raw),
+                                  };
+                                  return { ...f, items };
+                                });
+                              }}
                               required
                             />
                           </td>
@@ -1999,12 +2331,6 @@ export default function SavedInvoicesPage() {
                   </tbody>
                 </table>
               </div>
-
-              <datalist id="services-list">
-                {servicesDict.map((s) => (
-                  <option key={s} value={s} />
-                ))}
-              </datalist>
 
               <div className="mt-2">
                 <button
@@ -2060,15 +2386,21 @@ export default function SavedInvoicesPage() {
                 >
                   <option value="cash">Gotówka</option>
                   <option value="transfer">Przelew</option>
-                  <option value="card">Karta</option>
+                  <option value="card">Karta płatnicza</option>
                 </select>
               </div>
             </div>
 
             <div className="pt-4 flex gap-2">
-              <button type="button" className="btn-primary" onClick={saveForm}>
-                Zapisz fakturę
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={saveForm}
+                disabled={saving}
+              >
+                {saving ? "Zapisywanie…" : "Zapisz fakturę"}
               </button>
+
               <button
                 type="button"
                 className="btn-secondary"
@@ -2081,6 +2413,11 @@ export default function SavedInvoicesPage() {
               >
                 Anuluj
               </button>
+              {saveSuccess && (
+                <div className="mt-2 text-green-700 text-sm">
+                  ✔ Faktura zapisana poprawnie
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -2274,14 +2611,16 @@ export default function SavedInvoicesPage() {
 
               <table className="md:hidden table psl-table invoices-table w-full table-fixed [&_th]:align-middle [&_td]:align-middle">
                 <colgroup>
+                  <col style={{ width: "8%" }} />
+                  <col style={{ width: "19%" }} />
+                  <col style={{ width: "38%" }} />
                   <col style={{ width: "20%" }} />
-                  <col style={{ width: "46%" }} />
-                  <col style={{ width: "20%" }} />
-                  <col style={{ width: "14%" }} />
+                  <col style={{ width: "15%" }} />
                 </colgroup>
 
                 <thead>
                   <tr>
+                    <th scope="col"></th>
                     <th scope="col">#</th>
                     <th className="whitespace-normal" scope="col">
                       Klient
@@ -2305,7 +2644,23 @@ export default function SavedInvoicesPage() {
                         key={`${inv.number}-${idx}`}
                         className="hover:bg-gray-50"
                       >
+                        <td className="text-center">
+                          <input
+                            type="checkbox"
+                            checked={selected.includes(inv.filename)}
+                            onChange={() => {
+                              setSelected((prev) =>
+                                prev.includes(inv.filename)
+                                  ? prev.filter((f) => f !== inv.filename)
+                                  : [...prev, inv.filename]
+                              );
+                            }}
+                            aria-label={`Zaznacz ${inv.number}`}
+                          />
+                        </td>
+
                         <td>{shortInvNumber(inv.number)}</td>
+
                         <td className="whitespace-normal">{inv.client}</td>
 
                         <td className="text-center">
@@ -2377,6 +2732,43 @@ export default function SavedInvoicesPage() {
           </div>
         </div>
       </section>
+
+      {breakdown && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-4">
+            <div className="flex justify-between items-center mb-3">
+              <h2 className="text-lg">Zestawienie usług</h2>
+              <button
+                className="btn-secondary"
+                onClick={() => setBreakdown(null)}
+              >
+                Zamknij
+              </button>
+            </div>
+
+            {breakdownLoading ? (
+              <div className="text-center py-6">Ładowanie…</div>
+            ) : (
+              <table className="table w-full text-sm">
+                <tbody>
+                  {(breakdown.services || []).map((row) => (
+                    <tr key={row.name}>
+                      <td>{row.name}</td>
+                      <td className="text-right">{pl2(row.total)} PLN</td>
+                    </tr>
+                  ))}
+                  <tr className="border-t">
+                    <td>Razem</td>
+                    <td className="text-right">
+                      {pl2(breakdown.grandTotal)} PLN
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      )}
 
       <ConfirmModal
         open={confirmOpen}

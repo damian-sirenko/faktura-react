@@ -62,6 +62,12 @@ export default defineConfig(({ mode }) => {
         "/auth": tgt,
         "/tools": tgt,
         "/tools/save": tgt,
+        "/mail": tgt,
+        "/sterilization": tgt,
+        "/process-reports": tgt,
+        "/reports": tgt,
+        "/report": tgt,
+        "/disinfection": tgt,
       },
     },
 

@@ -4,6 +4,22 @@ const fs = require("fs");
 const path = require("path");
 const router = express.Router();
 const { query } = require("../server/db.js");
+const pslRepo = require("../server/repos/pslRepo");
+
+const LOG_FILE = "/tmp/analytics.log";
+
+function log(...args) {
+  try {
+    const line =
+      new Date().toISOString() +
+      " " +
+      args
+        .map((a) => (typeof a === "string" ? a : JSON.stringify(a)))
+        .join(" ") +
+      "\n";
+    fs.appendFileSync(LOG_FILE, line, "utf8");
+  } catch {}
+}
 
 // DB helpers
 async function fetchClientsDB() {
@@ -11,10 +27,16 @@ async function fetchClientsDB() {
 }
 async function fetchInvoicesDB(startIso, endIso) {
   return await query(
-    "SELECT * FROM invoices WHERE issueDate>=? AND issueDate<?",
+    `
+    SELECT *
+    FROM invoices
+    WHERE issue_date_real >= ?
+    AND issue_date_real < ?
+    `,
     [startIso, endIso]
   );
 }
+
 async function fetchProtocolsRangeDB(startIso, endIso) {
   const rows = await query(
     `SELECT p.clientId AS id, p.month, e.date, e.packages, e.delivery, e.shipping, e.comment,
@@ -127,13 +149,42 @@ const clampRange = (from, to) => {
 const stripDiacritics = (s) =>
   String(s || "")
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[łŁ]/g, "l");
 const normalizeKey = (s) =>
   stripDiacritics(s)
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, " ")
     .trim()
     .replace(/\s+/g, " ");
+
+const clientCodeOf = (c) => {
+  const v =
+    c.clientId ??
+    c.client_id ??
+    c.clientID ??
+    c.code ??
+    c.kod ??
+    c.Kod ??
+    c["Kod klienta"] ??
+    c["Client ID"] ??
+    c.id ??
+    c.ID ??
+    null;
+  return v ? String(v).trim() : "";
+};
+
+const resolveClientById = (clients, clientId) => {
+  const wanted = String(clientId || "").trim();
+  if (!wanted) return null;
+
+  return (
+    clients.find((c) => String(c.id ?? "").trim() === wanted) ||
+    clients.find((c) => String(c.ID ?? "").trim() === wanted) ||
+    clients.find((c) => clientCodeOf(c) === wanted) ||
+    null
+  );
+};
 
 // Парсинг чисел у PL-нотації: "1 234,56" -> 1234.56, також підтримка NBSP
 const numFromPL = (val) => {
@@ -249,10 +300,12 @@ const normalizeType = (c) =>
 
 // Модель білінгу
 const normalizeBilling = (c) => {
-  const hasAbon = !!String(
-    c?.subscription ?? c?.Abonament ?? c?.abonament ?? ""
-  ).trim();
-  return c?.billingMode || (hasAbon ? "abonament" : "perpiece");
+  const hasAbon = String(c?.subscription ?? c?.Abonament ?? c?.abonament ?? "")
+    .toLowerCase()
+    .includes("steryl");
+
+  if (hasAbon) return "abonament";
+  return "perpiece";
 };
 
 // === STERYl plans (прайс і дозволені квоти) ===
@@ -273,54 +326,56 @@ const ALLOWED_QUOTAS = new Set(
   }).filter(Boolean)
 );
 
-// Категоризація позиції інвойсу за назвою
 const categorizeItemName = (nameRaw) => {
   const name = normalizeKey(nameRaw);
 
-  if (name === "pakiety poza abonamentem") return "overquota";
+  if (name.startsWith("sterylizacja narzedzi wg abonamentu steryl")) {
+    return "abonBase";
+  }
 
-  if (
-    name.includes("wg abonamentu") ||
-    name === "abonament" ||
-    name.includes("abonament")
-  )
-    return "abon";
-
-  if (
-    name.includes("poza abonamentem") ||
-    name.includes("poza-abonamentem") ||
-    name.includes("poza  abonamentem") ||
-    name.includes("poza limit") ||
-    name.includes("poza limitem") ||
-    name.includes("nadlimit") ||
-    name.includes("ponad abonament") ||
-    name.includes("ponad-abonament") ||
-    name.includes("over quota") ||
-    name.includes("overquota") ||
-    (name.includes("pakiet") &&
-      name.includes("poza") &&
-      name.includes("abonament"))
-  )
-    return "overquota";
-
-  if (
-    name.includes("kurier") ||
-    name.includes("dojazd kurier") ||
-    name.includes("dowoz") ||
-    name.includes("dojazd")
-  )
-    return "courier";
-
-  if (
-    name.includes("wysylka") ||
-    name.includes("wysyłka") ||
-    name.includes("przesylka") ||
-    name.includes("przesyłka") ||
-    name.includes("shipping")
-  )
+  if (name.includes("wysylka")) {
     return "shipping";
+  }
+
+  if (name.includes("dojazd")) {
+    return "courier";
+  }
+
+  if (name.includes("poza abonamentem")) {
+    return "overquota";
+  }
 
   return "other";
+};
+const itemNameOf = (it) =>
+  String(
+    it?.name ??
+      it?.title ??
+      it?.description ??
+      it?.Nazwa ??
+      it?.Item ??
+      it?.product ??
+      it?.productName ??
+      ""
+  ).trim();
+
+const isInvoiceAbonamentByItems = (items) => {
+  for (const it of items) {
+    const n = normalizeKey(itemNameOf(it));
+    if (n.startsWith("sterylizacja narzedzi wg abonamentu steryl")) return true;
+  }
+  return false;
+};
+
+const billingModeForInvoice = (client, items) => {
+  if (
+    Array.isArray(items) &&
+    items.length > 0 &&
+    isInvoiceAbonamentByItems(items)
+  ) {
+    return "abonament";
+  }
+  return normalizeBilling(client);
 };
 
 function* monthsIter(from, toExcl) {
@@ -400,51 +455,182 @@ const retentionFromSets = (monthly, setMap) => {
   return { series, last, avgRetentionRate };
 };
 
-// --- MAIN: POST /analytics/query {from?: 'YYYY-MM-DD', to?: 'YYYY-MM-DD'}
 router.post("/query", async (req, res) => {
   try {
+    log("[ANALYTICS] /query START");
+
     // вимкнути кешування відповіді
     res.set("Cache-Control", "no-store");
 
     const { from, to } = req.body || {};
-    const range = clampRange(from, to);
-    const t = to ? parseISO(to) : null;
-    const endExcl = t
-      ? new Date(t.getFullYear(), t.getMonth(), t.getDate() + 1)
-      : range.end;
+    const start = from
+      ? firstOfMonth(parseISO(from))
+      : firstOfMonth(new Date());
+    const endExcl = to
+      ? new Date(parseISO(to).getFullYear(), parseISO(to).getMonth() + 1, 1)
+      : nextMonth(firstOfMonth(new Date()));
+
+    const range = { start, end: endExcl };
 
     const clients = await fetchClientsDB();
     const protocols = await fetchProtocolsRangeDB(
-      toLocalISO(range.start),
-      toLocalISO(endExcl)
-    );
-    const invoices = await fetchInvoicesDB(
-      toLocalISO(range.start),
+      toLocalISO(start),
       toLocalISO(endExcl)
     );
 
-    // Мапи клієнтів для розпізнавання у фактурах
-    const byNameExact = new Map();
-    const byNameNorm = new Map();
-    for (const c of clients) {
-      const name = String(c.name || c.Klient || "").trim();
-      if (name) {
-        byNameExact.set(name, c);
-        byNameNorm.set(normalizeKey(name), c);
+    const invoices = await fetchInvoicesDB(
+      toLocalISO(start),
+      toLocalISO(endExcl)
+    );
+
+    log("[DB]", {
+      clients: clients.length,
+      protocols: protocols.length,
+      invoices: invoices.length,
+    });
+
+    console.log("[ANALYTICS][INVOICES] fetched:", invoices.length);
+    console.log(
+      "[ANALYTICS][INVOICES] with items_json:",
+      invoices.filter((i) => String(i.items_json || "").trim().length > 2)
+        .length
+    );
+
+    // === PAYMENTS (abonament invoices only) ===
+    const abonInvoiceRe = /^K\d{3}-[A-Z]{2,3}$/;
+
+    const paymentsMap = new Map();
+    // ym -> {
+    //   issued: number,
+    //   paidCount: number,
+    //   unpaidCount: number,
+    //   paidSum: number,
+    //   unpaidSum: number
+    // }
+
+    function ensurePaymentBucket(ym) {
+      if (!paymentsMap.has(ym)) {
+        paymentsMap.set(ym, {
+          issued: 0,
+          paidCount: 0,
+          unpaidCount: 0,
+          paidSum: 0,
+          unpaidSum: 0,
+        });
+      }
+      return paymentsMap.get(ym);
+    }
+
+    const issuedClientsByMonth = new Map(); // ym -> Set(clientCode)
+    const paidClientsByMonth = new Map();
+    const unpaidClientsByMonth = new Map();
+
+    // === PAYMENTS CALCULATION (SEPARATE LOOP) ===
+    for (const inv of invoices) {
+      const clientCode = String(
+        inv.clientId || inv.client_id || inv.clientID || ""
+      ).toUpperCase();
+
+      // тільки клієнти з абонементом (K###-XX)
+      if (!abonInvoiceRe.test(String(clientCode))) continue;
+
+      if (!abonInvoiceRe.test(clientCode)) continue;
+
+      const rawDate = inv.issue_date_real || inv.issueDate || null;
+
+      let d = parseISO(rawDate);
+
+      if (!d && typeof rawDate === "string" && /^\d{4}-\d{2}$/.test(rawDate)) {
+        const [Y, M] = rawDate.split("-").map(Number);
+        d = new Date(Y, M - 1, 1);
+      }
+
+      if (!d || !(d >= start && d < endExcl)) continue;
+
+      const ym = yymm(firstOfMonth(d));
+      const bucket = ensurePaymentBucket(ym);
+      bucket.issued++;
+      if (!issuedClientsByMonth.has(ym)) {
+        issuedClientsByMonth.set(ym, new Set());
+        paidClientsByMonth.set(ym, new Set());
+        unpaidClientsByMonth.set(ym, new Set());
+      }
+
+      issuedClientsByMonth.get(ym).add(clientCode);
+
+      // 2️⃣ сума фактури
+      let invoiceSum =
+        numFromPL(inv.gross) ||
+        numFromPL(inv.total_gross) ||
+        numFromPL(inv.total) ||
+        numFromPL(inv.brutto) ||
+        0;
+
+      if (!invoiceSum) {
+        try {
+          const items = JSON.parse(inv.items_json || "[]");
+
+          if (Array.isArray(items)) {
+            for (const it of items) {
+              invoiceSum +=
+                it.gross_total != null
+                  ? numFromPL(it.gross_total)
+                  : it.gross_price != null && it.quantity != null
+                  ? numFromPL(it.gross_price) * qtyFromAny(it.quantity)
+                  : 0;
+            }
+          }
+        } catch {}
+      }
+
+      // 3️⃣ статус
+      const status = String(
+        inv.status || inv.paymentStatus || inv.payment_status || ""
+      ).toLowerCase();
+
+      const isPaid =
+        status.includes("paid") ||
+        status.includes("opłac") ||
+        status.includes("oplac") ||
+        status.includes("zapłac") ||
+        status.includes("zaplac");
+
+      if (isPaid) {
+        bucket.paidCount++;
+        bucket.paidSum += invoiceSum;
+      } else {
+        bucket.unpaidCount++;
+        bucket.unpaidSum += invoiceSum;
       }
     }
-    const resolveClientFromInvoice = (inv) => {
-      const name = String(inv.client || "").trim();
-      if (!name) return null;
-      return (
-        byNameExact.get(name) || byNameNorm.get(normalizeKey(name)) || null
-      );
-    };
+
+    const pslIndex = await pslRepo.savedIndex();
+
+    console.log("[ANALYTICS][PSL]", {
+      rows: Array.isArray(pslIndex) ? pslIndex.length : null,
+      sample: Array.isArray(pslIndex) ? pslIndex[0] : null,
+    });
+
+    const pslByMonth = new Map();
+    // структура: ym -> { total, ship }
+    for (const row of pslIndex) {
+      const ym = row.ym;
+      const total = Number(row.totals?.total || 0);
+      const ship = Number(row.totals?.ship || 0);
+
+      if (!pslByMonth.has(ym)) {
+        pslByMonth.set(ym, { total: 0, ship: 0 });
+      }
+
+      const acc = pslByMonth.get(ym);
+      acc.total += total;
+      acc.ship += ship;
+    }
 
     // KPI: нові/активні/архівні клієнти (по договорах)
     const newClients = clients.filter((c) => {
       const s = parseISO(c.agreementStart || c["Data podpisania umowy"]);
-      return s && s >= range.start && s < range.end;
+      return s && s >= start && s < range.end;
     }).length;
 
     // Активні за протоколами у періоді
@@ -453,7 +639,7 @@ router.post("/query", async (req, res) => {
     for (const p of protocols) {
       for (const e of p?.entries || []) {
         const d = parseISO(e.date);
-        if (d && d >= range.start && d < endExcl) {
+        if (d && d >= start && d < endExcl) {
           allEntries.push({ ...e, _pid: p.id });
           const cid =
             e.clientId ||
@@ -527,7 +713,7 @@ router.post("/query", async (req, res) => {
 
     // Місячні кошики в діапазоні
     const monthsInRange = new Set();
-    for (const dt of monthsIter(range.start, endExcl)) {
+    for (const dt of monthsIter(start, endExcl)) {
       monthsInRange.add(yymm(dt));
     }
 
@@ -538,39 +724,24 @@ router.post("/query", async (req, res) => {
     const actByInvoice = new Map(); // ym -> Set(clientKey)
     const actByProtocol = new Map(); // ym -> Set(clientKey)
 
-    // PSL "na sztuki" рахуємо ВИКЛЮЧНО з інвойсів клієнтів з billingMode='perpiece'
-    let perpieceGross = 0;
-    let perpieceSteril = 0;
-    let pslShippingAmount = 0;
-    let pslShippingCount = 0;
-    const perpieceActiveSet = new Set();
-    const pslMonthly = new Map(); // ym -> { steril: 0, shipping: 0, gross: 0 }
-    for (const ym of monthsInRange) {
-      pslMonthly.set(ym, { steril: 0, shipping: 0, gross: 0 });
-    }
-
-    // Ініціалізація кошиків/сетів по місяцях
-    for (const dt of monthsIter(range.start, endExcl)) {
+    for (const dt of monthsIter(start, endExcl)) {
       const ym = yymm(dt);
+
       seriesMap.set(ym, {
         ym,
-        total: 0,
-        abon: 0,
-        overquota: 0,
-        overquotaCount: 0,
-        shipping: 0,
-        courier: 0,
-        other: 0,
-        byType: { firma: 0, op: 0 },
-        byBilling: { abonament: 0, perpiece: 0, unknown: 0 },
+        abonBase: 0,
+        abonCourier: 0,
+        abonOverquota: 0,
+        abonShipping: 0,
+        perpieceShipping: 0,
+        pieceTotal: 0,
       });
+
       actAll.set(ym, new Set());
       actByType.firma.set(ym, new Set());
       actByType.op.set(ym, new Set());
       actByBilling.abonament.set(ym, new Set());
       actByBilling.perpiece.set(ym, new Set());
-      actByInvoice.set(ym, new Set());
-      actByProtocol.set(ym, new Set());
     }
 
     // Активні клієнти за договорами по місяцях
@@ -596,134 +767,157 @@ router.post("/query", async (req, res) => {
     // Діагностика по overquota
     const debugOverquotaMatches = [];
 
-    // Доходи за місяцями (фактури)
+    // Dochód miesięczny – dane do tabeli (spójne z kategoryzacją pozycji)
     for (const inv of invoices) {
-      const d = parseISO(inv.issueDate || inv.issue_date || inv.date);
-      if (!d || !(d >= range.start && d < endExcl)) continue;
+      const clientId = inv.clientId || inv.client_id || inv.clientID || null;
+      const client = resolveClientById(clients, clientId);
+      const safeClient = client || {};
+
+      const rawIssue = inv.issueDate || null;
+
+      const d = parseISO(rawIssue);
+
+      if (!d) {
+        console.log("[ANALYTICS][BAD INVOICE DATE]", {
+          id: inv.id,
+          rawIssue,
+          issueDate: inv.issueDate,
+          issue_date: inv.issue_date,
+          date: inv.date,
+          createdAt: inv.createdAt,
+        });
+        continue;
+      }
+
+      if (!(d >= range.start && d < endExcl)) continue;
+
       const ym = yymm(firstOfMonth(d));
       if (!seriesMap.has(ym)) continue;
 
       const bucket = seriesMap.get(ym);
 
-      // сегменти клієнта
-      const client = resolveClientFromInvoice(inv);
-      const ty = client ? normalizeType(client) : null;
-      const bm = client ? normalizeBilling(client) : null;
+      // TEMP DEBUG
+      console.log("[ANALYTICS][INV CLIENT RAW]", {
+        invoiceId: inv.id,
+        clientId: inv.clientId,
+        client_id: inv.client_id,
+        clientID: inv.clientID,
+        client: inv.client,
+      });
 
-      // активність за інвойсом
-      const clientKey =
-        client?.id || normalizeKey(String(inv.client || "")) || null;
-      if (clientKey) {
-        actByInvoice.get(ym).add(clientKey);
+      let items = [];
+
+      try {
+        console.log("[ANALYTICS][INV RAW]", {
+          id: inv.id,
+          clientName: inv.clientName,
+          issueDate: inv.issueDate,
+          items_json_len: (inv.items_json || "").length,
+          items_json_preview: String(inv.items_json || "").slice(0, 200),
+          shippingGross: inv.shippingGross,
+          shipping_price_gross: inv.shipping_price_gross,
+          shipping: inv.shipping,
+        });
+
+        items = JSON.parse(inv.items_json || "[]");
+        if (!Array.isArray(items)) items = [];
+      } catch {
+        items = [];
       }
 
-      const items = Array.isArray(inv.items) ? inv.items : [];
-      if (items.length > 0) {
-        for (const it of items) {
-          const itemNameRaw =
-            it.name ??
-            it.title ??
-            it.description ??
-            it.Nazwa ??
-            it.Item ??
-            it.product ??
-            it.productName ??
-            "";
+      if (items.length === 0) {
+        continue;
+      }
 
-          const cat = categorizeItemName(itemNameRaw);
+      const invoiceBilling = billingModeForInvoice(client, items);
 
-          const v =
-            it.gross_total != null
-              ? numFromPL(it.gross_total)
-              : it.total_gross != null
-              ? numFromPL(it.total_gross)
-              : it.grossTotal != null
-              ? numFromPL(it.grossTotal)
-              : it.gross_price != null && it.quantity != null
-              ? numFromPL(it.gross_price) * qtyFromAny(it.quantity)
-              : it.price_gross != null && it.qty != null
-              ? numFromPL(it.price_gross) * qtyFromAny(it.qty)
-              : it.brutto != null
-              ? numFromPL(it.brutto)
-              : it.total != null
-              ? numFromPL(it.total)
-              : 0;
-
-          const q =
-            qtyFromAny(
-              it.quantity ??
-                it.qty ??
-                it.count ??
-                it.amount ??
-                it.ilosc ??
-                it.Ilosc
-            ) || 0;
-
-          // агрегування загальне
-          bucket[cat] += v;
-          bucket.total += v;
-
-          // PSL з фактур: лише клієнти 'perpiece'
-          if (bm === "perpiece") {
-            const mb = pslMonthly.get(ym) || {
-              steril: 0,
-              shipping: 0,
-              gross: 0,
-            };
-
-            if (cat === "shipping") {
-              mb.shipping += v;
-              pslShippingAmount += v;
-              pslShippingCount += q > 0 ? q : 1;
-              mb.gross += v;
-            } else if (cat === "courier") {
-              // кур'єр не входить у shipping, але входить у gross
-              mb.gross += v;
-            } else {
-              // все інше як стерилізація
-              mb.steril += v;
-              mb.gross += v;
-            }
-
-            pslMonthly.set(ym, mb);
-            if (clientKey) perpieceActiveSet.add(String(clientKey));
-          }
-
-          if (cat === "overquota") {
-            bucket.overquotaCount = (bucket.overquotaCount || 0) + q;
-            debugOverquotaMatches.push({
-              ym,
-              name: itemNameRaw,
-              qtyParsed: q,
-              rawQty:
-                it.quantity ??
-                it.qty ??
-                it.count ??
-                it.amount ??
-                it.ilosc ??
-                it.Ilosc ??
-                null,
-              grossParsed: v,
-            });
-          }
-
-          if (ty) bucket.byType[ty] += v;
-          if (bm === "abonament" || bm === "perpiece")
-            bucket.byBilling[bm] += v;
-          else bucket.byBilling.unknown += v;
+      for (const it of items) {
+        const itemNameRaw =
+          it.name ??
+          it.title ??
+          it.description ??
+          it.Nazwa ??
+          it.Item ??
+          it.product ??
+          it.productName ??
+          "";
+        console.log("[ANALYTICS][ITEM NAME]", it.name);
+        const cat = categorizeItemName(itemNameRaw);
+        if (normalizeKey(itemNameRaw).includes("wysylka")) {
+          console.log("[ANALYTICS][SHIP MATCH CHECK]", {
+            invoiceId: inv.id,
+            issueDate: inv.issueDate || inv.issue_date || inv.date,
+            itemNameRaw,
+            normalized: normalizeKey(itemNameRaw),
+            cat,
+          });
         }
-      } else {
-        // fallback: коли немає items — беремо загальну суму інвойсу
-        const gross = numFromPL(inv.gross);
-        const net = numFromPL(inv.net);
-        const v = gross || net || 0;
-        bucket.other += v;
-        bucket.total += v;
-        if (ty) bucket.byType[ty] += v;
-        if (bm === "abonament" || bm === "perpiece") bucket.byBilling[bm] += v;
-        else bucket.byBilling.unknown += v;
+
+        const qty =
+          it.quantity != null
+            ? qtyFromAny(it.quantity)
+            : it.qty != null
+            ? qtyFromAny(it.qty)
+            : 1;
+
+        const v =
+          it.gross_total != null
+            ? numFromPL(it.gross_total)
+            : it.total_gross != null
+            ? numFromPL(it.total_gross)
+            : it.grossTotal != null
+            ? numFromPL(it.grossTotal)
+            : it.gross_price != null
+            ? numFromPL(it.gross_price) * (qty || 1)
+            : it.price_gross != null
+            ? numFromPL(it.price_gross) * qty
+            : it.net_total != null
+            ? numFromPL(it.net_total) * 1.23
+            : it.net_price != null
+            ? numFromPL(it.net_price) * 1.23
+            : 0;
+        if (cat === "shipping") {
+          console.log("[ANALYTICS][SHIP ITEM RAW]", {
+            invoiceId: inv.id,
+            itemNameRaw,
+            quantity: it.quantity,
+            gross_price: it.gross_price,
+            gross_total: it.gross_total,
+            net_total: it.net_total,
+            parsed_gross_total: numFromPL(it.gross_total),
+          });
+          console.log("[ANALYTICS][SHIP V]", {
+            invoiceId: inv.id,
+            v,
+            qty,
+            raw: it,
+          });
+        }
+
+        const billing = invoiceBilling;
+        if (billing === "abonament") {
+          if (cat === "shipping") {
+            bucket.abonShipping = (bucket.abonShipping || 0) + v;
+          } else if (cat === "abonBase") {
+            bucket.abonBase += v;
+          } else if (cat === "courier") {
+            bucket.abonCourier += v;
+          } else if (cat === "overquota") {
+            bucket.abonOverquota += v;
+          }
+        }
       }
     }
+
+    console.log(
+      "SHIPPING CHECK",
+      Array.from(seriesMap.values()).map((m) => ({
+        ym: m.ym,
+        abonShipping: m.abonShipping,
+        perpieceShipping: m.perpieceShipping,
+        pieceTotal: m.pieceTotal,
+      }))
+    );
 
     // Активність за протоколами (місяці)
     for (const p of protocols) {
@@ -755,105 +949,58 @@ router.post("/query", async (req, res) => {
       (a, m) => a + (m.packages || 0),
       0
     );
+    const monthly = Array.from(seriesMap.values())
+      .map((m) => {
+        const abonBase = Number(m.abonBase || 0);
+        const shipping = Number(m.abonShipping || 0);
+        const courier = Number(m.abonCourier || 0);
+        const overquota = Number(m.abonOverquota || 0);
 
-    // Фіналізація PSL
-    const perpieceActive = perpieceActiveSet.size;
-    perpieceGross = Array.from(pslMonthly.values()).reduce(
-      (s, m) => s + (m.gross || 0),
-      0
+        const abonTotal = abonBase + shipping + courier + overquota;
+        const psl = pslByMonth.get(m.ym) || { total: 0, ship: 0 };
+
+        return {
+          ym: m.ym,
+          abonBase,
+
+          abon: {
+            abon: abonBase,
+            shipping,
+            courier,
+            overquota,
+            total: abonTotal,
+          },
+
+          perpiece: {
+            total: psl.total,
+            shipping: psl.ship,
+            service: psl.total - psl.ship,
+          },
+
+          total: abonTotal + psl.total,
+        };
+      })
+      .sort((a, b) => a.ym.localeCompare(b.ym));
+
+    log(
+      "[MONTHLY]",
+      monthly.map((m) => ({
+        ym: m.ym,
+        total: m.total,
+        abon: m.abon.total,
+        perpiece: m.perpiece.total,
+      }))
     );
-    perpieceSteril = Array.from(pslMonthly.values()).reduce(
-      (s, m) => s + (m.steril || 0),
-      0
+
+    console.log(
+      "[ANALYTICS][MONTHLY OUT]",
+      monthly.map((x) => ({
+        ym: x.ym,
+        total: x.total,
+        abonTotal: x.abon?.total,
+        perpieceTotal: x.perpiece?.total,
+      }))
     );
-    const monthlyPSL = Array.from(pslMonthly.entries())
-      .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([ym, v]) => ({
-        ym,
-        steril: v.steril,
-        shipping: v.shipping,
-        gross: v.gross,
-      }));
-
-    const monthly = Array.from(seriesMap.values()).sort((a, b) =>
-      a.ym.localeCompare(b.ym)
-    );
-
-    // Retention / Churn
-    const retentionContract = retentionFromSets(monthly, actAll);
-    const retentionByInvoices = retentionFromSets(monthly, actByInvoice);
-    const retentionByProtocols = retentionFromSets(monthly, actByProtocol);
-
-    // ARPU
-    const arpuOverall = monthly.map((m) => {
-      const active = (actAll.get(m.ym) || new Set()).size || 0;
-      return { ym: m.ym, arpu: active ? m.total / active : 0 };
-    });
-    const arpuByType = {
-      firma: monthly.map((m) => {
-        const active = (actByType.firma.get(m.ym) || new Set()).size || 0;
-        const rev = m.byType.firma || 0;
-        return { ym: m.ym, arpu: active ? rev / active : 0 };
-      }),
-      op: monthly.map((m) => {
-        const active = (actByType.op.get(m.ym) || new Set()).size || 0;
-        const rev = m.byType.op || 0;
-        return { ym: m.ym, arpu: active ? rev / active : 0 };
-      }),
-    };
-    const arpuByBilling = {
-      abonament: monthly.map((m) => {
-        const active =
-          (actByBilling.abonament.get(m.ym) || new Set()).size || 0;
-        const rev = m.byBilling.abonament || 0;
-        return { ym: m.ym, arpu: active ? rev / active : 0 };
-      }),
-      perpiece: monthly.map((m) => {
-        const active = (actByBilling.perpiece.get(m.ym) || new Set()).size || 0;
-        const rev = m.byBilling.perpiece || 0;
-        return { ym: m.ym, arpu: active ? rev / active : 0 };
-      }),
-    };
-
-    const lastMonth = monthly.length ? monthly[monthly.length - 1].ym : null;
-    const pickLastArpu = (arr) => (arr.length ? arr[arr.length - 1].arpu : 0);
-    const mean = (arr) =>
-      arr.length ? arr.reduce((a, x) => a + x, 0) / arr.length : 0;
-
-    const arpuSummary = {
-      latestMonth: {
-        ym: lastMonth,
-        overall: pickLastArpu(arpuOverall),
-        byType: {
-          firma: pickLastArpu(arpuByType.firma),
-          op: pickLastArpu(arpuByType.op),
-        },
-        byBilling: {
-          abonament: pickLastArpu(arpuByBilling.abonament),
-          perpiece: pickLastArpu(arpuByBilling.perpiece),
-        },
-      },
-      averageMonthly: {
-        overall: mean(arpuOverall.map((x) => x.arpu)),
-        byType: {
-          firma: mean(arpuByType.firma.map((x) => x.arpu)),
-          op: mean(arpuByType.op.map((x) => x.arpu)),
-        },
-        byBilling: {
-          abonament: mean(arpuByBilling.abonament.map((x) => x.arpu)),
-          perpiece: mean(arpuByBilling.perpiece.map((x) => x.arpu)),
-        },
-      },
-      series: {
-        overall: arpuOverall,
-        byType: arpuByType,
-        byBilling: arpuByBilling,
-      },
-      usageBased: monthly.map((m) => {
-        const active = (actByInvoice.get(m.ym) || new Set()).size || 0;
-        return { ym: m.ym, arpu: active ? m.total / active : 0 };
-      }),
-    };
 
     // Top clients by revenue
     const byClientMap = new Map();
@@ -863,7 +1010,14 @@ router.post("/query", async (req, res) => {
       );
       if (!d || !(d >= range.start && d < endExcl)) continue;
 
-      const items = Array.isArray(inv.items) ? inv.items : [];
+      let items = [];
+      try {
+        items = JSON.parse(inv.items_json || "[]");
+        if (!Array.isArray(items)) items = [];
+      } catch {
+        items = [];
+      }
+
       let sum = 0;
       if (items.length > 0) {
         for (const it of items) {
@@ -886,13 +1040,68 @@ router.post("/query", async (req, res) => {
         const net = numFromPL(inv.net);
         sum = gross || net || 0;
       }
-      const cl = String(inv.client || "").trim() || "—";
-      byClientMap.set(cl, (byClientMap.get(cl) || 0) + sum);
+      const clientId = inv.clientId || inv.client_id || inv.clientID;
+      if (!clientId) continue;
+
+      byClientMap.set(clientId, (byClientMap.get(clientId) || 0) + sum);
     }
+    console.log(
+      "[ANALYTICS][MONTHLY SHIPPING SUM]",
+      Array.from(seriesMap.values()).map((m) => ({
+        ym: m.ym,
+        abonShipping: m.abonShipping,
+        perpieceShipping: m.perpieceShipping,
+        pieceTotal: m.pieceTotal,
+        abonBase: m.abonBase,
+        abonCourier: m.abonCourier,
+        abonOverquota: m.abonOverquota,
+      }))
+    );
+
     const byClient = Array.from(byClientMap.entries())
       .map(([client, total]) => ({ client, total }))
       .sort((a, b) => b.total - a.total)
       .slice(0, 20);
+
+    console.log("=== ANALYTICS DEBUG ===");
+    console.log("monthly length:", monthly.length);
+    console.log(
+      "monthly non-zero:",
+      monthly.filter(
+        (m) =>
+          m.abonBase !== 0 ||
+          m.abon.shipping !== 0 ||
+          m.abon.courier !== 0 ||
+          m.abon.overquota !== 0
+      )
+    );
+
+    console.log("=======================");
+
+    const paymentsMonthly = Array.from(paymentsMap.entries())
+      .map(([ym, v]) => ({ ym, ...v }))
+      .sort((a, b) => a.ym.localeCompare(b.ym));
+
+    for (const ym of monthsInRange) {
+      if (!paymentsMap.has(ym)) {
+        paymentsMonthly.push({
+          ym,
+          issued: 0,
+          paidCount: 0,
+          unpaidCount: 0,
+          paidSum: 0,
+          unpaidSum: 0,
+        });
+      }
+    }
+
+    paymentsMonthly.sort((a, b) => a.ym.localeCompare(b.ym));
+
+    log("[RESPONSE]", {
+      monthly: monthly.length,
+      paymentsMonthly: paymentsMonthly.length,
+      monthlyPackages: monthlyPackages.length,
+    });
 
     res.json({
       range: {
@@ -905,55 +1114,14 @@ router.post("/query", async (req, res) => {
           )
         ),
       },
-      kpis: {
-        newClients,
-        archivedClients: clients.filter((c) => {
-          const a = archivedDateOf(c);
-          return a && a >= range.start && a < endExcl;
-        }).length,
-        activeClients: activeClientsCount,
-        abonClients: abonClientsCount,
-        packages: packagesTotal,
-        shipments,
-        courierTrips,
-        overquotaValue: monthly.reduce((acc, m) => acc + (m.overquota || 0), 0),
-        perpieceActive,
-        potentialCapacity,
-        perpieceGross,
-        perpieceSteril,
-        pslShippingAmount,
-        pslShippingCount,
-        revenue: monthly.reduce(
-          (acc, m) => {
-            acc.total += m.total;
-            acc.abon += m.abon;
-            acc.overquota += m.overquota;
-            acc.shipping += m.shipping;
-            acc.courier += m.courier;
-            acc.other += m.other;
-            return acc;
-          },
-          { total: 0, abon: 0, overquota: 0, shipping: 0, courier: 0, other: 0 }
-        ),
-        overquotaCount: monthly.reduce(
-          (acc, m) => acc + (m.overquotaCount || 0),
-          0
-        ),
-        _debugOverquotaMatches: debugOverquotaMatches,
-      },
 
       monthly,
-      monthlyPSL,
+
+      paymentsMonthly,
+
       monthlyPackages,
+
       byClient,
-      retention: {
-        series: retentionContract.series,
-        last: retentionContract.last,
-        avgRetentionRate: retentionContract.avgRetentionRate,
-        byInvoices: retentionByInvoices,
-        byProtocols: retentionByProtocols,
-      },
-      arpu: arpuSummary,
     });
   } catch (e) {
     console.error("analytics error:", e);

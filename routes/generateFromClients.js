@@ -56,7 +56,7 @@ function courierTripsOf(delivery) {
   return 0;
 }
 function amountInWordsPL(amount) {
-  const v = Math.round(Number(amount || 0) * 100);
+  const v = Math.round(Number(String(amount || "0").replace(",", ".")) * 100);
   const zl = Math.floor(v / 100);
   const gr = v % 100;
   const zlForms = ["złoty", "złote", "złotych"];
@@ -96,6 +96,7 @@ router.post("/from-clients", async (req, res) => {
     const {
       clientIds: idsRaw,
       issueDate: issueDateStr,
+      dueDate: dueDateStrManual,
       month: monthStr,
     } = req.body || {};
     const clientIds = Array.isArray(idsRaw) ? idsRaw.map(String) : [];
@@ -113,6 +114,10 @@ router.post("/from-clients", async (req, res) => {
         : `${y}-${m}`;
 
     const settings = await settingsRepo.get();
+    console.log("[GEN][SETTINGS]", {
+      shippingPriceGross: settings.shippingPriceGross,
+      courierPriceGross: settings.courierPriceGross,
+    });
 
     const perPiece = Number(settings.perPiecePriceGross || 6);
     const vat = Number(settings.defaultVat || 23);
@@ -127,10 +132,8 @@ router.post("/from-clients", async (req, res) => {
       : allClients;
 
     const monthLabel = `${month.slice(5)}/${month.slice(0, 4)}`; // MM/YYYY
-    const polishMonth = getPolishMonthName(Number(month.slice(5)) - 1);
-    const dateFolderPart = iso10Local(new Date());
-    const folderName = `Faktury_${polishMonth}_${dateFolderPart}`;
-    const outputDir = path.join(GENERATED_DIR, folderName).normalize("NFC");
+    const folderName = `faktury_${month.slice(5)}_${month.slice(0, 4)}`;
+    const outputDir = path.join(GENERATED_DIR, "faktury", folderName);
     fs.mkdirSync(outputDir, { recursive: true });
 
     const files = [];
@@ -170,9 +173,9 @@ router.post("/from-clients", async (req, res) => {
           : globalCourier;
 
       const shippingUnit =
-        String(baseClient.shippingPriceMode || "") === "custom"
+        baseClient.shippingPriceMode === "custom"
           ? Number(baseClient.shippingPriceGross || 0)
-          : globalShipping;
+          : Number(settings.shippingPriceGross || 0);
 
       const billingMode = billingModeInit;
       const items = [];
@@ -262,6 +265,7 @@ router.post("/from-clients", async (req, res) => {
         const netU = shippingUnit / (1 + vat / 100);
         const netT = netU * shipments;
         const grossT = shippingUnit * shipments;
+
         items.push({
           name: "Wysyłka",
           quantity: shipments,
@@ -288,41 +292,46 @@ router.post("/from-clients", async (req, res) => {
         (s, p) => s + Number(String(p.vat_amount).replace(",", ".")),
         0
       );
-
       let dueDateStr;
       if (
-        settings.dueMode === "fixed" &&
-        typeof settings.dueFixedDate === "string" &&
-        /^\d{4}-\d{2}-\d{2}$/.test(settings.dueFixedDate)
+        typeof dueDateStrManual === "string" &&
+        /^\d{4}-\d{2}-\d{2}$/.test(dueDateStrManual)
       ) {
-        dueDateStr = settings.dueFixedDate;
+        dueDateStr = dueDateStrManual;
       } else {
-        const add = Number(settings.dueDays ?? 7) || 0;
         const tmp = new Date(issueDate);
-        tmp.setDate(tmp.getDate() + add);
+        tmp.setDate(tmp.getDate() + 7);
         dueDateStr = iso10Local(tmp);
       }
 
       const number = await (async () => {
         const INVOICE_PREFIX = "ST";
-        const [yStr, mStr] = String(month).split("-");
-        const y = Number(yStr);
-        const m = mStr;
-        const key = `${y}-${m}`;
+        const [year, monthNum] = month.split("-"); // YYYY-MM
 
-        let next = await invoicesRepo.getCounter(key);
-        if (next == null) next = 1;
+        const rows = await invoicesRepo.queryAllInvoices();
 
-        while (true) {
-          const three = String(next).padStart(3, "0");
-          const candidate = `${INVOICE_PREFIX}-${three}/${m}/${y}`;
-          const exists = await invoicesRepo.getInvoiceByNumber(candidate);
-          if (!exists) {
-            await invoicesRepo.setCounter(key, next + 1);
-            return candidate;
+        let maxSeq = 0;
+        let width = 3;
+
+        for (const r of rows || []) {
+          const n = String(r?.number || "").trim();
+          const m = /^ST-(\d+)\/(\d{2})\/(\d{4})$/.exec(n);
+          if (!m) continue;
+          if (m[2] !== monthNum || m[3] !== year) continue;
+
+          const seq = parseInt(m[1], 10);
+          if (!Number.isFinite(seq)) continue;
+
+          if (seq > maxSeq) {
+            maxSeq = seq;
+            width = Math.max(3, m[1].length);
           }
-          next++;
         }
+
+        const nextSeq = maxSeq + 1;
+        const pad = String(nextSeq).padStart(width, "0");
+
+        return `${INVOICE_PREFIX}-${pad}/${monthNum}/${year}`;
       })();
 
       const isFirma = String(baseClient.type || "op").toLowerCase() === "firma";
@@ -337,6 +346,8 @@ router.post("/from-clients", async (req, res) => {
       const issueISO = iso10Local(issueDate);
 
       const invoiceData = {
+        clientId: baseClient.id, // ← КРИТИЧНО
+        month,
         number,
         place: "Kraków",
         issue_date: issueISO,
@@ -365,8 +376,20 @@ router.post("/from-clients", async (req, res) => {
         issuer: "Pracownik",
       };
 
-      const fileSafeNumber = invoiceData.number.replaceAll("/", "_");
-      const filePath = path.join(outputDir, `Faktura_${fileSafeNumber}.pdf`);
+      const clientUid = String(baseClient.id).trim().toUpperCase();
+
+      const fileSafeNumber = String(invoiceData.number)
+        .replaceAll("/", "_")
+        .toUpperCase();
+
+      const filePath = path.join(
+        outputDir,
+        `FAKTURA_${fileSafeNumber}_${clientUid}.pdf`
+      );
+      
+      const fileNameOnly = path.basename(filePath);
+      
+
       try {
         await generateInvoicePDF(invoiceData, filePath);
 
@@ -374,14 +397,16 @@ router.post("/from-clients", async (req, res) => {
 
         await invoicesRepo.insertInvoice({
           number: invoiceData.number,
-          client: invoiceData.buyer_name,
+          clientId: baseClient.id,
+          clientName: invoiceData.buyer_name,
           issueDate: invoiceData.issue_date,
           dueDate: invoiceData.due_date,
           net: invoiceData.net_sum,
           gross: invoiceData.gross_sum,
-          filename: `Faktura_${fileSafeNumber}.pdf`,
-          folder: folderName,
-          items: invoiceData.items,
+          payment_method: "transfer",
+          filename: fileNameOnly,
+          folder: `faktury/${folderName}`,
+          items_json: JSON.stringify(invoiceData.items),
           buyer_address: invoiceData.buyer_address,
           buyer_nip: isFirma ? baseClient.nip || "" : "",
           buyer_pesel: !isFirma ? baseClient.pesel || "" : "",
@@ -415,8 +440,13 @@ router.post("/from-clients", async (req, res) => {
     res.setHeader("Content-Type", "application/zip");
     fs.createReadStream(zipPath).pipe(res);
   } catch (e) {
-    console.error("GEN from clients (MySQL) error:", e);
-    res.status(500).json({ error: "Błąd generowania z bazy (MySQL)" });
+    console.error("GEN from clients (MySQL) error:");
+    console.error(e);
+    console.error(e?.stack);
+    res.status(500).json({
+      error: "Błąd generowania z bazy (MySQL)",
+      details: String(e?.message || e),
+    });
   }
 });
 

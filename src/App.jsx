@@ -29,6 +29,12 @@ import ClientsAbonPage from "./pages/ClientsAbonPage";
 import ClientsPrivatePage from "./pages/ClientsPrivatePage";
 import ClientsArchivePage from "./pages/ClientsArchivePage";
 import LoginPage from "./pages/LoginPage";
+import EmailPreviewPage from "./pages/EmailPreviewPage";
+import ProtocolEntryPage from "./pages/ProtocolEntryPage";
+import SterilizationCyclesPage from "./pages/SterilizationCyclesPage";
+import SterilizationCycleDetailsPage from "./pages/SterilizationCycleDetailsPage";
+import DisinfectionProcessLogPage from "./pages/DisinfectionReportsPage.jsx";
+import DisinfectionReportDetailsPage from "./pages/DisinfectionReportDetailsPage";
 
 /* ===== Helpers for UX ===== */
 function ScrollToTop() {
@@ -45,25 +51,29 @@ function RouteTitle() {
 
   useEffect(() => {
     const map = [
-      [/^\/$/, "Strona główna • Panel faktur"],
-      [/^\/generate$/, "Generuj faktury • Panel faktur"],
-      [/^\/clients$/, "Baza klientów • Panel faktur"],
-      [/^\/stats$/, "Statystyki • Panel faktur"],
-      [/^\/saved$/, "Zapisane faktury • Panel faktur"],
-      [/^\/admin-counter$/, "Ustawienia i licznik • Panel faktur"],
-      [/^\/sign-queue/, "Protokoły do podpisu • Panel faktur"],
-      [/^\/signatures-lab$/, "Laboratorium podpisów • Panel faktur"],
+      [/^\/$/, "Strona główna • Panel • STERYL SERWIS"],
+      [/^\/generate$/, "Generuj faktury • Panel • STERYL SERWIS"],
+      [/^\/clients$/, "Klienci • Panel • STERYL SERWIS"],
+      [/^\/stats$/, "Statystyki • Panel • STERYL SERWIS"],
+      [/^\/saved$/, "Faktury • Panel • STERYL SERWIS"],
+      [/^\/admin-counter$/, "Ustawienia • Panel • STERYL SERWIS"],
+      [/^\/sign-queue/, "Protokoły do podpisu • Panel • STERYL SERWIS"],
+      [/^\/signatures-lab$/, "Laboratorium podpisów • Panel • STERYL SERWIS"],
       [
         /^\/documents\/protocols\/[^/]+\/\d{4}-\d{2}$/,
         "Protokół • Panel faktur",
       ],
-      [/^\/documents\/protocols$/, "Dokumenty → Protokoły • Panel faktur"],
-      [/^\/documents\/invoices$/, "Dokumenty → Faktury • Panel faktur"],
-      [/^\/documents\/tools$/, "Dokumenty → Narzędzia • Panel faktur"],
-      [/^\/login$/, "Logowanie • Panel faktur"],
+      [/^\/documents\/protocols$/, "Protokoły • Panel • STERYL SERWIS"],
+      [
+        /^\/documents\/invoices$/,
+        "Dokumenty → Faktury • Panel • STERYL SERWIS",
+      ],
+      [/^\/documents\/tools$/, "Lista narzędzii • Panel • STERYL SERWIS"],
+      [/^\/login$/, "Logowanie • Panel • STERYL SERWIS"],
     ];
 
-    const title = map.find(([re]) => re.test(pathname))?.[1] || "Panel faktur";
+    const title =
+      map.find(([re]) => re.test(pathname))?.[1] || "Panel | STERYL SERWIS";
     document.title = title;
   }, [pathname]);
 
@@ -133,7 +143,6 @@ export default function App() {
           <Routes>
             {/* Публічний логін */}
             <Route path="/login" element={<LoginPage />} />
-
             {/* Усі інші — за AuthGate */}
             <Route
               path="/"
@@ -143,13 +152,11 @@ export default function App() {
                 </AuthGate>
               }
             />
-
             {/* FIX: /generate не повинен рендерити порожній <AuthGate> */}
             <Route
               path="/generate"
               element={<Navigate to="/documents/invoices" replace />}
             />
-
             <Route
               path="/clients"
               element={<Navigate to="/clients/abonamentowi" replace />}
@@ -214,7 +221,7 @@ export default function App() {
               path="/documents/invoices"
               element={
                 <AuthGate>
-                  <div className="p-4">Faktury (w przygotowaniu)</div>
+                  <SavedInvoicesPage />
                 </AuthGate>
               }
             />
@@ -255,6 +262,40 @@ export default function App() {
               element={
                 <AuthGate>
                   <ClientsArchivePage />
+                </AuthGate>
+              }
+            />
+            <Route
+              path="/email/preview"
+              element={
+                <AuthGate>
+                  <EmailPreviewPage />
+                </AuthGate>
+              }
+            />
+            <Route path="/protocol-entry" element={<ProtocolEntryPage />} />
+            <Route
+              path="/sterilization"
+              element={<SterilizationCyclesPage />}
+            />
+            <Route
+              path="/sterilization/cycle/:id"
+              element={<SterilizationCycleDetailsPage />}
+            />
+
+            <Route
+              path="/disinfection/report"
+              element={
+                <AuthGate>
+                  <DisinfectionProcessLogPage />
+                </AuthGate>
+              }
+            />
+            <Route
+              path="/disinfection/cycle/:cycleNumber"
+              element={
+                <AuthGate>
+                  <DisinfectionReportDetailsPage />
                 </AuthGate>
               }
             />

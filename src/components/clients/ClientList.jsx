@@ -78,6 +78,28 @@ export default function ClientList({
   if (!Array.isArray(clients) || clients.length === 0) {
     return <div className="card">Brak klientów w bazie.</div>;
   }
+  const sortedClients = [...clients]
+    .map((c, idx) => ({
+      ...c,
+      __order: idx,
+    }))
+    .sort((a, b) => {
+      const extractNum = (val) => {
+        const m = String(val || "").match(/(\d+)/);
+        return m ? parseInt(m[1], 10) : -Infinity;
+      };
+
+      const aNum = extractNum(a.id ?? a.ID);
+      const bNum = extractNum(b.id ?? b.ID);
+
+      if (aNum !== bNum) {
+        return bNum - aNum; // DESC: 166, 165, 164…
+      }
+
+      // fallback: порядок з бекенду
+      return b.__order - a.__order;
+    });
+
 
   const idsOnPage = clients.map(idFromClient).filter(Boolean);
   const allOnPageChecked =
@@ -89,30 +111,20 @@ export default function ClientList({
   const COL_PCT = (() => {
     const base = {
       select: 4, // checkbox
-      no: 4, // #
+      no: 6, // #
       id: 8, // ID
+      name: 24, // Nazwa  ← ТУТ ТЕПЕР РУЧНЕ КЕРУВАННЯ
       email: 18, // Email
       phone: 10, // Telefon
       abon: 10, // Abonament
       actions: 20, // Akcje
     };
 
-    const used =
-      (selectable ? base.select : 0) +
-      base.no +
-      base.id +
-      base.email +
-      base.phone +
-      (showAbonFields ? base.abon : 0) +
-      base.actions;
-
-    const name = Math.max(10, 100 - used);
-
     return {
       select: `${base.select}%`,
       no: `${base.no}%`,
       id: `${base.id}%`,
-      name: `${name}%`,
+      name: `${base.name}%`,
       email: `${base.email}%`,
       phone: `${base.phone}%`,
       abon: `${base.abon}%`,
@@ -122,7 +134,7 @@ export default function ClientList({
 
   return (
     <div className="relative w-full max-w-full overflow-x-auto">
-      <table className="table w-full table-fixed">
+      <table className="table w-full table-fixed align-middle">
         <colgroup>
           {selectable && <col style={{ width: COL_PCT.select }} />}
           <col style={{ width: COL_PCT.no }} />
@@ -134,7 +146,7 @@ export default function ClientList({
           <col style={{ width: COL_PCT.actions }} />
         </colgroup>
 
-        <thead>
+        <thead className="[&_th]:align-middle">
           <tr>
             {selectable && (
               <th className="text-center whitespace-nowrap">
@@ -158,8 +170,8 @@ export default function ClientList({
           </tr>
         </thead>
 
-        <tbody>
-          {clients.map((c, i) => {
+        <tbody className="[&_td]:align-middle">
+          {sortedClients.map((c, i) => {
             const id = idFromClient(c);
             const name = c.name || "-";
             const email = c.email || "-";
@@ -184,7 +196,18 @@ export default function ClientList({
                 <td className="text-center">{i + 1}</td>
                 <td className="whitespace-nowrap text-xs">{id}</td>
                 <td className="break-words">{name}</td>
-                <td className="break-words">{email}</td>
+                <td
+                  className="break-words cursor-pointer text-blue-600 hover:underline"
+                  onClick={() => {
+                    if (!email || email === "-") return;
+                    navigator.clipboard.writeText(email);
+                    setToastMsg("Email skopiowany");
+                  }}
+                  title="Kliknij, aby skopiować email"
+                >
+                  {email}
+                </td>
+
                 <td className="break-words">{phone}</td>
 
                 {showAbonFields && <td>{abonament}</td>}

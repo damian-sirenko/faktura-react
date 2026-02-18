@@ -15,7 +15,6 @@ function parseJsonSafe(val, fallback) {
   }
 }
 
-/* Нормалізація рядка таблиці до нового формату */
 function normRow(r) {
   const qty = r?.qty ?? r?.packages ?? r?.packs ?? r?.count ?? r?.ilosc ?? "";
   const ship =
@@ -26,8 +25,15 @@ function normRow(r) {
     r?.deliveryCost ??
     r?.wysylka ??
     "";
+
+  const date =
+    typeof r?.date === "string" && r.date.trim()
+      ? r.date.slice(0, 10)
+      : new Date().toISOString().slice(0, 10);
+
   return {
     id: r?.id || Math.random().toString(36).slice(2, 10),
+    date,
     clientId: String(r?.clientId || r?.client_id || "").trim(),
     clientName: String(
       r?.clientName || r?.client || r?.name || r?.Klient || ""
@@ -63,11 +69,13 @@ module.exports = {
   },
 
   async upsertWorkspace(rows) {
+    const safe = Array.isArray(rows) ? rows : [];
+
     await sql(
       `INSERT INTO psl_workspace (id, rows_json, updatedAt)
        VALUES (1, ?, NOW())
        ON DUPLICATE KEY UPDATE rows_json=VALUES(rows_json), updatedAt=NOW()`,
-      [JSON.stringify(Array.isArray(rows) ? rows : [])]
+      [JSON.stringify(safe)]
     );
   },
 
@@ -138,7 +146,7 @@ module.exports = {
 
   async savedIndex() {
     const rows = await sql(
-      `SELECT id, ym, title, totals_qty, totals_total, createdAt
+      `SELECT id, ym, title, totals_qty, totals_ship, totals_total, createdAt
        FROM psl_saved
        WHERE COALESCE(deleted,0)=0
        ORDER BY ym DESC, createdAt DESC`
@@ -149,8 +157,10 @@ module.exports = {
       title: r.title,
       totals: {
         qty: Number(r.totals_qty || 0),
+        ship: Number(r.totals_ship || 0),
         total: Number(r.totals_total || 0),
       },
+
       createdAt: r.createdAt,
     }));
   },

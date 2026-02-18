@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+
+    <title>Raport sterylizacji</title>
+  </head>
+
+  <body>
+    <div class="page">
+      <div class="protocol">
+        <h1 class="protocol-title">Raport sterylizacji</h1>
+
+        <div class="protocol-content-wrap">
+          <div class="protocol-col-left">
+            <div class="row">
+              <div class="protocol-date">
+                Data: <span class="value-bold">{{date}}</span>
+              </div>
+
+              <div class="protocol-cykl">
+                Nr cyklu: <span class="value-bold">{{cycle_number}}</span>
+              </div>
+
+              <div class="protocol-report">W tym miejscu podkleić raport</div>
+              <div class="signature">
+                <div class="signature-name">Dmytro Sirenko</div>
+                <div class="signature-label">Podpis osoby odpowiedzialnej</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="protocol-col-right">
+            <div class="row">
+              <div class="protocol-params">
+                <div class="protocol-params-header">
+                  Parametry krytyczne procesu
+                </div>
+                <div class="protocol-params-value">
+                  <div class="protocol-temp">
+                    Temperatura: <span class="value-bold">{{program}}</span>
+                  </div>
+                  <div class="protocol-time">
+                    Czas: <span class="value-bold">{{duration}}</span>
+                  </div>
+                  <div class="protocol-presure">
+                    Ciśnienie:
+                    <span class="value-bold"
+                      >{{pressure_min}} - {{pressure_max}}</span
+                    >
+                  </div>
+                </div>
+              </div>
+              <div class="clients">
+                <div class="section-title">
+                  Podmioty dla których zostały wysterylizowane narzędzia w danym
+                  cyklu
+                </div>
+                <div class="clients-box">{{clients}}</div>
+              </div>
+            </div>
+            <div class="indicators">
+              <div class="indicator-row">
+                <div class="text-gora">
+                  <span class="text-vertical">góra</span>
+                </div>
+
+                <div class="indicators-place-wrap">
+                  <div class="indicators-place-top"></div>
+
+                  <div class="indicators-place-bottom">
+                    <div class="indicators-text">Wskaźnik wybarwiony</div>
+
+                    <div class="indicators-checkbox">
+                      <span class="checkbox-box"></span>
+                      prawidłowo
+                    </div>
+
+                    <div class="indicators-checkbox">
+                      <span class="checkbox-box"></span>
+                      nieprawidłowo
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="indicator-row">
+                <div class="text-gora">
+                  <span class="text-vertical">środek</span>
+                </div>
+
+                <div class="indicators-place-wrap">
+                  <div class="indicators-place-top"></div>
+
+                  <div class="indicators-place-bottom">
+                    <div class="indicators-text">Wskaźnik wybarwiony</div>
+
+                    <div class="indicators-checkbox">
+                      <span class="checkbox-box"></span>
+                      prawidłowo
+                    </div>
+
+                    <div class="indicators-checkbox">
+                      <span class="checkbox-box"></span>
+                      nieprawidłowo
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="indicator-row">
+                <div class="text-gora">
+                  <span class="text-vertical">dół</span>
+                </div>
+
+                <div class="indicators-place-wrap">
+                  <div class="indicators-place-top"></div>
+
+                  <div class="indicators-place-bottom">
+                    <div class="indicators-text">Wskaźnik wybarwiony</div>
+
+                    <div class="indicators-checkbox">
+                      <span class="checkbox-box"></span>
+                      prawidłowo
+                    </div>
+
+                    <div class="indicators-checkbox">
+                      <span class="checkbox-box"></span>
+                      nieprawidłowo
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

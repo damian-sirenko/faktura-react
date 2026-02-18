@@ -41,17 +41,14 @@ export default function Header() {
   }
 
   const linkClass = ({ isActive }) =>
-    `inline-flex items-center whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold transition border ${
-      isActive
-        ? "bg-white text-[var(--primary-700)] border-white"
-        : "bg-transparent text-white border-white hover:bg-blue-500 hover:text-white"
-    }`;
+    isActive ? "menu-link menu-link-active" : "menu-link";
 
   const [docsOpen, setDocsOpen] = useState(false);
   const [clientsOpen, setClientsOpen] = useState(false);
+  const [reportsOpen, setReportsOpen] = useState(false);
   const hideDocsTimer = useRef(null);
   const hideClientsTimer = useRef(null);
-
+  const hideReportsTimer = useRef(null);
   const openDocs = () => {
     if (hideDocsTimer.current) clearTimeout(hideDocsTimer.current);
     setDocsOpen(true);
@@ -69,6 +66,20 @@ export default function Header() {
     if (hideClientsTimer.current) clearTimeout(hideClientsTimer.current);
     setClientsOpen(true);
   };
+  const openReports = () => {
+    if (hideReportsTimer.current) clearTimeout(hideReportsTimer.current);
+    setReportsOpen(true);
+  };
+
+  const closeReportsSoon = () => {
+    if (hideReportsTimer.current) clearTimeout(hideReportsTimer.current);
+    hideReportsTimer.current = setTimeout(() => setReportsOpen(false), 350);
+  };
+
+  const toggleReports = () => {
+    if (hideReportsTimer.current) clearTimeout(hideReportsTimer.current);
+    setReportsOpen((v) => !v);
+  };
   const closeClientsSoon = () => {
     if (hideClientsTimer.current) clearTimeout(hideClientsTimer.current);
     hideClientsTimer.current = setTimeout(() => setClientsOpen(false), 350);
@@ -81,6 +92,7 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [docsOpenMobile, setDocsOpenMobile] = useState(false);
   const [clientsOpenMobile, setClientsOpenMobile] = useState(false);
+  const [reportsOpenMobile, setReportsOpenMobile] = useState(false);
 
   useEffect(() => {
     setDocsOpen(false);
@@ -91,9 +103,30 @@ export default function Header() {
   }, [location.pathname, location.search]);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
+    let ticking = false;
+
+    const SCROLL_DOWN_AT = 40;
+    const SCROLL_UP_AT = 10;
+
+    const onScroll = () => {
+      if (ticking) return;
+
+      ticking = true;
+      requestAnimationFrame(() => {
+        const y = window.scrollY;
+
+        setScrolled((prev) => {
+          if (!prev && y > SCROLL_DOWN_AT) return true;
+          if (prev && y < SCROLL_UP_AT) return false;
+          return prev;
+        });
+
+        ticking = false;
+      });
+    };
+
     onScroll();
-    window.addEventListener("scroll", onScroll);
+    window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
@@ -102,9 +135,11 @@ export default function Header() {
       if (e.key === "Escape") {
         setDocsOpen(false);
         setClientsOpen(false);
+        setReportsOpen(false);
         setMenuOpen(false);
         setDocsOpenMobile(false);
         setClientsOpenMobile(false);
+        setReportsOpenMobile(false);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -120,12 +155,12 @@ export default function Header() {
 
   const docsMatchA = useMatch("/documents/*");
   const docsMatchB = useMatch("/saved");
-  const docsActive = !!docsMatchA || !!docsMatchB;
+  const docsMatchC = useMatch("/protocol-entry");
+  const docsActive = !!docsMatchA || !!docsMatchB || !!docsMatchC;
 
   const clientsMatchA = useMatch("/clients");
   const clientsMatchB = useMatch("/clients/*");
   const clientsActive = !!clientsMatchA || !!clientsMatchB;
-  
 
   const AuthButton = onLoginPage ? null : isAuthed ? (
     <button
@@ -147,13 +182,13 @@ export default function Header() {
   );
 
   return (
-    <header className="bg-blue-600 shadow-md sticky top-0 z-50 w-full">
-      <div
-        className={`w-full px-3 sm:px-4 md:px-6 lg:px-8 relative transition-all ${
-          scrolled ? "py-1" : "py-3"
-        }`}
-      >
-        <div className="w-full grid grid-cols-[auto_1fr_auto] items-center gap-3">
+    <header className="bg-blue-600 shadow-md sticky top-0 z-50 w-full h-[72px]">
+      <div className="w-full h-full px-3 sm:px-4 md:px-6 lg:px-8 relative">
+        <div
+          className={`w-full h-full grid grid-cols-[auto_1fr_auto] items-center gap-3 transition-transform duration-200 ease-out ${
+            scrolled ? "scale-[0.92]" : "scale-100"
+          }`}
+        >
           <div className="flex items-center">
             <Link
               to="/"
@@ -162,17 +197,16 @@ export default function Header() {
               <img
                 src="/img/steryl-serwis-logo.png"
                 alt="Steryl Serwis"
-                className={`w-auto transition-all ${
-                  scrolled ? "h-8 lg:h-9" : "h-10 lg:h-12"
-                }`}
+                className="h-10 lg:h-12 w-auto"
               />
+
               <span className="pl-3 border-l border-blue-200 text-[22px] tracking-wide text-blue-100 font-bold">
                 Panel
               </span>
             </Link>
           </div>
 
-          <div className="hidden lg:flex justify-center">
+          <div className="hidden lg:flex absolute left-1/2 -translate-x-1/2">
             <nav className="flex items-center gap-2 flex-wrap py-2">
               <NavLink to="/" className={linkClass} end>
                 Start
@@ -191,10 +225,8 @@ export default function Header() {
                   aria-haspopup="menu"
                   aria-controls="clients-menu"
                   onClick={toggleClients}
-                  className={`inline-flex items-center rounded-lg px-3 py-2 text-sm font-semibold transition border ${
-                    clientsActive
-                      ? "bg-white text-[var(--primary-700)] border-white"
-                      : "bg-transparent text-white border-white hover:bg-blue-500 hover:text-white"
+                  className={`menu-link ${
+                    clientsActive ? "menu-link-active" : ""
                   }`}
                 >
                   Klienci{" "}
@@ -206,7 +238,7 @@ export default function Header() {
                 <div
                   id="clients-menu"
                   role="menu"
-                  className={`absolute left-0 mt-1 w-64 rounded-lg border bg-white shadow z-50 ${
+                  className={`absolute right-0 mt-1 w-64 rounded-lg border bg-white shadow z-50 ${
                     clientsOpen ? "block" : "hidden"
                   }`}
                   onMouseEnter={openClients}
@@ -216,11 +248,9 @@ export default function Header() {
                     to="/clients/abonamentowi"
                     role="menuitem"
                     className={({ isActive }) =>
-                      `block px-3 py-2 rounded-md transition ${
-                        isActive
-                          ? "bg-white text-[var(--primary-700)]"
-                          : "text-[var(--primary-700)] bg-white hover:bg-blue-500 hover:text-white"
-                      }`
+                      isActive
+                        ? "dropdown-link dropdown-link-active"
+                        : "dropdown-link"
                     }
                   >
                     Abonamentowi
@@ -229,11 +259,9 @@ export default function Header() {
                     to="/clients/prywatni"
                     role="menuitem"
                     className={({ isActive }) =>
-                      `block px-3 py-2 rounded-md transition ${
-                        isActive
-                          ? "bg-white text-[var(--primary-700)]"
-                          : "text-[var(--primary-700)] bg-white hover:bg-blue-500 hover:text-white"
-                      }`
+                      isActive
+                        ? "dropdown-link dropdown-link-active"
+                        : "dropdown-link"
                     }
                   >
                     Prywatni
@@ -242,11 +270,9 @@ export default function Header() {
                     to="/clients/prywatni/ewidencja"
                     role="menuitem"
                     className={({ isActive }) =>
-                      `block pl-6 pr-3 py-2 rounded-md transition ${
-                        isActive
-                          ? "bg-white text-[var(--primary-700)]"
-                          : "text-[var(--primary-700)] bg-white hover:bg-blue-500 hover:text-white"
-                      }`
+                      isActive
+                        ? "dropdown-link dropdown-link-active pl-6 pr-3"
+                        : "dropdown-link pl-6 pr-3"
                     }
                     title="Ewidencja sterylizacji prywatnej"
                   >
@@ -256,11 +282,9 @@ export default function Header() {
                     to="/clients/archiwum"
                     role="menuitem"
                     className={({ isActive }) =>
-                      `block px-3 py-2 rounded-md transition ${
-                        isActive
-                          ? "bg-white text-[var(--primary-700)]"
-                          : "text-[var(--primary-700)] bg-white hover:bg-blue-500 hover:text-white"
-                      }`
+                      isActive
+                        ? "dropdown-link dropdown-link-active"
+                        : "dropdown-link"
                     }
                   >
                     Archiwum
@@ -281,10 +305,8 @@ export default function Header() {
                   aria-haspopup="menu"
                   aria-controls="docs-menu"
                   onClick={toggleDocs}
-                  className={`inline-flex items-center rounded-lg px-3 py-2 text-sm font-semibold transition border ${
-                    docsActive
-                      ? "bg-white text-[var(--primary-700)] border-white"
-                      : "bg-transparent text-white border-white hover:bg-blue-500 hover:text-white"
+                  className={`menu-link ${
+                    docsActive ? "menu-link-active" : ""
                   }`}
                 >
                   Dokumenty{" "}
@@ -296,7 +318,7 @@ export default function Header() {
                 <div
                   id="docs-menu"
                   role="menu"
-                  className={`absolute right-0 mt-1 w-56 rounded-lg border bg-white shadow z-50 ${
+                  className={`absolute left-0 mt-1 w-56 rounded-lg border bg-white shadow z-50 ${
                     docsOpen ? "block" : "hidden"
                   }`}
                   onMouseEnter={openDocs}
@@ -306,11 +328,9 @@ export default function Header() {
                     to="/saved"
                     role="menuitem"
                     className={({ isActive }) =>
-                      `block px-3 py-2 rounded-md transition ${
-                        isActive
-                          ? "bg-white text-[var(--primary-700)]"
-                          : "text-[var(--primary-700)] bg-white hover:bg-blue-500 hover:text-white"
-                      }`
+                      isActive
+                        ? "dropdown-link dropdown-link-active"
+                        : "dropdown-link"
                     }
                   >
                     Faktury
@@ -319,24 +339,44 @@ export default function Header() {
                     to="/documents/protocols"
                     role="menuitem"
                     className={({ isActive }) =>
-                      `block px-3 py-2 rounded-md transition ${
-                        isActive
-                          ? "bg-white text-[var(--primary-700)]"
-                          : "text-[var(--primary-700)] bg-white hover:bg-blue-500 hover:text-white"
-                      }`
+                      isActive
+                        ? "dropdown-link dropdown-link-active"
+                        : "dropdown-link"
                     }
                   >
                     Protokoły
                   </NavLink>
                   <NavLink
+                    to="/protocol-entry"
+                    role="menuitem"
+                    className={({ isActive }) =>
+                      isActive
+                        ? "dropdown-link dropdown-link-active"
+                        : "dropdown-link"
+                    }
+                  >
+                    Dodaj wpis do protokołu
+                  </NavLink>
+
+                  <NavLink
+                    to="/sign-queue?type=courier"
+                    role="menuitem"
+                    className={({ isActive }) =>
+                      isActive
+                        ? "dropdown-link dropdown-link-active"
+                        : "dropdown-link"
+                    }
+                  >
+                    Wpisy do protokołów
+                  </NavLink>
+
+                  <NavLink
                     to="/documents/tools"
                     role="menuitem"
                     className={({ isActive }) =>
-                      `block px-3 py-2 rounded-md transition ${
-                        isActive
-                          ? "bg-white text-[var(--primary-700)]"
-                          : "text-[var(--primary-700)] bg-white hover:bg-blue-500 hover:text-white"
-                      }`
+                      isActive
+                        ? "dropdown-link dropdown-link-active"
+                        : "dropdown-link"
                     }
                   >
                     Narzędzia
@@ -344,12 +384,55 @@ export default function Header() {
                 </div>
               </div>
 
+              <div
+                className="relative"
+                onMouseEnter={openReports}
+                onMouseLeave={closeReportsSoon}
+                onFocus={openReports}
+                onBlur={closeReportsSoon}
+              >
+                <button
+                  type="button"
+                  aria-expanded={reportsOpen ? "true" : "false"}
+                  aria-haspopup="menu"
+                  onClick={toggleReports}
+                  className={`menu-link ${
+                    reportsOpen ? "menu-link-active" : ""
+                  }`}
+                >
+                  Raporty{" "}
+                  <span className="ml-1" aria-hidden>
+                    ▾
+                  </span>
+                </button>
+
+                {reportsOpen && (
+                  <div
+                    className="absolute left-0 mt-1 w-72 rounded-lg border bg-white shadow z-50"
+                    onMouseEnter={openReports}
+                    onMouseLeave={closeReportsSoon}
+                  >
+                    <NavLink to="/sterilization" className="dropdown-link">
+                      Ewidencja sterylizacji
+                    </NavLink>
+                    <NavLink
+                      to="/disinfection/report"
+                      className="dropdown-link"
+                    >
+                      Ewidencja dezynfekcji
+                    </NavLink>
+                    <NavLink
+                      to="/reports/tools-cards"
+                      className="dropdown-link"
+                    >
+                      Karty sterylizacji narzędzi
+                    </NavLink>
+                  </div>
+                )}
+              </div>
+
               <NavLink to="/stats" className={linkClass}>
                 Statystyki
-              </NavLink>
-
-              <NavLink to="/sign-queue?type=courier" className={linkClass}>
-                Do podpisu
               </NavLink>
 
               <NavLink to="/admin-counter" className={linkClass}>
@@ -362,7 +445,12 @@ export default function Header() {
             <div className="hidden lg:block">{AuthButton}</div>
 
             <button
-              className="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-lg bg-blue-500 text-white hover:bg-white hover:text-blue-700 border border-white transition"
+              className={`lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-lg border border-white transition
+             ${
+               menuOpen
+                 ? "bg-blue-500 text-white"
+                 : "bg-blue-500 text-white hover:bg-white hover:text-blue-700"
+             }`}
               aria-label="Menu"
               aria-expanded={menuOpen ? "true" : "false"}
               onClick={() => setMenuOpen((v) => !v)}
@@ -454,9 +542,19 @@ export default function Header() {
                   <NavLink to="/saved" className={linkClass}>
                     Faktury
                   </NavLink>
+
                   <NavLink to="/documents/protocols" className={linkClass}>
                     Protokoły
                   </NavLink>
+
+                  <NavLink to="/protocol-entry" className={linkClass}>
+                    Dodaj wpis do protokołu
+                  </NavLink>
+
+                  <NavLink to="/sign-queue?type=courier" className={linkClass}>
+                    Wpisy do protokołów
+                  </NavLink>
+
                   <NavLink to="/documents/tools" className={linkClass}>
                     Narzędzia
                   </NavLink>
@@ -464,12 +562,38 @@ export default function Header() {
               )}
             </div>
 
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => setReportsOpenMobile((v) => !v)}
+                className={`inline-flex items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold transition border ${
+                  reportsOpenMobile
+                    ? "bg-white text-blue-700 border-white"
+                    : "bg-blue-500 text-white border-white hover:bg-white hover:text-blue-700"
+                }`}
+                aria-expanded={reportsOpenMobile ? "true" : "false"}
+              >
+                <span>Raporty</span>
+                <span aria-hidden>{reportsOpenMobile ? "▴" : "▾"}</span>
+              </button>
+
+              {reportsOpenMobile && (
+                <div className="pl-2 flex flex-col gap-2">
+                  <NavLink to="/reports/sterilization" className={linkClass}>
+                    Ewidencja sterylizacji
+                  </NavLink>
+                  <NavLink to="/disinfection/report" className={linkClass}>
+                    Ewidencja dezynfekcji
+                  </NavLink>
+                  <NavLink to="/reports/tools-cards" className={linkClass}>
+                    Karty sterylizacji narzędzi
+                  </NavLink>
+                </div>
+              )}
+            </div>
+
             <NavLink to="/stats" className={linkClass}>
               Statystyki
-            </NavLink>
-
-            <NavLink to="/sign-queue?type=courier" className={linkClass}>
-              Do podpisu
             </NavLink>
 
             <NavLink to="/admin-counter" className={linkClass}>
@@ -501,4 +625,3 @@ export default function Header() {
     </header>
   );
 }
- 

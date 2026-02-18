@@ -15,21 +15,13 @@ function newId(label) {
 
 function isRowEmpty(r) {
   if (!r || typeof r !== "object") return true;
-  const name = String(r.clientName || r.client || "").trim();
-  const qty = r.qty ?? r.packages ?? r.packs ?? r.count ?? r.ilosc ?? "";
-  const ship =
-    r.shipOrCourier ??
-    r.ship ??
-    r.courier ??
-    r.shippingCost ??
-    r.deliveryCost ??
-    r.wysylka ??
-    "";
-  return (
-    name === "" &&
-    (qty === "" || Number(qty) === 0) &&
-    (ship === "" || Number(ship) === 0)
-  );
+
+  const name = String(r.clientName || "").trim();
+  const qty = Number(r.qty || 0);
+  const ship = Number(r.shipOrCourier || 0);
+  const date = String(r.date || "").trim();
+
+  return name === "" && qty === 0 && ship === 0 && date === "";
 }
 
 /* ========= WORKSPACE ========= */
@@ -52,7 +44,7 @@ router.put("/workspace", async (req, res) => {
     const cleaned = incoming
       .filter((r) => !isRowEmpty(r))
       .map(({ isNew, ...rest }) => rest);
-
+     
     // ВАЖЛИВО: завжди перезаписуємо workspace, навіть якщо cleaned порожній,
     // щоб після фіналізації місяця в БД зберігався порожній масив, а не старі дані
     await pslRepo.upsertWorkspace(cleaned);
@@ -63,7 +55,6 @@ router.put("/workspace", async (req, res) => {
     res.status(500).json({ error: "Cannot save workspace" });
   }
 });
-
 
 /* ========= SAVED INDEX ========= */
 router.get("/saved-index", async (_req, res) => {
